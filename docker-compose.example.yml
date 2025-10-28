@@ -1,0 +1,45 @@
+
+services:
+  app:
+    build: .
+    container_name: nezhdanchik_app
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    volumes:
+      - .:/rails
+
+  db:
+    image: postgres:15
+    container_name: nezhdanchik_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${PGUSER}         # задаётся в .env
+      POSTGRES_PASSWORD: ${PGPASSWORD} # задаётся в .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+
+    # В dev/test пробрасываем порт наружу
+    profiles: ["dev", "test"]
+    ports:
+      - "5433:5432"  # внешний:внутренний
+
+  redis:
+    image: redis:7
+    container_name: nezhdanchik_redis
+    restart: always
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}"] # задаётся в .env
+    volumes:
+      - redis_data:/data
+
+    # В dev/test пробрасываем порт наружу
+    profiles: ["dev", "test"]
+    ports:
+      - "6380:6379"  # внешний:внутренний
+
+volumes:
+  postgres_data:

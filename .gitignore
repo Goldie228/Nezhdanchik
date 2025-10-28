@@ -3,8 +3,9 @@
 /.bundle
 
 # Ignore all environment files (except templates).
-/.env*
+/.env
 !/.env*.erb
+/docker-compose.yml
 
 # Ignore all logfiles and tempfiles.
 /log/*
