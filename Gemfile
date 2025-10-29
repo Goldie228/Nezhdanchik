@@ -50,3 +50,4 @@ group :test do
 end
 
 gem "tailwindcss-rails", "~> 4.4"
+gem "avo", ">= 3.2"
