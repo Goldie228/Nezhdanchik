@@ -15,7 +15,6 @@
 #
 require "rails_helper"
 
-
 RSpec.describe Dish, type: :model do
   let(:category) { Category.create!(name: "Пиццы", slug: "pizzas") }
 
@@ -93,6 +92,33 @@ RSpec.describe Dish, type: :model do
     it "is valid with all required attributes" do
       dish = Dish.new(title: "Маргарита", price: 10, slug: "margarita", category: category)
       expect(dish).to be_valid
+    end
+
+    it "is invalid if cooking_time_minutes is not integer" do
+      dish = Dish.new(title: "Маргарита", price: 10, slug: "margarita", category: category, cooking_time_minutes: 12.5)
+      expect(dish).not_to be_valid
+      expect(dish.errors[:cooking_time_minutes]).to include("must be an integer")
+    end
+
+    it "is invalid if cooking_time_minutes is zero or negative" do
+      dish = Dish.new(title: "Маргарита", price: 10, slug: "margarita", category: category, cooking_time_minutes: 0)
+      expect(dish).not_to be_valid
+    end
+
+    it "is invalid if description is too long" do
+      dish = Dish.new(title: "Маргарита", price: 10, slug: "margarita", category: category, description: "a" * 6000)
+      expect(dish).not_to be_valid
+      expect(dish.errors[:description]).to include("is too long (maximum is 5000 characters)")
+    end
+  end
+
+  describe "scopes" do
+    it "returns only active dishes" do
+      active_dish = Dish.create!(title: "Активная", price: 10, slug: "active", category: category, active: true)
+      inactive_dish = Dish.create!(title: "Неактивная", price: 10, slug: "inactive", category: category, active: false)
+
+      expect(Dish.active).to include(active_dish)
+      expect(Dish.active).not_to include(inactive_dish)
     end
   end
 end
