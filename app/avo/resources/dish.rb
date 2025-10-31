@@ -1,4 +1,3 @@
-
 class Avo::Resources::Dish < Avo::BaseResource
   self.title = :title
   self.includes = [:category]
@@ -18,5 +17,7 @@ class Avo::Resources::Dish < Avo::BaseResource
     field :category, as: :belongs_to, translation_key: "avo.field_translations.category"
     field :photos, as: :files, is_image: true, direct_upload: true, multiple: true,
       translation_key: "avo.field_translations.photos"
+
+    field :dish_ingredients, as: :has_many, show_on: :edit, attach_scope: -> { DishIngredient.all }
   end
 end

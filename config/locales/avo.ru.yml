@@ -2,6 +2,7 @@ ru:
   avo:
     dashboard: "Панель"
     actions: "Действия"
+
     resource_translations:
       dish:
         zero: "Блюд"
@@ -11,6 +12,14 @@ ru:
         zero: "Категорий"
         one: "Категория"
         other: "Категории"
+      ingredient:
+        zero: "Ингредиентов"
+        one: "Ингредиент"
+        other: "Ингредиенты"
+      dish_ingredient:
+        zero: "Связей блюд и ингредиентов"
+        one: "Связь блюда и ингредиента"
+        other: "Связи блюд и ингредиентов"
 
     field_translations:
       id: "ID"
@@ -26,3 +35,8 @@ ru:
       name: "Название"
       photo: "Фото"
       dishes: "Блюда"
+      available: "Доступен"
+      allergen: "Аллерген"
+      ingredient: "Ингредиент"
+      dish: "Блюдо"
+      default: "По умолчанию"
