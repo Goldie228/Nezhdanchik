@@ -13,15 +13,19 @@
     <link rel="icon" href="/icon.png" type="image/png">
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
 
     <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
-    <main class="container mx-auto mt-28 px-5 flex">
-      <%= yield %>
+  <body class="bg-base-100">
+    <main class="container mx-auto px-5">
+      <div class="bg-base-200 shadow-lg p-8 min-h-screen my-0">
+        <%= yield %>
+      </div>
     </main>
   </body>
 </html>

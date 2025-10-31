@@ -1,0 +1,47 @@
+
+<% if new_category && dish_counter == 0 %>
+  <div class="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold text-center py-4 sm:py-6 lg:py-8 mb-2 border-b col-span-full mt-6 sm:mt-8">
+    <%= category.name.squish %>
+
+    <p class="mt-4 sm:mt-6 text-base sm:text-lg text-center font-normal leading-relaxed max-w-3xl mx-auto">
+      <%= category.description %>
+    </p>
+  </div>
+<% end %>
+
+<div class="card bg-base-100 shadow-md hover:shadow-lg transition-all duration-300 w-full h-auto sm:h-[400px] mx-auto">
+  <% if dish.photos.attached? %>
+    <figure class="hover-gallery w-full h-40 sm:h-48 overflow-hidden">
+      <% dish.photos.each do |photo| %>
+        <%= image_tag photo.variant(resize_to_limit: [300, 200]),
+                      class: "w-full h-full object-cover rounded-t-lg",
+                      loading: "lazy" %>
+      <% end %>
+    </figure>
+  <% end %>
+
+  <div class="card-body p-3 sm:p-4 flex flex-col justify-between h-48">
+    <div class="flex-grow">
+      <h3 class="card-title flex justify-between items-start sm:items-center text-sm sm:text-base">
+        <span class="pr-2"><%= dish.title %></span>
+        <span class="text-base sm:text-lg font-semibold text-primary whitespace-nowrap"><%= dish.price %> BYN</span>
+      </h3>
+      <p class="text-xs sm:text-sm text-neutral-content mt-2 line-clamp-3">
+        <%= truncate(dish.description, length: 50) %>
+      </p>
+    </div>
+
+    <div class="card-actions justify-end mt-3 sm:mt-4 flex flex-wrap gap-2">
+      <%= link_to "Подробнее", "#", class: "btn btn-outline btn-xs sm:btn-sm flex-1 sm:flex-none" %>
+      <%= button_to "В корзину", "#", method: :post, class: "btn btn-primary btn-xs sm:btn-sm flex-1 sm:flex-none" %>
+    </div>
+  </div>
+</div>
+
+<% if dish_counter == @dishes.size - 1 %>
+  <div class="hidden state-updater"
+       data-loaded-categories="<%= loaded_categories.join(',') %>"
+       data-category-offsets="<%= category_offsets.map { |k, v| "#{k}:#{v}" }.join(',') %>"
+       data-current-category-id="<%= current_category_id %>">
+  </div>
+<% end %>

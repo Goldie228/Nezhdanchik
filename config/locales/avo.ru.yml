@@ -1,0 +1,27 @@
+ru:
+  avo:
+    dashboard: "Панель"
+    actions: "Действия"
+    resource_translations:
+      dish:
+        zero: "Блюд"
+        one: "Блюдо"
+        other: "Блюда"
+      category:
+        zero: "Категорий"
+        one: "Категория"
+        other: "Категории"
+
+    field_translations:
+      id: "ID"
+      title: "Название"
+      description: "Описание"
+      price: "Цена"
+      slug: "Слаг"
+      active: "Активно"
+      cooking_time_minutes: "Время приготовления (мин)"
+      category: "Категория"
+      photos: "Фотографии"
+      name: "Название"
+      photo: "Фото"
+      dishes: "Блюда"

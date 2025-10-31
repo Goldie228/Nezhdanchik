@@ -1,0 +1,39 @@
+<!-- app/views/dishes/index.html.erb -->
+<div class="container mx-auto px-4 sm:px-6 lg:px-8">
+  <header class="py-6 sm:py-8 lg:py-10">
+    <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-center">Меню</h1>
+  </header>
+
+  <section class="mb-6 sm:mb-8">
+    <h2 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-center py-4 sm:py-6 lg:py-8 border-b">
+      <%= @category.name.squish %>
+      <p class="mt-4 sm:mt-6 text-base sm:text-lg font-normal text-center leading-relaxed max-w-3xl mx-auto">
+        <%= @category.description %>
+      </p>
+    </h2>
+  </section>
+  
+  <main>
+    <div id="dishes-list"
+         class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
+         data-controller="infinite-scroll"
+         data-infinite-scroll-url-value="<%= load_more_dishes_path(@category.slug) %>"
+         data-infinite-scroll-loaded-categories-value="<%= @loaded_categories.join(',') %>"
+         data-infinite-scroll-category-offsets-value="<%= @category_offsets.map { |k, v| "#{k}:#{v}" }.join(',') %>"
+         data-infinite-scroll-current-category-id-value="<%= @category.id %>">
+      
+      <%= render partial: "dishes/dish", collection: @dishes, locals: { 
+        category: @category, 
+        new_category: false,
+        current_category_id: @category.id,
+        loaded_categories: @loaded_categories,
+        category_offsets: @category_offsets
+      } %>
+
+      <!-- Делаем триггер растянутым на всю ширину сетки -->
+      <div id="load-more-trigger"
+           data-infinite-scroll-target="trigger"
+           class="h-10 col-span-full"></div>
+    </div>
+  </main>
+</div>

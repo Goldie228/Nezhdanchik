@@ -1,0 +1,42 @@
+<table class="w-full">
+  <thead>
+    <tr>
+      <th class="text-3xl md:text-5xl font-bold text-center py-6 sm:py-8 lg:py-10">
+        Меню
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 py-6 sm:py-8">
+          <% @categories.each do |category| %>
+            <% if category.active %>
+              <%= link_to category_dishes_path(category.slug),
+                class: "card image-full w-full shadow-sm cursor-pointer transition hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]" do %>
+                <figure class="relative">
+                  <div class="skeleton w-full h-[192px] rounded-lg absolute inset-0"></div>
+
+                  <% if category.photo.attached? %>
+                    <%= image_tag category.photo.variant(resize_to_limit: [600, 300]),
+                      class: "w-full h-48 object-cover rounded-lg relative",
+                      loading: "lazy",
+                      decoding: "async" %>
+                  <% end %>
+                </figure>
+                <div class="card-body p-4 sm:p-6">
+                  <h2 class="card-title text-lg sm:text-xl lg:text-2xl">
+                    <%= category.name %>
+                  </h2>
+                  <p class="text-sm sm:text-base text-neutral-content">
+                    <%= truncate(category.description, length: 50) %>
+                  </p>
+                </div>
+              <% end %>
+            <% end %>
+          <% end %>
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>

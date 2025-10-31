@@ -22,9 +22,16 @@ gem "redis", ">= 4.0.1"
 gem "bcrypt", "~> 3.1.7"
 
 gem "tzinfo-data", platforms: %i[ windows jruby ]
+
 gem "bootsnap", require: false
 
 gem "image_processing", "~> 1.2"
+
+gem "tailwindcss-rails", "~> 4.4"
+
+gem "avo", ">= 3.2"
+
+gem "active_storage_validations"
 
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
@@ -32,6 +39,7 @@ group :development, :test do
   gem "brakeman", require: false
 
   gem "rubocop-rails-omakase", require: false
+  gem "factory_bot_rails"
 
   gem "dotenv-rails"
 end
@@ -44,10 +52,8 @@ end
 
 group :test do
   gem "capybara"
+  gem "shoulda-matchers"
   gem "database_cleaner-active_record"
   gem "shoulda-matchers"
   gem "selenium-webdriver"
 end
-
-gem "tailwindcss-rails", "~> 4.4"
-gem "avo", ">= 3.2"

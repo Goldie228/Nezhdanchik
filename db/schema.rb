@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_10_28_195850) do
+ActiveRecord::Schema[7.2].define(version: 2025_10_29_120042) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -42,6 +42,33 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_28_195850) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "categories", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description"
+    t.string "slug", null: false
+    t.boolean "active", default: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["slug"], name: "index_categories_on_slug", unique: true
+  end
+
+  create_table "dishes", force: :cascade do |t|
+    t.string "title", null: false
+    t.text "description"
+    t.decimal "price", precision: 10, scale: 2, null: false
+    t.string "slug", null: false
+    t.boolean "active", default: true
+    t.integer "cooking_time_minutes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "category_id"
+    t.index ["active"], name: "index_dishes_on_active"
+    t.index ["category_id"], name: "index_dishes_on_category_id"
+    t.index ["price"], name: "index_dishes_on_price"
+    t.index ["slug"], name: "index_dishes_on_slug", unique: true
+  end
+
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "dishes", "categories"
 end
