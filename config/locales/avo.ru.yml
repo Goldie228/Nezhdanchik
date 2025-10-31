@@ -20,6 +20,7 @@ ru:
       slug: "Слаг"
       active: "Активно"
       cooking_time_minutes: "Время приготовления (мин)"
+      weight: "Граммовка"
       category: "Категория"
       photos: "Фотографии"
       name: "Название"

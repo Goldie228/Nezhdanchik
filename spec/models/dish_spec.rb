@@ -12,6 +12,7 @@
 #  created_at           :datetime         not null
 #  updated_at           :datetime         not null
 #  category_id          :bigint
+#  weight               :integer
 #
 require "rails_helper"
 
@@ -119,6 +120,38 @@ RSpec.describe Dish, type: :model do
 
       expect(Dish.active).to include(active_dish)
       expect(Dish.active).not_to include(inactive_dish)
+    end
+  end
+
+  describe "validations for weight" do
+    it "is valid with default weight 100" do
+      dish = Dish.new(title: "Маргарита", price: 10, slug: "margarita", category: category)
+      expect(dish.weight).to eq(100)
+      expect(dish).to be_valid
+    end
+
+    it "is invalid with zero weight" do
+      dish = Dish.new(title: "Маргарита", price: 10, slug: "margarita", category: category, weight: 0)
+      expect(dish).not_to be_valid
+      expect(dish.errors[:weight]).to include("must be greater than 0")
+    end
+
+    it "is invalid with negative weight" do
+      dish = Dish.new(title: "Маргарита", price: 10, slug: "margarita", category: category, weight: -50)
+      expect(dish).not_to be_valid
+      expect(dish.errors[:weight]).to include("must be greater than 0")
+    end
+
+    it "is invalid with non-integer weight" do
+      dish = Dish.new(title: "Маргарита", price: 10, slug: "margarita", category: category, weight: 99.5)
+      expect(dish).not_to be_valid
+      expect(dish.errors[:weight]).to include("must be an integer")
+    end
+
+    it "is invalid with too large weight" do
+      dish = Dish.new(title: "Маргарита", price: 10, slug: "margarita", category: category, weight: 20_000)
+      expect(dish).not_to be_valid
+      expect(dish.errors[:weight]).to include("must be less than 10000")
     end
   end
 end

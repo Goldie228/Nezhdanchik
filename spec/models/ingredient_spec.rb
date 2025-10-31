@@ -1,3 +1,15 @@
+# == Schema Information
+#
+# Table name: ingredients
+#
+#  id         :bigint           not null, primary key
+#  name       :string           not null
+#  price      :decimal(8, 2)    default(0.0)
+#  available  :boolean          default(TRUE)
+#  allergen   :boolean          default(FALSE)
+#  created_at :datetime         not null
+#  updated_at :datetime         not null
+#
 require "rails_helper"
 
 RSpec.describe Ingredient, type: :model do

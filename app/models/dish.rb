@@ -12,6 +12,7 @@
 #  created_at           :datetime         not null
 #  updated_at           :datetime         not null
 #  category_id          :bigint
+#  weight               :integer
 #
 class Dish < ApplicationRecord
   belongs_to :category
@@ -31,6 +32,8 @@ class Dish < ApplicationRecord
   validates :photos,
             content_type: %w[image/png image/jpeg],
             size: { less_than: 5.megabytes }
+  validates :weight,
+            numericality: { only_integer: true, greater_than: 0, less_than: 10_000 }
 
   scope :active, -> { where(active: true) }
 
