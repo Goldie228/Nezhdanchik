@@ -12,7 +12,7 @@
 #  created_at           :datetime         not null
 #  updated_at           :datetime         not null
 #  category_id          :bigint
-#  weight               :integer
+#  weight               :integer          default(100), not null
 #
 class Dish < ApplicationRecord
   belongs_to :category

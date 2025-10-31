@@ -9,6 +9,7 @@
 #  allergen   :boolean          default(FALSE)
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
+#  weight     :integer          default(10), not null
 #
 require "rails_helper"
 
@@ -43,5 +44,55 @@ RSpec.describe Ingredient, type: :model do
       content_type: "image/png"
     )
     expect(ingredient.photo).to be_attached
+  end
+
+  describe "validations for weight" do
+    it "is valid with default weight 10" do
+      ingredient = Ingredient.new(name: "Cheese", price: 1.5)
+      expect(ingredient.weight).to eq(10)
+      expect(ingredient).to be_valid
+    end
+
+    it "is invalid with zero weight" do
+      ingredient = Ingredient.new(name: "Cheese", price: 1.5, weight: 0)
+      expect(ingredient).not_to be_valid
+      expect(ingredient.errors[:weight]).to be_present
+    end
+
+    it "is invalid with negative weight" do
+      ingredient = Ingredient.new(name: "Cheese", price: 1.5, weight: -5)
+      expect(ingredient).not_to be_valid
+      expect(ingredient.errors[:weight]).to be_present
+    end
+
+    it "is invalid with non-integer weight" do
+      ingredient = Ingredient.new(name: "Cheese", price: 1.5, weight: 12.5)
+      expect(ingredient).not_to be_valid
+      expect(ingredient.errors[:weight]).to be_present
+    end
+
+    it "is invalid with too large weight" do
+      ingredient = Ingredient.new(name: "Cheese", price: 1.5, weight: 20_000)
+      expect(ingredient).not_to be_valid
+      expect(ingredient.errors[:weight]).to be_present
+    end
+  end
+
+  describe "scopes" do
+    it "returns only available ingredients" do
+      available = Ingredient.create!(name: "Tomato", price: 1.0, available: true)
+      unavailable = Ingredient.create!(name: "Onion", price: 0.5, available: false)
+
+      expect(Ingredient.available).to include(available)
+      expect(Ingredient.available).not_to include(unavailable)
+    end
+
+    it "returns only allergens" do
+      allergen = Ingredient.create!(name: "Peanut", price: 2.0, allergen: true)
+      non_allergen = Ingredient.create!(name: "Cheese", price: 1.5, allergen: false)
+
+      expect(Ingredient.allergens).to include(allergen)
+      expect(Ingredient.allergens).not_to include(non_allergen)
+    end
   end
 end
