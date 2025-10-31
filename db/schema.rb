@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_10_29_120042) do
+ActiveRecord::Schema[7.2].define(version: 2025_10_31_080132) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -52,6 +52,18 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_29_120042) do
     t.index ["slug"], name: "index_categories_on_slug", unique: true
   end
 
+  create_table "dish_ingredients", force: :cascade do |t|
+    t.bigint "dish_id", null: false
+    t.bigint "ingredient_id", null: false
+    t.boolean "default", default: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["default"], name: "index_dish_ingredients_on_default"
+    t.index ["dish_id", "ingredient_id"], name: "index_dish_ingredients_on_dish_id_and_ingredient_id", unique: true
+    t.index ["dish_id"], name: "index_dish_ingredients_on_dish_id"
+    t.index ["ingredient_id"], name: "index_dish_ingredients_on_ingredient_id"
+  end
+
   create_table "dishes", force: :cascade do |t|
     t.string "title", null: false
     t.text "description"
@@ -68,7 +80,20 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_29_120042) do
     t.index ["slug"], name: "index_dishes_on_slug", unique: true
   end
 
+  create_table "ingredients", force: :cascade do |t|
+    t.string "name", null: false
+    t.decimal "price", precision: 8, scale: 2, default: "0.0"
+    t.boolean "available", default: true
+    t.boolean "allergen", default: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["available"], name: "index_ingredients_on_available"
+    t.index ["name"], name: "index_ingredients_on_name", unique: true
+  end
+
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "dish_ingredients", "dishes"
+  add_foreign_key "dish_ingredients", "ingredients"
   add_foreign_key "dishes", "categories"
 end
