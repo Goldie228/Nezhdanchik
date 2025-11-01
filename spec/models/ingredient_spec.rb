@@ -95,4 +95,28 @@ RSpec.describe Ingredient, type: :model do
       expect(Ingredient.allergens).not_to include(non_allergen)
     end
   end
+
+  describe "associations" do
+    it "can have nutrition info" do
+      ingredient = Ingredient.create!(name: "Cheese", price: 1.5)
+      nutrition = Nutrition.create!(nutritable: ingredient, proteins: 10, fats: 5, carbohydrates: 20)
+
+      expect(ingredient.nutrition).to eq(nutrition)
+      expect(nutrition.nutritable).to eq(ingredient)
+    end
+  end
+
+  describe "nutrition validations" do
+    let(:ingredient) { Ingredient.create!(name: "Tomato", price: 1.0) }
+
+    it "is valid with positive macros" do
+      nutrition = Nutrition.new(nutritable: ingredient, proteins: 2.5, fats: 0.3, carbohydrates: 4.0)
+      expect(nutrition).to be_valid
+    end
+
+    it "is invalid with negative macros" do
+      nutrition = Nutrition.new(nutritable: ingredient, proteins: -1, fats: -2, carbohydrates: -3)
+      expect(nutrition).not_to be_valid
+    end
+  end
 end

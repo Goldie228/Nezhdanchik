@@ -154,4 +154,28 @@ RSpec.describe Dish, type: :model do
       expect(dish.errors[:weight]).to include("must be less than 10000")
     end
   end
+
+  describe "associations" do
+    it "can have nutrition info" do
+      dish = Dish.create!(title: "Маргарита", price: 10, slug: "margarita", category: category)
+      nutrition = Nutrition.create!(nutritable: dish, proteins: 12, fats: 8, carbohydrates: 30)
+
+      expect(dish.nutrition).to eq(nutrition)
+      expect(nutrition.nutritable).to eq(dish)
+    end
+  end
+
+  describe "nutrition validations" do
+    let(:dish) { Dish.create!(title: "Пепперони", price: 12, slug: "pepperoni", category: category) }
+
+    it "is valid with proper macros" do
+      nutrition = Nutrition.new(nutritable: dish, proteins: 15, fats: 10, carbohydrates: 25)
+      expect(nutrition).to be_valid
+    end
+
+    it "is invalid with too large macros" do
+      nutrition = Nutrition.new(nutritable: dish, proteins: 2000, fats: 2000, carbohydrates: 2000)
+      expect(nutrition).not_to be_valid
+    end
+  end
 end
