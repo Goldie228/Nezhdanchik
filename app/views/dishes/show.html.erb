@@ -1,0 +1,434 @@
+<div class="min-h-screen bg-base-200">
+  <div class="container mx-auto px-4 py-4 md:py-8">
+    <!-- Хлебные крошки -->
+    <div class="text-sm breadcrumbs mb-4 md:mb-6">
+      <ul>
+        <li><%= link_to "Меню", menu_path, class: "text-primary hover:text-primary-focus" %></li>
+        <% if @dish.category %>
+          <li><%= link_to @dish.category.name, category_dishes_path(@category.slug), class: "text-primary hover:text-primary-focus" %></li>
+        <% end %>
+        <li><span class="text-base-content/60"><%= @dish.title %></span></li>
+      </ul>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 md:gap-8">
+      <!-- Левая колонка: изображения -->
+      <div class="xl:col-span-2">
+        <!-- Карусель изображений блюда -->
+        <div class="card bg-base-100 shadow-xl md:shadow-2xl mb-4 md:mb-6">
+          <div class="card-body p-0">
+            <% if @dish.photos.attached? %>
+              <% if @dish.photos.length > 1 %>
+                <div class="carousel w-full rounded-2xl" id="dish-carousel">
+                  <% @dish.photos.each_with_index do |photo, index| %>
+                    <div id="slide<%= index %>" class="carousel-item relative w-full group">
+                      <%= image_tag url_for(photo.variant(resize_to_limit: [1000, 800])), 
+                                    class: "w-full h-48 sm:h-64 md:h-80 lg:h-96 object-cover cursor-zoom-in transition-transform duration-300 group-hover:scale-105",
+                                    alt: "#{@dish.title} - фото #{index + 1}",
+                                    onclick: "openImageModal('#{url_for(photo)}')" %>
+                      
+                      <!-- Навигация -->
+                      <div class="absolute inset-0 flex items-center justify-between p-2 md:p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <a href="#slide<%= index - 1 < 0 ? @dish.photos.length - 1 : index - 1 %>" 
+                           class="btn btn-circle btn-sm md:btn-md btn-ghost bg-base-100/80 hover:bg-base-100 border-0 shadow-lg">
+                          ❮
+                        </a> 
+                        <a href="#slide<%= (index + 1) % @dish.photos.length %>" 
+                           class="btn btn-circle btn-sm md:btn-md btn-ghost bg-base-100/80 hover:bg-base-100 border-0 shadow-lg">
+                          ❯
+                        </a>
+                      </div>
+
+                      <!-- Индикаторы -->
+                      <div class="absolute bottom-2 md:bottom-4 left-1/2 transform -translate-x-1/2">
+                        <div class="flex gap-1 md:gap-2 bg-base-100/80 rounded-full px-2 md:px-3 py-1 md:py-2 shadow-lg">
+                          <% @dish.photos.each_with_index do |_, i| %>
+                            <a href="#slide<%= i %>" 
+                               class="block w-2 h-2 md:w-3 md:h-3 rounded-full transition-all duration-300 <%= i == index ? 'bg-primary md:w-6' : 'bg-base-300' %>"></a>
+                          <% end %>
+                        </div>
+                      </div>
+
+                      <!-- Номер фото -->
+                      <div class="absolute top-2 md:top-4 right-2 md:right-4 bg-base-100/90 rounded-full px-2 md:px-3 py-1 text-xs md:text-sm font-medium shadow-lg">
+                        <%= index + 1 %> / <%= @dish.photos.length %>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+              <% else %>
+                <figure class="w-full h-48 sm:h-64 md:h-80 lg:h-96 group">
+                  <%= image_tag url_for(@dish.photos.first.variant(resize_to_limit: [1000, 800])), 
+                                class: "w-full h-full object-cover rounded-2xl cursor-zoom-in transition-transform duration-300 group-hover:scale-105",
+                                alt: @dish.title,
+                                onclick: "openImageModal('#{url_for(@dish.photos.first)}')" %>
+                </figure>
+              <% end %>
+            <% else %>
+              <figure class="w-full h-48 sm:h-64 md:h-80 lg:h-96">
+                <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" 
+                     class="w-full h-full object-cover rounded-t-2xl" 
+                     alt="<%= @dish.title %>" />
+              </figure>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Информация о блюде -->
+        <div class="card bg-base-100 shadow-xl mb-4 md:mb-6">
+          <div class="card-body p-4 md:p-6">
+            <div class="flex flex-col gap-4">
+              <div class="flex flex-col gap-2">
+                <h1 class="card-title text-2xl md:text-3xl lg:text-4xl font-bold text-primary">
+                  <%= @dish.title %>
+                </h1>
+                
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div class="text-xl md:text-2xl lg:text-3xl font-bold text-primary">
+                  </div>
+                  <div class="flex gap-2">
+                    <div class="badge badge-lg badge-outline">
+                      <%= @dish.weight %> г
+                    </div>
+                    <% if @dish.cooking_time_minutes %>
+                      <div class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-accent text-accent-content shadow-sm badge badge-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.5a.75.75 0 00-1.5 0V10a.75.75 0 00.3.6l2.5 1.9a.75.75 0 10.8-1.2L10.75 9.8V6.5z" clip-rule="evenodd" />
+                        </svg>
+                        <span class="text-sm font-medium hidden sm:inline">Время готовки</span>
+                        <span class="text-sm font-semibold"><%= pretty_cooking_time(@dish.cooking_time_minutes) %></span>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+              
+              <p class="text-base-content/70 text-base md:text-lg leading-relaxed">
+                <%= @dish.description %>
+              </p>
+
+              <% if @dish.category %>
+                <div class="flex items-center gap-3 p-3 md:p-4 bg-base-200 rounded-2xl">
+                  <span class="text-base-content/60 font-medium">Категория:</span>
+                  <span class="badge badge-primary badge-lg px-3 md:px-4 py-2 md:py-3 text-sm md:text-base">
+                    <%= @dish.category.name %>
+                  </span>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ингредиенты -->
+        <div class="space-y-4 md:space-y-6">
+          <!-- Ингредиенты по умолчанию -->
+          <% if @default_ingredients.any? %>
+            <div class="card bg-base-100 shadow-xl">
+              <div class="card-body p-4 md:p-6">
+                <div class="flex items-center gap-3 mb-3 md:mb-4">
+                  <div class="w-2 md:w-3 h-6 md:h-8 bg-primary rounded-full"></div>
+                  <h2 class="card-title text-xl md:text-2xl">Состав блюда</h2>
+                  <span class="badge badge-primary badge-md md:badge-lg"><%= @default_ingredients.size %> ингредиентов</span>
+                </div>
+                <div class="divider my-1 md:my-2"></div>
+                <div class="grid grid-cols-1 gap-3 md:gap-4 md:grid-cols-2">
+                  <% @default_ingredients.each do |di| %>
+                    <label class="card bg-base-200 shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer group">
+                      <div class="flex items-center gap-3 md:gap-4 p-3 md:p-4">
+                        <input type="checkbox" 
+                               class="checkbox checkbox-primary checkbox-md md:checkbox-lg ingredient-checkbox" 
+                               checked 
+                               data-ingredient-id="<%= di.ingredient.id %>"
+                               data-price="<%= di.ingredient.price %>"
+                               data-weight="<%= di.ingredient.weight %>"
+                               data-default="true" />
+                        
+                        <!-- Изображение ингредиента -->
+                        <figure class="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl overflow-hidden flex-shrink-0">
+                          <% if di.ingredient.photo.attached? %>
+                            <%= image_tag url_for(di.ingredient.photo.variant(resize_to_fill: [80, 80])), 
+                                          class: "w-full h-full object-cover group-hover:scale-110 transition-transform duration-300",
+                                          alt: di.ingredient.name %>
+                          <% end %>
+                        </figure>
+
+                        <div class="flex-1 min-w-0">
+                          <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 md:gap-2">
+                            <h3 class="font-semibold text-base md:text-lg truncate"><%= di.ingredient.name %></h3>
+                            <span class="text-primary font-semibold text-base md:text-lg whitespace-nowrap">
+                              +<%= number_to_currency(di.ingredient.price, unit: "BYN", format: "%n %u") %>
+                            </span>
+                          </div>
+                          <div class="flex items-center gap-2 mt-1">
+                            <span class="badge badge-ghost badge-xs md:badge-sm">
+                              <%= di.ingredient.weight %> г
+                            </span>
+                            <% if di.ingredient.allergen? %>
+                              <span class="badge badge-warning badge-xs md:badge-sm">Аллерген</span>
+                            <% end %>
+                          </div>
+                        </div>
+                      </div>
+                    </label>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+
+          <!-- Дополнительные ингредиенты -->
+          <% if @new_ingredients.any? %>
+            <div class="card bg-base-100 shadow-xl">
+              <div class="card-body p-4 md:p-6">
+                <div class="flex items-center gap-3 mb-3 md:mb-4">
+                  <div class="w-2 md:w-3 h-6 md:h-8 bg-accent rounded-full"></div>
+                  <h2 class="card-title text-xl md:text-2xl">Дополнительные ингредиенты</h2>
+                  <span class="badge badge-accent badge-md md:badge-lg">+<%= @new_ingredients.size %></span>
+                </div>
+                <div class="divider my-1 md:my-2"></div>
+                <div class="grid grid-cols-1 gap-3 md:gap-4 md:grid-cols-2">
+                  <% @new_ingredients.each do |di| %>
+                    <label class="card bg-base-200 shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer group">
+                      <div class="flex items-center gap-3 md:gap-4 p-3 md:p-4">
+                        <input type="checkbox" 
+                               class="checkbox checkbox-accent checkbox-md md:checkbox-lg ingredient-checkbox" 
+                               data-ingredient-id="<%= di.ingredient.id %>"
+                               data-price="<%= di.ingredient.price %>"
+                               data-weight="<%= di.ingredient.weight %>"
+                               data-default="false" />
+                        
+                        <!-- Изображение ингредиента -->
+                        <figure class="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl overflow-hidden flex-shrink-0">
+                          <% if di.ingredient.photo.attached? %>
+                            <%= image_tag url_for(di.ingredient.photo.variant(resize_to_fill: [80, 80])), 
+                                          class: "w-full h-full object-cover group-hover:scale-110 transition-transform duration-300",
+                                          alt: di.ingredient.name %>
+                          <% end %>
+                        </figure>
+
+                        <div class="flex-1 min-w-0">
+                          <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 md:gap-2">
+                            <h3 class="font-semibold text-base md:text-lg truncate"><%= di.ingredient.name %></h3>
+                            <span class="text-secondary-content font-semibold text-base md:text-lg whitespace-nowrap">
+                              +<%= number_to_currency(di.ingredient.price, unit: "BYN", format: "%n %u") %>
+                            </span>
+                          </div>
+                          <div class="flex items-center gap-2 mt-1">
+                            <span class="badge badge-ghost badge-xs md:badge-sm">
+                              <%= di.ingredient.weight %> г
+                            </span>
+                            <% if di.ingredient.allergen? %>
+                              <span class="badge badge-warning badge-xs md:badge-sm">Аллерген</span>
+                            <% end %>
+                          </div>
+                        </div>
+                      </div>
+                    </label>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Правая колонка: панель заказа -->
+      <div class="xl:col-span-1">
+        <div class="sticky top-4 md:top-6 space-y-4 md:space-y-6">
+          <!-- Панель заказа -->
+          <div class="card bg-gradient-to-br from-primary/10 via-primary/5 to-secondary/10 shadow-xl md:shadow-2xl border border-primary/20">
+            <div class="card-body p-4 md:p-6">
+              <h2 class="card-title text-xl md:text-2xl text-primary mb-2 flex items-center gap-2">
+                <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+                Ваш заказ
+              </h2>
+              
+              <div class="space-y-3 md:space-y-4 bg-base-100/90 rounded-xl md:rounded-2xl p-4 md:p-6 backdrop-blur-sm border border-base-200">
+                <div class="flex justify-between items-center text-base md:text-lg">
+                  <span class="text-base-content/70">Базовая цена:</span>
+                  <span id="base-price" class="font-semibold">
+                    <%= number_to_currency(@dish.price, unit: "BYN", format: "%n %u") %>
+                  </span>
+                </div>
+                <div class="flex justify-between items-center text-base md:text-lg">
+                  <span class="text-base-content/70">Дополнительно:</span>
+                  <span id="extras-price" class="font-semibold text-secondary-content">
+                    <%= number_to_currency(0, unit: "BYN", format: "%n %u") %>
+                  </span>
+                </div>
+                <div class="divider my-1 md:my-2"></div>
+                <div class="flex justify-between items-center text-lg md:text-xl font-bold text-primary">
+                  <span>Итого к оплате:</span>
+                  <span id="total-price" class="text-xl md:text-2xl">
+                    <%= number_to_currency(@dish.price, unit: "BYN", format: "%n %u") %>
+                  </span>
+                </div>
+                <div class="flex justify-between items-center text-sm md:text-base text-base-content/70">
+                  <span>Общий вес:</span>
+                  <span id="total-weight" class="font-medium">
+                    <%= @dish.weight %> г
+                  </span>
+                </div>
+              </div>
+
+              <div class="card-actions mt-4 md:mt-6">
+                <%= button_to "#", 
+                    method: :post,
+                    class: "btn btn-primary btn-md md:btn-lg w-full shadow-lg transform transition-all hover:scale-105 active:scale-95 duration-200",
+                    id: "order-button",
+                    form: { 
+                      data: { 
+                        turbo: false,
+                        ingredient_ids: "",
+                        removed_ingredient_ids: ""
+                      } 
+                    } do %>
+                  <svg class="w-5 h-5 md:w-6 md:h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                  </svg>
+                  Добавить в корзину
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно для просмотра изображений -->
+<dialog id="image_modal" class="modal">
+  <div class="modal-box max-w-7xl w-11/12 h-5/6 max-h-full p-0 bg-transparent shadow-none">
+    <form method="dialog" class="absolute right-2 md:right-4 top-2 md:top-4 z-10">
+      <button class="btn btn-circle btn-sm md:btn-md btn-ghost bg-base-100/80 hover:bg-base-100 border-0 text-base md:text-lg">
+        ✕
+      </button>
+    </form>
+    <div class="w-full h-full flex items-center justify-center">
+      <img id="modal_image" class="max-w-full max-h-full object-contain rounded-xl md:rounded-2xl shadow-2xl" src="" />
+    </div>
+  </div>
+  <form method="dialog" class="modal-backdrop bg-black/70">
+    <button>close</button>
+  </form>
+</dialog>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const basePrice = parseFloat("<%= @dish.price %>");
+  const baseWeight = parseInt("<%= @dish.weight %>");
+
+  const ingredientCheckboxes = document.querySelectorAll('.ingredient-checkbox');
+  const totalPriceElement = document.getElementById('total-price');
+  const totalWeightElement = document.getElementById('total-weight');
+  const extrasPriceElement = document.getElementById('extras-price');
+  const orderForm = document.querySelector('#order-button').closest('form');
+
+  const updateTotals = () => {
+    let currentTotalPrice = basePrice;
+    let currentTotalWeight = baseWeight;
+    let extrasPrice = 0;
+    const selectedIngredientIds = [];
+    const removedIngredientIds = [];
+
+    ingredientCheckboxes.forEach(checkbox => {
+      const price = parseFloat(checkbox.dataset.price);
+      const weight = parseInt(checkbox.dataset.weight);
+      const ingredientId = checkbox.dataset.ingredientId;
+      const isDefault = checkbox.dataset.default === 'true';
+
+      if (isDefault) {
+        if (!checkbox.checked) {
+          currentTotalPrice -= price;
+          currentTotalWeight -= weight;
+          removedIngredientIds.push(ingredientId);
+        }
+      } else {
+        if (checkbox.checked) {
+          currentTotalPrice += price;
+          currentTotalWeight += weight;
+          extrasPrice += price;
+          selectedIngredientIds.push(ingredientId);
+        }
+      }
+    });
+
+    totalPriceElement.textContent = `${currentTotalPrice.toFixed(2)} BYN`;
+    totalWeightElement.textContent = `${currentTotalWeight} г`;
+    extrasPriceElement.textContent = `${extrasPrice.toFixed(2)} BYN`;
+
+    // Обновляем данные формы
+    orderForm.dataset.ingredientIds = selectedIngredientIds.join(',');
+    orderForm.dataset.removedIngredientIds = removedIngredientIds.join(',');
+  };
+
+  ingredientCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', updateTotals);
+  });
+
+  // Автоматическая прокрутка карусели
+  let carouselInterval;
+  const startCarousel = () => {
+    if (document.querySelector('#dish-carousel')) {
+      carouselInterval = setInterval(() => {
+        const activeSlide = document.querySelector('#dish-carousel .carousel-item:target') || 
+                           document.querySelector('#dish-carousel .carousel-item');
+        const nextSlide = activeSlide.nextElementSibling || 
+                         document.querySelector('#dish-carousel .carousel-item');
+        const nextSlideId = nextSlide.id;
+        window.location.hash = nextSlideId;
+      }, 5000);
+    }
+  };
+
+  const stopCarousel = () => {
+    clearInterval(carouselInterval);
+  };
+
+  // Останавливаем автопрокрутку при наведении
+  const carousel = document.querySelector('#dish-carousel');
+  if (carousel) {
+    carousel.addEventListener('mouseenter', stopCarousel);
+    carousel.addEventListener('mouseleave', startCarousel);
+    startCarousel();
+  }
+
+  // Обработчик отправки формы
+  orderForm.addEventListener('submit', (e) => {
+    const selectedIds = orderForm.dataset.ingredientIds.split(',').filter(id => id);
+    const removedIds = orderForm.dataset.removedIngredientIds.split(',').filter(id => id);
+    
+    // Добавляем скрытые поля в форму
+    if (selectedIds.length > 0) {
+      selectedIds.forEach(id => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'selected_ingredient_ids[]';
+        input.value = id;
+        orderForm.appendChild(input);
+      });
+    }
+    
+    if (removedIds.length > 0) {
+      removedIds.forEach(id => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'removed_ingredient_ids[]';
+        input.value = id;
+        orderForm.appendChild(input);
+      });
+    }
+  });
+});
+
+// Функция для открытия модального окна с изображением
+function openImageModal(imageUrl) {
+  const modal = document.getElementById('image_modal');
+  const modalImage = document.getElementById('modal_image');
+  modalImage.src = imageUrl;
+  modal.showModal();
+}
+</script>

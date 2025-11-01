@@ -11,13 +11,21 @@
 
 <div class="card bg-base-100 shadow-md hover:shadow-lg transition-all duration-300 w-full h-auto sm:h-[400px] mx-auto">
   <% if dish.photos.attached? %>
-    <figure class="hover-gallery w-full h-40 sm:h-48 overflow-hidden">
-      <% dish.photos.each do |photo| %>
-        <%= image_tag photo.variant(resize_to_limit: [300, 200]),
+    <% if dish.photos.length > 1 %>
+      <figure class="hover-gallery w-full h-40 sm:h-48 overflow-hidden">
+        <% dish.photos.each do |photo| %>
+          <%= image_tag photo.variant(resize_to_limit: [300, 200]),
+                        class: "w-full h-full object-cover rounded-t-lg",
+                        loading: "lazy" %>
+        <% end %>
+      </figure>
+    <% else %>
+      <figure class="w-full h-40 sm:h-48 overflow-hidden">
+        <%= image_tag dish.photos.first.variant(resize_to_limit: [300, 200]),
                       class: "w-full h-full object-cover rounded-t-lg",
                       loading: "lazy" %>
-      <% end %>
-    </figure>
+      </figure>
+    <% end %>
   <% end %>
 
   <div class="card-body p-3 sm:p-4 flex flex-col justify-between h-48">
@@ -37,7 +45,7 @@
       </span>
 
       <div class="card-actions flex flex-wrap gap-2">
-        <%= button_to "В корзину", "#", method: :post, class: "btn btn-primary btn-xs sm:btn-sm" %>
+        <%= link_to "Заказать", dish_path(dish.slug), method: :post, class: "btn btn-primary btn-xs sm:btn-sm" %>
       </div>
     </div>
   </div>
