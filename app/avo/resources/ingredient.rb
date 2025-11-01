@@ -11,5 +11,7 @@ class Avo::Resources::Ingredient < Avo::BaseResource
     field :allergen, as: :boolean
     field :photo, as: :file, is_image: true, direct_upload: true
     field :dishes, as: :has_many, attach_scope: -> { Dish.active }
+
+    field :nutrition, as: :has_one
   end
 end

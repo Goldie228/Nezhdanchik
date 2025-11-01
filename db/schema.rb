@@ -97,11 +97,12 @@ ActiveRecord::Schema[7.2].define(version: 2025_11_01_100847) do
     t.decimal "proteins", precision: 5, scale: 2
     t.decimal "fats", precision: 5, scale: 2
     t.decimal "carbohydrates", precision: 5, scale: 2
-    t.string "nutritable_type", null: false
-    t.bigint "nutritable_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["nutritable_type", "nutritable_id"], name: "index_nutritions_on_nutritable"
+    t.bigint "dish_id"
+    t.bigint "ingredient_id"
+    t.index ["dish_id"], name: "index_nutritions_on_dish_id"
+    t.index ["ingredient_id"], name: "index_nutritions_on_ingredient_id"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
@@ -109,4 +110,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_11_01_100847) do
   add_foreign_key "dish_ingredients", "dishes"
   add_foreign_key "dish_ingredients", "ingredients"
   add_foreign_key "dishes", "categories"
+  add_foreign_key "nutritions", "dishes"
+  add_foreign_key "nutritions", "ingredients"
 end
