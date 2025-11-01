@@ -20,6 +20,7 @@ class Dish < ApplicationRecord
 
   has_many :dish_ingredients, dependent: :destroy
   has_many :ingredients, through: :dish_ingredients
+  has_one :nutrition, as: :nutritable, dependent: :destroy
 
   validates :title, presence: true, length: { maximum: 255 }
   validates :price, presence: true,
