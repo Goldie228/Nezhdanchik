@@ -2,7 +2,6 @@
 class Avo::Resources::Dish < Avo::BaseResource
   self.title = :title
   self.includes = [ :category ]
-
   self.translation_key = "avo.resource_translations.dish"
 
   def fields
@@ -13,9 +12,14 @@ class Avo::Resources::Dish < Avo::BaseResource
     field :slug, as: :text, required: true, translation_key: "avo.field_translations.slug"
     field :active, as: :boolean, default: true, translation_key: "avo.field_translations.active"
     field :cooking_time_minutes, as: :number, translation_key: "avo.field_translations.cooking_time_minutes"
+    field :weight, as: :number, translation_key: "avo.field_translations.weight"
 
     field :category, as: :belongs_to, translation_key: "avo.field_translations.category"
     field :photos, as: :files, is_image: true, direct_upload: true, multiple: true,
       translation_key: "avo.field_translations.photos"
+
+    field :dish_ingredients, as: :has_many, show_on: :edit, attach_scope: -> { DishIngredient.all }
+
+    field :nutrition, as: :has_one
   end
 end

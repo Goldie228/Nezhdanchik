@@ -8,5 +8,6 @@ Rails.application.routes.draw do
 
   get "menu" => "categories#index", as: :menu
   get "menu/:slug" => "dishes#index", as: :category_dishes
+  get "menu/:slug/order" => "dishes#show", as: :dish
   get "more_dishes/:slug" => "dishes#load_more", as: :load_more_dishes
 end

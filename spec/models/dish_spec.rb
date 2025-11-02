@@ -12,9 +12,9 @@
 #  created_at           :datetime         not null
 #  updated_at           :datetime         not null
 #  category_id          :bigint
+#  weight               :integer          default(100), not null
 #
 require "rails_helper"
-
 
 RSpec.describe Dish, type: :model do
   let(:category) { Category.create!(name: "Пиццы", slug: "pizzas") }
@@ -93,6 +93,75 @@ RSpec.describe Dish, type: :model do
     it "is valid with all required attributes" do
       dish = Dish.new(title: "Маргарита", price: 10, slug: "margarita", category: category)
       expect(dish).to be_valid
+    end
+
+    it "is invalid if cooking_time_minutes is not integer" do
+      dish = Dish.new(title: "Маргарита", price: 10, slug: "margarita", category: category, cooking_time_minutes: 12.5)
+      expect(dish).not_to be_valid
+      expect(dish.errors[:cooking_time_minutes]).to include("must be an integer")
+    end
+
+    it "is invalid if cooking_time_minutes is zero or negative" do
+      dish = Dish.new(title: "Маргарита", price: 10, slug: "margarita", category: category, cooking_time_minutes: 0)
+      expect(dish).not_to be_valid
+    end
+
+    it "is invalid if description is too long" do
+      dish = Dish.new(title: "Маргарита", price: 10, slug: "margarita", category: category, description: "a" * 6000)
+      expect(dish).not_to be_valid
+      expect(dish.errors[:description]).to include("is too long (maximum is 5000 characters)")
+    end
+  end
+
+  describe "scopes" do
+    it "returns only active dishes" do
+      active_dish = Dish.create!(title: "Активная", price: 10, slug: "active", category: category, active: true)
+      inactive_dish = Dish.create!(title: "Неактивная", price: 10, slug: "inactive", category: category, active: false)
+
+      expect(Dish.active).to include(active_dish)
+      expect(Dish.active).not_to include(inactive_dish)
+    end
+  end
+
+  describe "validations for weight" do
+    it "is valid with default weight 100" do
+      dish = Dish.new(title: "Маргарита", price: 10, slug: "margarita", category: category)
+      expect(dish.weight).to eq(100)
+      expect(dish).to be_valid
+    end
+
+    it "is invalid with zero weight" do
+      dish = Dish.new(title: "Маргарита", price: 10, slug: "margarita", category: category, weight: 0)
+      expect(dish).not_to be_valid
+      expect(dish.errors[:weight]).to include("must be greater than 0")
+    end
+
+    it "is invalid with negative weight" do
+      dish = Dish.new(title: "Маргарита", price: 10, slug: "margarita", category: category, weight: -50)
+      expect(dish).not_to be_valid
+      expect(dish.errors[:weight]).to include("must be greater than 0")
+    end
+
+    it "is invalid with non-integer weight" do
+      dish = Dish.new(title: "Маргарита", price: 10, slug: "margarita", category: category, weight: 99.5)
+      expect(dish).not_to be_valid
+      expect(dish.errors[:weight]).to include("must be an integer")
+    end
+
+    it "is invalid with too large weight" do
+      dish = Dish.new(title: "Маргарита", price: 10, slug: "margarita", category: category, weight: 20_000)
+      expect(dish).not_to be_valid
+      expect(dish.errors[:weight]).to include("must be less than 10000")
+    end
+  end
+
+  describe "associations" do
+    it "can have nutrition info for dish" do
+      dish = Dish.create!(title: "Маргарита", price: 10, slug: "margarita", category: category)
+      nutrition = Nutrition.create!(dish: dish, proteins: 12, fats: 8, carbohydrates: 30)
+
+      expect(dish.nutrition).to eq(nutrition)
+      expect(nutrition.dish).to eq(dish)
     end
   end
 end

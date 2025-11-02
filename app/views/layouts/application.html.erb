@@ -24,6 +24,19 @@
   <body class="bg-base-100">
     <main class="container mx-auto px-5">
       <div class="bg-base-200 shadow-lg p-8 min-h-screen my-0">
+
+        <% flash.each do |type, message| %>
+          <% css_class =
+              case type.to_sym
+              when :notice then "alert alert-success"
+              when :alert  then "alert alert-error"
+              else "alert"
+              end %>
+          <div class="<%= css_class %> mb-4">
+            <span><%= message %></span>
+          </div>
+        <% end %>
+
         <%= yield %>
       </div>
     </main>

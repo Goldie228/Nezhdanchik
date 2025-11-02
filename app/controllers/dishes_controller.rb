@@ -1,4 +1,21 @@
 class DishesController < ApplicationController
+  def show
+    @dish = Dish.find_by(slug: params[:slug])
+
+    return redirect_to menu_path, alert: "Блюдо не найдено" unless @dish
+
+    @category = @dish.category
+    @ingredients = @dish.dish_ingredients.includes(:ingredient)
+
+    if @ingredients.present?
+      @default_ingredients = @ingredients.where(default: true)
+      @new_ingredients = @ingredients.where(default: false)
+    else
+      @default_ingredients = []
+      @new_ingredients = []
+    end
+  end
+
   def index
     @category = Category.active.find_by!(slug: params[:slug])
     @other_categories = Category.active.where.not(id: @category.id).order(:name)

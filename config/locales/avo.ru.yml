@@ -2,6 +2,7 @@ ru:
   avo:
     dashboard: "Панель"
     actions: "Действия"
+
     resource_translations:
       dish:
         zero: "Блюд"
@@ -11,6 +12,18 @@ ru:
         zero: "Категорий"
         one: "Категория"
         other: "Категории"
+      ingredient:
+        zero: "Ингредиентов"
+        one: "Ингредиент"
+        other: "Ингредиенты"
+      dish_ingredient:
+        zero: "Связей блюд и ингредиентов"
+        one: "Связь блюда и ингредиента"
+        other: "Связи блюд и ингредиентов"
+      nutrition:
+        zero: "Пищевых ценностей"
+        one: "Пищевая ценность"
+        other: "Пищевые ценности"
 
     field_translations:
       id: "ID"
@@ -20,8 +33,18 @@ ru:
       slug: "Слаг"
       active: "Активно"
       cooking_time_minutes: "Время приготовления (мин)"
+      weight: "Граммовка"
       category: "Категория"
       photos: "Фотографии"
       name: "Название"
       photo: "Фото"
       dishes: "Блюда"
+      available: "Доступен"
+      allergen: "Аллерген"
+      ingredient: "Ингредиент"
+      dish: "Блюдо"
+      default: "По умолчанию"
+      proteins: "Белки"
+      fats: "Жиры"
+      carbohydrates: "Углеводы"
+      nutrition: "Пищевая ценность"
