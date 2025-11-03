@@ -1,0 +1,80 @@
+<header class="bg-neutral text-neutral-content shadow-sm m-0 p-0">
+  <div class="navbar max-w-7xl mx-auto">
+    <!-- Мобильная версия -->
+    <div class="navbar-start lg:hidden">
+      <div class="dropdown">
+        <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </div>
+        <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+          <li><%= link_to "Главная", "#" %></li>
+          <li><%= link_to "Меню", menu_path %></li>
+          <li><%= link_to "Бронирование", "#" %></li>
+          <li><%= link_to "О нас", "#" %></li>
+          <li><%= link_to "Доставка", "#" %></li>
+          <li><%= link_to "Акции", "#" %></li>
+          <li><%= link_to "Контакты", "#" %></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Логотип -->
+    <div class="navbar-start">
+      <%= link_to "#", class: "btn btn-ghost text-xl normal-case" do %>
+        <%= image_tag "logo.png", alt: "НЕЖДАНЧИК", class: "h-8 w-8 mr-2" %>
+        НЕЖДАНЧИК
+      <% end %>
+    </div>
+
+    <!-- Десктопное меню -->
+    <div class="navbar-center hidden lg:flex mx-auto">
+      <ul class="menu menu-horizontal px-1">
+        <li><%= link_to "Главная", "#" %></li>
+        <li><%= link_to "Меню", menu_path %></li>
+        <li><%= link_to "Бронирование", "#" %></li>
+        <li><%= link_to "О нас", "#" %></li>
+        <li><%= link_to "Доставка", "#" %></li>
+        <li><%= link_to "Акции", "#" %></li>
+        <li><%= link_to "Контакты", "#" %></li>
+      </ul>
+    </div>
+
+    <!-- Иконки действий -->
+    <div class="navbar-end gap-2">
+      <!-- Корзина -->
+      <div class="indicator">
+        <%= link_to "#", class: "btn btn-ghost btn-circle tooltip tooltip-bottom", data: { tip: "Корзина" } do %>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17
+                     m0 0a2 2 0 100 4 2 2 0 000-4
+                     m-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+          <!-- бейдж с количеством -->
+          <span class="badge badge-sm indicator-item bg-primary text-secondary">0</span>
+        <% end %>
+      </div>
+
+      <!-- Профиль -->
+      <div class="dropdown dropdown-end">
+        <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar tooltip tooltip-bottom" data-tip="Профиль">
+          <div class="w-8 rounded-full bg-neutral-focus text-neutral-content flex items-center justify-center">
+            <!-- можно заменить на image_tag для аватарки -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0z
+                       M12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </div>
+        </div>
+        <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+          <li><%= link_to "Мой профиль", "#" %></li>
+          <li><%= link_to "История заказов", "#" %></li>
+          <li><%= link_to "Выйти", "#", method: :delete %></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</header>

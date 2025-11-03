@@ -22,8 +22,10 @@
   </head>
 
   <body class="bg-base-100">
+    <%= render "shared/header" %>
+
     <main class="container mx-auto px-5">
-      <div class="bg-base-200 shadow-lg p-8 min-h-screen my-0">
+      <div class="bg-base-200 p-8 min-h-screen my-0">
 
         <% flash.each do |type, message| %>
           <% css_class =
@@ -40,5 +42,7 @@
         <%= yield %>
       </div>
     </main>
+
+    <%= render "shared/footer" %>
   </body>
 </html>

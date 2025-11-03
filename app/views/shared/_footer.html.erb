@@ -1,0 +1,140 @@
+<footer class="footer footer-center bg-neutral text-neutral-content rounded p-10">
+  <div class="w-full max-w-7xl mx-auto">
+    <!-- Логотип и описание -->
+    <div class="text-center mb-8">
+      <div class="flex items-center justify-center mb-4">
+        <%= image_tag "logo.png", alt: "НЕЖДАНЧИК", class: "h-12 w-12 mr-3" %>
+        <p class="text-3xl font-bold">НЕЖДАНЧИК</p>
+      </div>
+      <p class="max-w-md mx-auto text-base">
+        Ресторан Восточной Кухни
+      </p>
+    </div>
+
+    <!-- Контактная информация -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 w-full">
+      <div class="flex flex-col items-center">
+        <svg xmlns="http://www.w3.org/2000/svg"
+             class="h-6 w-6 text-primary"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="2"
+             stroke-linecap="round"
+             stroke-linejoin="round"
+             viewBox="0 0 24 24">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+        </svg>
+        <p class="font-semibold text-lg mb-2">Телефон</p>
+        <p class="text-sm">+375 (33) 314-92-83</p>
+        <p class="text-sm">+375 (44) 470-68-60</p>
+      </div>
+      
+      <div class="flex flex-col items-center">
+        <div class="mb-2">
+          <svg class="h-6 w-6 text-primary"
+               xmlns="http://www.w3.org/2000/svg"
+               viewBox="0 0 8.4666665 8.4666669"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="0.75"
+               stroke-linecap="round"
+               stroke-linejoin="round">
+            <g transform="translate(0,-288.53332)">
+              <path d="m 4.2324219,288.79688
+                       c -1.6042437,0 -2.9101556,1.30591 -2.9101563,2.91015
+                       -1e-6,2.82277 2.7460938,4.96875 2.7460938,4.96875
+                       a 0.26460978,0.26460978 0 0 0 0.3300781,0
+                       c 0,0 2.7460996,-2.14598 2.7460937,-4.96875
+                       -3.4e-6,-1.60424 -1.3078657,-2.91015 -2.9121093,-2.91015 z"/>
+              <path d="m 4.2324219,290.38477
+                       c -0.7274912,0 -1.3222633,0.59477 -1.3222657,1.32226
+                       -4.5e-6,0.7275 0.5947697,1.32422 1.3222657,1.32422
+                       0.727496,0 1.3242233,-0.59672 1.3242187,-1.32422
+                       -2.3e-6,-0.72749 -0.5967275,-1.32226 -1.3242187,-1.32226 z"/>
+            </g>
+          </svg>
+        </div>
+        <p class="font-semibold text-lg mb-2">Адрес</p>
+        <p class="text-sm">Просп. Победителей, 11</p>
+        <p class="text-sm">Минск, 220004</p>
+      </div>
+      
+      <div class="flex flex-col items-center">
+        <div class="mb-2">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               class="h-6 w-6 text-primary"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2"
+               stroke-linecap="round"
+               stroke-linejoin="round"
+               viewBox="0 0 24 24">
+            <rect x="3" y="5" width="18" height="14" rx="2" ry="2" fill="none"/>
+            <polyline points="3 6 12 13 21 6" fill="none"/>
+          </svg>
+        </div>
+        <p class="font-semibold text-lg mb-2">Почта</p>
+        <p class="text-sm">nezhdanchik@gmail.com</p>
+      </div>
+    </div>
+
+    <!-- Время работы -->
+    <div class="bg-base-100 p-6 rounded-lg shadow-sm mb-8 max-w-md w-full">
+      <div class="flex items-center justify-center mb-3">
+        <?xml version="1.0"?><svg class="feather feather-clock" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="h-6 w-6 text-primary"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <p class="font-bold text-lg ml-2">Время работы</p>
+      </div>
+      <div class="text-sm text-center">
+        <p class="mb-1">Понедельник - Четверг: 11:00 - 23:00</p>
+        <p>Пятница - Воскресенье: 11:00 - 00:00</p>
+      </div>
+    </div>
+
+    <!-- Навигация -->
+    <nav class="mb-8">
+      <div class="flex flex-wrap justify-center gap-4 md:gap-6">
+        <%= link_to "Главная", "#", class: "link link-hover font-medium" %>
+        <%= link_to "Меню", menu_path, class: "link link-hover font-medium" %>
+        <%= link_to "Бронирование", "#", class: "link link-hover font-medium" %>
+        <%= link_to "О нас", "#", class: "link link-hover font-medium" %>
+        <%= link_to "Доставка", "#", class: "link link-hover font-medium" %>
+        <%= link_to "Акции", "#", class: "link link-hover font-medium" %>
+        <%= link_to "Контакты", "#", class: "link link-hover font-medium" %>
+      </div>
+    </nav>
+
+    <!-- Социальные сети -->
+    <nav class="mb-8">
+      <div class="flex gap-4 justify-center">
+        <!-- Здесь будут SVG социальных сетей -->
+        <div class="btn btn-circle btn-ghost"><?xml version="1.0"?><!DOCTYPE svg  PUBLIC '-//W3C//DTD SVG 1.1//EN'  'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'><svg height="100%" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" viewBox="0 0 512 512" width="100%" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink" fill="currentColor" class="h-6 w-6 text-primary"><path d="M501.303,132.765c-5.887,-22.03 -23.235,-39.377 -45.265,-45.265c-39.932,-10.7 -200.038,-10.7 -200.038,-10.7c0,0 -160.107,0 -200.039,10.7c-22.026,5.888 -39.377,23.235 -45.264,45.265c-10.697,39.928 -10.697,123.238 -10.697,123.238c0,0 0,83.308 10.697,123.232c5.887,22.03 23.238,39.382 45.264,45.269c39.932,10.696 200.039,10.696 200.039,10.696c0,0 160.106,0 200.038,-10.696c22.03,-5.887 39.378,-23.239 45.265,-45.269c10.696,-39.924 10.696,-123.232 10.696,-123.232c0,0 0,-83.31 -10.696,-123.238Zm-296.506,200.039l0,-153.603l133.019,76.802l-133.019,76.801Z" style="fill-rule:nonzero;"/></svg></div>
+        <div class="btn btn-circle btn-ghost">
+          <?xml version="1.0"?><svg viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="h-6 w-6 text-primary"><path d="M446.7 98.6l-67.6 318.8c-5.1 22.5-18.4 28.1-37.3 17.5l-103-75.9-49.7 47.8c-5.5 5.5-10.1 10.1-20.7 10.1l7.4-104.9 190.9-172.5c8.3-7.4-1.8-11.5-12.9-4.1L117.8 284 16.2 252.2c-22.1-6.9-22.5-22.1 4.6-32.7L418.2 66.4c18.4-6.9 34.5 4.1 28.5 32.2z"/></svg>
+        </div>
+        <div class="btn btn-circle btn-ghost"><?xml version="1.0" encoding="utf-8"?>
+          <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+             viewBox="0 0 56.7 56.7" enable-background="new 0 0 56.7 56.7" xml:space="preserve" fill="currentColor" class="h-6 w-6 text-primary">
+          <g>
+            <path d="M28.2,16.7c-7,0-12.8,5.7-12.8,12.8s5.7,12.8,12.8,12.8S41,36.5,41,29.5S35.2,16.7,28.2,16.7z M28.2,37.7   c-4.5,0-8.2-3.7-8.2-8.2s3.7-8.2,8.2-8.2s8.2,3.7,8.2,8.2S32.7,37.7,28.2,37.7z"/>
+            <circle cx="41.5" cy="16.4" r="2.9"/>
+            <path d="M49,8.9c-2.6-2.7-6.3-4.1-10.5-4.1H17.9c-8.7,0-14.5,5.8-14.5,14.5v20.5c0,4.3,1.4,8,4.2,10.7c2.7,2.6,6.3,3.9,10.4,3.9   h20.4c4.3,0,7.9-1.4,10.5-3.9c2.7-2.6,4.1-6.3,4.1-10.6V19.3C53,15.1,51.6,11.5,49,8.9z M48.6,39.9c0,3.1-1.1,5.6-2.9,7.3   s-4.3,2.6-7.3,2.6H18c-3,0-5.5-0.9-7.3-2.6C8.9,45.4,8,42.9,8,39.8V19.3c0-3,0.9-5.5,2.7-7.3c1.7-1.7,4.3-2.6,7.3-2.6h20.6   c3,0,5.5,0.9,7.3,2.7c1.7,1.8,2.7,4.3,2.7,7.2V39.9L48.6,39.9z"/>
+          </g>
+          </svg>
+        </div>
+        <div class="btn btn-circle btn-ghost"><?xml version="1.0"?><svg height="512" viewBox="0 0 512 512" width="512" xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="h-6 w-6 text-primary"><title/><path d="M484.7,132c3.56-11.28,0-19.48-15.75-19.48H416.58c-13.21,0-19.31,7.18-22.87,14.86,0,0-26.94,65.6-64.56,108.13-12.2,12.3-17.79,16.4-24.4,16.4-3.56,0-8.14-4.1-8.14-15.37V131.47c0-13.32-4.06-19.47-15.25-19.47H199c-8.14,0-13.22,6.15-13.22,12.3,0,12.81,18.81,15.89,20.84,51.76V254c0,16.91-3,20-9.66,20-17.79,0-61-66.11-86.92-141.44C105,117.64,99.88,112,86.66,112H33.79C18.54,112,16,119.17,16,126.86c0,13.84,17.79,83.53,82.86,175.77,43.21,63,104.72,96.86,160.13,96.86,33.56,0,37.62-7.69,37.62-20.5V331.33c0-15.37,3.05-17.93,13.73-17.93,7.62,0,21.35,4.09,52.36,34.33C398.28,383.6,404.38,400,424.21,400h52.36c15.25,0,22.37-7.69,18.3-22.55-4.57-14.86-21.86-36.38-44.23-62-12.2-14.34-30.5-30.23-36.09-37.92-7.62-10.25-5.59-14.35,0-23.57-.51,0,63.55-91.22,70.15-122" style="fill-rule:evenodd"/></svg></div>
+      </div>
+    </nav>
+
+    <!-- Копирайт -->
+    <div class="text-center">
+      <p class="text-sm opacity-70 mb-2">
+        © <%= Time.current.year %> Ресторан восточной кухни "НЕЖДАНЧИК". 
+        Все права защищены.
+      </p>
+      <div class="flex justify-center gap-4">
+        <%= link_to "Политика конфиденциальности", "#", class: "link link-hover text-xs opacity-70" %>
+        <%= link_to "Условия использования", "#", class: "link link-hover text-xs opacity-70" %>
+      </div>
+    </div>
+  </div>
+</footer>
