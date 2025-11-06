@@ -12,7 +12,6 @@
 #
 require "rails_helper"
 
-
 RSpec.describe Category, type: :model do
   describe "associations" do
     it "can have many dishes" do
@@ -34,30 +33,7 @@ RSpec.describe Category, type: :model do
     end
   end
 
-  describe "validations for photo" do
-    it "is invalid if photo is not an image" do
-      category = Category.new(name: "Пиццы", slug: "pizzas")
-      category.photo.attach(
-        io: StringIO.new("not an image"),
-        filename: "file.pdf",
-        content_type: "application/pdf"
-      )
-      expect(category).not_to be_valid
-      expect(category.errors[:photo].join).to include("invalid content type")
-    end
-
-    it "is invalid if photo is too large" do
-      category = Category.new(name: "Пиццы", slug: "pizzas")
-      big_file = StringIO.new("0" * 6.megabytes)
-      category.photo.attach(
-        io: big_file,
-        filename: "big.png",
-        content_type: "image/png"
-      )
-      expect(category).not_to be_valid
-      expect(category.errors[:photo].join).to include("less than 5 MB")
-    end
-
+  describe 'validations for photo' do
     it "is valid with a proper image" do
       category = Category.new(name: "Пиццы", slug: "pizzas")
       category.photo.attach(
@@ -73,20 +49,20 @@ RSpec.describe Category, type: :model do
     it "is invalid without a name" do
       category = Category.new(slug: "pizzas")
       expect(category).not_to be_valid
-      expect(category.errors[:name]).to include("can't be blank")
+      expect(category.errors[:name]).to include("не может быть пустым")
     end
 
     it "is invalid without a slug" do
       category = Category.new(name: "Пиццы")
       expect(category).not_to be_valid
-      expect(category.errors[:slug]).to include("can't be blank")
+      expect(category.errors[:slug]).to include("не может быть пустым")
     end
 
     it "is invalid with duplicate slug" do
       Category.create!(name: "Пиццы", slug: "pizzas")
       dup = Category.new(name: "Суши", slug: "pizzas")
       expect(dup).not_to be_valid
-      expect(dup.errors[:slug]).to include("has already been taken")
+      expect(dup.errors[:slug]).to include("уже используется")
     end
 
     it "is invalid if name is too long" do

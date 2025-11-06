@@ -1,0 +1,171 @@
+<div class="min-h-screen bg-base-200">
+  <div class="container mx-auto px-4 py-6 md:py-8">
+    <!-- Хлебные крошки -->
+    <div class="text-sm breadcrumbs mb-6 md:mb-8">
+      <ul>
+        <li><a href="#" class="text-primary hover:text-primary-focus">Главная</a></li>
+        <li><span class="text-base-content/60">Политика конфиденциальности</span></li>
+      </ul>
+    </div>
+
+    <div class="max-w-4xl mx-auto">
+      <!-- Заголовок -->
+      <div class="text-center mb-8 md:mb-12">
+        <h1 class="text-3xl md:text-4xl font-bold text-primary mb-4">Политика конфиденциальности</h1>
+        <p class="text-base-content/70 text-lg">Последнее обновление: <%= @last_updated %></p>
+      </div>
+
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body p-6 md:p-8">
+          <!-- Введение -->
+          <section class="mb-8">
+            <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+              1. Общие положения
+            </h2>
+            <div class="space-y-4 text-base-content/80 leading-relaxed">
+              <p>Настоящая Политика конфиденциальности регулирует порядок обработки и защиты информации о физических и юридических лицах, использующих сервисы ресторана (далее — «Сервис»).</p>
+              <p>Используя Сервис, вы соглашаетесь с условиями данной Политики конфиденциальности. Если вы не согласны с этими условиями, пожалуйста, не используйте наш Сервис.</p>
+            </div>
+          </section>
+
+          <!-- Собираемая информация -->
+          <section class="mb-8">
+            <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+              2. Собираемая информация
+            </h2>
+            <div class="space-y-4 text-base-content/80 leading-relaxed">
+              <p>Мы собираем следующую информацию:</p>
+              
+              <div class="bg-base-200 rounded-2xl p-6">
+                <h3 class="font-bold text-lg mb-3 text-primary">Персональные данные:</h3>
+                <ul class="list-disc list-inside space-y-2 ml-4">
+                  <li>Фамилия, имя, отчество</li>
+                  <li>Контактный номер телефона</li>
+                  <li>Адрес электронной почты</li>
+                  <li>Адрес доставки (если применимо)</li>
+                  <li>Предпочтения в еде и аллергии (по вашему желанию)</li>
+                </ul>
+              </div>
+
+              <div class="bg-base-200 rounded-2xl p-6 mt-4">
+                <h3 class="font-bold text-lg mb-3 text-primary">Техническая информация:</h3>
+                <ul class="list-disc list-inside space-y-2 ml-4">
+                  <li>IP-адрес и данные о местоположении</li>
+                  <li>Информация о браузере и устройстве</li>
+                  <li>Файлы cookie и аналогичные технологии</li>
+                  <li>История заказов и предпочтений</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <!-- Цели сбора информации -->
+          <section class="mb-8">
+            <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              3. Цели использования информации
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="bg-primary/10 rounded-2xl p-4">
+                <h3 class="font-bold text-primary mb-2">Обслуживание клиентов</h3>
+                <p class="text-sm text-base-content/80">Обработка и доставка заказов, обслуживание клиентов, решение вопросов и споров</p>
+              </div>
+              <div class="bg-secondary/10 rounded-2xl p-4">
+                <h3 class="font-bold text-secondary mb-2">Персонализация</h3>
+                <p class="text-sm text-base-content/80">Предоставление персонализированных рекомендаций и специальных предложений</p>
+              </div>
+              <div class="bg-accent/10 rounded-2xl p-4">
+                <h3 class="font-bold text-accent mb-2">Улучшение сервиса</h3>
+                <p class="text-sm text-base-content/80">Анализ использования сервиса для улучшения качества обслуживания</p>
+              </div>
+              <div class="bg-info/10 rounded-2xl p-4">
+                <h3 class="font-bold text-info mb-2">Безопасность</h3>
+                <p class="text-sm text-base-content/80">Защита от мошенничества и обеспечение безопасности данных</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- Защита данных -->
+          <section class="mb-8">
+            <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              4. Защита персональных данных
+            </h2>
+            <div class="space-y-4 text-base-content/80 leading-relaxed">
+              <p>Мы принимаем необходимые организационные и технические меры для защиты ваших персональных данных от неправомерного или случайного доступа, уничтожения, изменения, блокирования, копирования, распространения, а также от иных неправомерных действий.</p>
+              
+              <div class="alert alert-info">
+                <div>
+                  <span>Все данные передаются по защищенному SSL-соединению и хранятся в зашифрованном виде.</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Права пользователей -->
+          <section class="mb-8">
+            <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              5. Ваши права
+            </h2>
+            <div class="space-y-3 text-base-content/80">
+              <div class="flex items-start gap-3">
+                <div class="bg-primary/20 rounded-full p-2 mt-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <strong>Право на доступ:</strong> Вы можете запросить информацию о том, какие ваши персональные данные мы обрабатываем.
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="bg-primary/20 rounded-full p-2 mt-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <strong>Право на исправление:</strong> Вы можете исправить неточные или неполные персональные данные.
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="bg-primary/20 rounded-full p-2 mt-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <strong>Право на удаление:</strong> Вы можете запросить удаление ваших персональных данных.
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="bg-primary/20 rounded-full p-2 mt-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <strong>Право на ограничение обработки:</strong> Вы можете ограничить обработку ваших персональных данных.
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

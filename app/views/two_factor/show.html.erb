@@ -1,0 +1,228 @@
+<div class="min-h-screen bg-base-200 flex items-center justify-center p-4">
+  <div class="card w-full max-w-md bg-base-100 shadow-2xl border border-base-300">
+    <div class="card-body p-8">
+      <div class="flex items-center justify-between mb-6">
+        <%= link_to profile_path, class: "btn btn-circle btn-ghost btn-sm hover:bg-base-200" do %>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+        <% end %>
+      </div>
+
+      <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-20 h-20 bg-primary/10 rounded-2xl mb-4 transition-all duration-300 hover:scale-105 hover:shadow-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+        </div>
+        <h1 class="text-3xl font-bold mb-2">Проверка подлинности</h1>
+        <p class="text-base-content/50 text-sm">Введите 6-значный код из письма</p>
+      </div>
+
+      <div class="alert bg-base-200 border-base-300 mb-6">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-5 h-5 text-base-content/60">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+        </svg>
+        <div class="flex-1">
+          <p class="text-xs text-base-content/50 pb-2">Код отправлен на</p>
+          <p class="font-medium text-sm text-base-content/80"><%= @target_user.email %></p>
+        </div>
+      </div>
+
+      <%= form_with url: two_factor_path, method: :post, id: "otp-form", class: "space-y-6", local: true do |form| %>
+        <%= hidden_field_tag :otp_code, "", id: "otp-hidden-field" %>
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text font-medium text-base-content/70">Код подтверждения</span>
+          </label>
+          <div class="flex justify-center gap-2" id="otp-inputs">
+            <% 6.times do |i| %>
+              <input type="text" 
+                     maxlength="1" 
+                     class="input input-bordered input-lg w-14 text-center text-xl font-mono focus:input-primary focus:scale-105 transition-all" 
+                     pattern="[0-9]" 
+                     required
+                     data-index="<%= i %>">
+            <% end %>
+          </div>
+        </div>
+
+        <div class="flex flex-col items-center space-y-4">
+          <div class="flex items-center gap-2 text-sm text-base-content/60">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>Код действителен: <span id="timer" class="font-mono font-medium text-base-content/80"><%= format_time(@time_left) %></span></span>
+          </div>
+          
+          <div id="resend-container">
+            <%= link_to "Отправить код повторно",
+              resend_two_factor_path,
+              method: :post,
+              class: "btn btn-ghost btn-sm text-primary/70 hover:text-primary hover:bg-primary/5 transition-all hidden",
+              id: "resend-btn",
+              data: { confirm: nil } %>
+          </div>
+        </div>
+
+        <div class="form-control mt-8">
+          <button type="submit" class="btn btn-primary w-full btn-lg shadow-lg hover:shadow-xl transition-all duration-300">
+            Подтвердить
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </button>
+        </div>
+      <% end %>
+
+      <div id="error-message" class="hidden"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const inputs = document.querySelectorAll('#otp-inputs input');
+  const form = document.getElementById('otp-form');
+  const timerElement = document.getElementById('timer');
+  const resendBtn = document.getElementById('resend-btn');
+  const hiddenField = document.getElementById('otp-hidden-field');
+  const errorMessage = document.getElementById('error-message');
+  
+  let timeLeft = <%= @time_left || 300 %>;
+  let timerInterval;
+
+  function updateTimer() {
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      timerElement.textContent = "00:00";
+      timerElement.classList.add('text-error');
+      resendBtn.classList.remove('hidden');
+      return;
+    }
+    
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = timeLeft % 60;
+    timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    
+    if (timeLeft <= 60) {
+      timerElement.classList.add('text-error');
+    }
+    
+    timeLeft--;
+  }
+
+  if (timeLeft > 0) {
+    timerInterval = setInterval(updateTimer, 1000);
+    updateTimer();
+  }
+
+  function updateHiddenField() {
+    const code = Array.from(inputs).map(input => input.value).join('');
+    hiddenField.value = code;
+    return code;
+  }
+
+  function showError(message) {
+    errorMessage.innerHTML = `
+      <div class="alert alert-error mt-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>${message}</span>
+      </div>
+    `;
+    errorMessage.classList.remove('hidden');
+    
+    setTimeout(() => {
+      errorMessage.classList.add('hidden');
+    }, 5000);
+  }
+
+  function clearErrors() {
+    inputs.forEach(input => {
+      input.classList.remove('input-error');
+    });
+    errorMessage.classList.add('hidden');
+  }
+
+  inputs.forEach((input, index) => {
+    input.addEventListener('input', function(e) {
+      clearErrors();
+      this.value = this.value.replace(/[^0-9]/g, '');
+      
+      updateHiddenField();
+      
+      if (this.value.length === 1 && index < inputs.length - 1) {
+        inputs[index + 1].focus();
+      }
+    });
+    
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Backspace') {
+        if (this.value === '' && index > 0) {
+          inputs[index - 1].focus();
+        }
+      }
+      
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const code = updateHiddenField();
+        if (code.length === 6) {
+          form.submit();
+        }
+      }
+    });
+  });
+
+  document.getElementById('otp-inputs').addEventListener('paste', function(e) {
+    e.preventDefault();
+    clearErrors();
+    
+    const pastedData = (e.clipboardData || window.clipboardData).getData('text');
+    const digits = pastedData.replace(/[^0-9]/g, '');
+    
+    for (let i = 0; i < Math.min(digits.length, inputs.length); i++) {
+      inputs[i].value = digits[i];
+    }
+    
+    updateHiddenField();
+    
+    const nextEmptyIndex = Array.from(inputs).findIndex(input => input.value === '');
+    if (nextEmptyIndex !== -1) {
+      inputs[nextEmptyIndex].focus();
+    } else {
+      inputs[inputs.length - 1].focus();
+    }
+  });
+
+  form.addEventListener('submit', function(e) {
+    const code = updateHiddenField();
+    
+    if (code.length !== 6) {
+      e.preventDefault();
+      showError("Заполните все поля кода");
+      inputs.forEach(input => {
+        if (!input.value) {
+          input.classList.add('input-error');
+        }
+      });
+      return false;
+    }
+
+    if (!/^\d{6}$/.test(code)) {
+      e.preventDefault();
+      showError("Код должен содержать только цифры");
+      return false;
+    }
+    
+    clearInterval(timerInterval);
+    return true;
+  });
+
+  resendBtn.addEventListener('click', function() {
+    this.classList.add('loading');
+    this.disabled = true;
+  });
+});
+</script>

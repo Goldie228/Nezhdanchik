@@ -1,0 +1,342 @@
+<div class="min-h-screen flex items-center justify-center from-base-200 to-base-300 p-4">
+  <div class="card w-full max-w-md bg-base-100 shadow-2xl rounded-2xl overflow-hidden">
+    <div class="card-body p-8">
+      <!-- Кнопка возврата на главную -->
+      <div class="absolute top-4 left-4">
+        <%= link_to "/", class: "btn btn-circle btn-ghost text-base-content/70 hover:text-base-content" do %>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+        <% end %>
+      </div>
+
+      <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+          </svg>
+        </div>
+        <h1 class="text-3xl font-bold">Регистрация</h1>
+        <p class="text-base-content/70 mt-2">Заполните форму, чтобы создать аккаунт</p>
+      </div>
+
+      <!-- Flash сообщения -->
+      <div id="flash-alert" class="alert alert-error mb-6 shadow-lg hidden">
+        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span id="flash-message"></span>
+      </div>
+
+      <%= form_with model: @user, url: signup_path, local: true, class: "space-y-4" do |f| %>
+        <!-- Email -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text font-medium">Email</span>
+          </label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-base-content/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <%= f.email_field :email, class: "input input-bordered w-full pl-10", placeholder: "example@mail.com", required: true, autocomplete: "email" %>
+          </div>
+        </div>
+
+        <!-- Телефон -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text font-medium">Телефон</span>
+          </label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-base-content/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+              </svg>
+            </div>
+            <%= f.telephone_field :phone,
+                  id: "phone",
+                  class: "input input-bordered w-full pl-10 font-mono tracking-widest",
+                  placeholder: "+375 (__) ___-__-__",
+                  autocomplete: "tel",
+                  inputmode: "tel",
+                  required: true %>
+          </div>
+        </div>
+
+        <!-- Имя, Фамилия, Отчество -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text font-medium">Имя</span>
+            </label>
+            <%= f.text_field :first_name, class: "input input-bordered w-full", placeholder: "Иван", required: true, autocomplete: "given-name" %>
+          </div>
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text font-medium">Фамилия</span>
+            </label>
+            <%= f.text_field :last_name, class: "input input-bordered w-full", placeholder: "Иванов", required: true, autocomplete: "family-name" %>
+          </div>
+        </div>
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text font-medium">Отчество (не обязательно)</span>
+          </label>
+          <%= f.text_field :middle_name, class: "input input-bordered w-full", placeholder: "Иванович", autocomplete: "additional-name" %>
+        </div>
+
+        <!-- Пароль -->
+        <div class="form-control relative">
+          <label class="label">
+            <span class="label-text font-medium">Пароль</span>
+          </label>
+          <button type="button" class="absolute top-7 right-2 p-1 text-base-content/50 hover:text-base-content transition-colors z-10" onclick="togglePassword(this)" aria-label="Показать/скрыть пароль">
+            <svg class="eye-open h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+            </svg>
+            <svg class="eye-closed h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+          </button>
+          <%= f.password_field :password, class: "input input-bordered w-full", placeholder: "Введите пароль", required: true, autocomplete: "new-password" %>
+        </div>
+
+        <!-- Подтверждение пароля -->
+        <div class="form-control relative">
+          <label class="label">
+            <span class="label-text font-medium">Подтверждение пароля</span>
+          </label>
+          <button type="button" class="absolute top-7 right-2 p-1 text-base-content/50 hover:text-base-content transition-colors z-10" onclick="togglePassword(this)" aria-label="Показать/скрыть пароль">
+            <svg class="eye-open h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+            </svg>
+            <svg class="eye-closed h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+          </button>
+          <%= f.password_field :password_confirmation, class: "input input-bordered w-full", placeholder: "Введите пароль еще раз", required: true, autocomplete: "new-password" %>
+        </div>
+
+        <!-- Кнопка регистрации -->
+        <div class="form-control mt-6">
+          <%= f.submit "Зарегистрироваться", class: "btn btn-primary w-full text-lg font-medium shadow-lg" %>
+        </div>
+      <% end %>
+
+      <!-- Вход -->
+      <div class="text-center mt-6">
+        <p class="text-base-content/70">
+          Уже есть аккаунт? 
+          <a href="/login" class="link link-primary font-medium">Войдите</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function togglePassword(button) {
+    const input = button.parentElement.querySelector('input');
+    const eyeOpen = button.querySelector('.eye-open');
+    const eyeClosed = button.querySelector('.eye-closed');
+    
+    if (input.type === "password") {
+      input.type = "text";
+      eyeOpen.classList.remove("hidden");
+      eyeClosed.classList.add("hidden");
+    } else {
+      input.type = "password";
+      eyeOpen.classList.add("hidden");
+      eyeClosed.classList.remove("hidden");
+    }
+  }
+
+  setTimeout(() => {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+      alert.style.transition = 'opacity 0.5s';
+      alert.style.opacity = '0';
+      setTimeout(() => alert.remove(), 500);
+    });
+  }, 5000);
+
+  // --- УЛУЧШЕННАЯ МАСКА ДЛЯ ТЕЛЕФОНА (ВЕРСИЯ 2.0) ---
+
+  const phoneInput = document.getElementById('phone');
+  const mask = '+375 (__) ___-__-__';
+
+  // Инициализация значения при загрузке страницы
+  if (!phoneInput.value) {
+    phoneInput.value = mask;
+  }
+
+  /**
+   * Применяет маску к строке цифр.
+   * @param {string} value - Строка с цифрами.
+   * @returns {string} - Отформатированная строка.
+   */
+  function applyMask(value) {
+    let digits = value.replace(/\D/g, '');
+    if (!digits.startsWith('375')) {
+      digits = '375' + digits;
+    }
+    digits = digits.slice(0, 12);
+    const number = digits.slice(3);
+
+    const operator = number.slice(0, 2).padEnd(2, '_');
+    const firstPart = number.slice(2, 5).padEnd(3, '_');
+    const secondPart = number.slice(5, 7).padEnd(2, '_');
+    const thirdPart = number.slice(7, 9).padEnd(2, '_');
+
+    return `+375 (${operator}) ${firstPart}-${secondPart}-${thirdPart}`;
+  }
+
+  // Карта позиций: [индекс_цифры] => позиция_в_строке
+  const digitToIndexMap = [7, 8, 11, 12, 13, 15, 16, 18, 19];
+
+  /**
+   * Вычисляет новую позицию курсора после ВВОДА символа.
+   */
+  function getCursorPositionAfterInsertion(oldValue, newValue, oldPos) {
+    if (oldValue === newValue) return oldPos;
+    const digitsBeforeCursor = oldValue.substring(0, oldPos).replace(/\D/g, '').length;
+    if (digitsBeforeCursor <= 3) return 6;
+    const digitIndexInNumber = digitsBeforeCursor - 4;
+    const newPos = digitToIndexMap[digitIndexInNumber] + 1;
+    return newPos || newValue.length;
+  }
+
+  /**
+   * Вычисляет новую позицию курсора после УДАЛЕНИЯ символа.
+   */
+  function getCursorPositionAfterDeletion(oldPos) {
+    if (oldPos <= 6) return 6;
+    
+    // Находим индекс цифры, которая была до курсора
+    let digitIndexToDelete = -1;
+    let currentDigitPos = 0;
+    for (let i = 0; i < phoneInput.value.length; i++) {
+      if (/\d/.test(phoneInput.value[i])) {
+        if (i === oldPos - 1) {
+          digitIndexToDelete = currentDigitPos;
+          break;
+        }
+        currentDigitPos++;
+      }
+    }
+
+    if (digitIndexToDelete > 3) { // Удаляем цифру из самого номера
+      const newCursorIndex = digitToIndexMap[digitIndexToDelete - 4];
+      return newCursorIndex;
+    }
+    
+    // Если не нашли цифру (например, курсор на скобке), просто сдвигаем курсор влево
+    return oldPos - 1;
+  }
+
+  // --- ОБРАБОТЧИКИ СОБЫТИЙ ---
+
+  // Основной обработчик ввода (только для ВСТАВКИ символов)
+  phoneInput.addEventListener('input', function(e) {
+    // Игнорируем события удаления, так как мы обрабатываем их в keydown
+    if (e.inputType && e.inputType.startsWith('delete')) {
+      return;
+    }
+
+    const oldValue = phoneInput.value;
+    const cursorPos = phoneInput.selectionStart;
+    
+    phoneInput.value = applyMask(phoneInput.value);
+    
+    const newPos = getCursorPositionAfterInsertion(oldValue, phoneInput.value, cursorPos);
+    phoneInput.setSelectionRange(newPos, newPos);
+  });
+
+  // Обработчик нажатий клавиш (для НАВИГАЦИИ и УДАЛЕНИЯ)
+  phoneInput.addEventListener('keydown', function(e) {
+    const cursorPos = phoneInput.selectionStart;
+    const endPos = phoneInput.selectionEnd;
+    const key = e.key;
+
+    // Разрешаем стандартные действия: навигация, выделение, таб
+    if (['ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End', 'Enter'].includes(key)) {
+      return;
+    }
+
+    // --- Умное удаление ---
+    if (key === 'Backspace' || key === 'Delete') {
+      // Если есть выделение, позволяем браузеру удалить, а 'input' обработает
+      if (cursorPos !== endPos) return;
+
+      // Запрещаем удаление кода страны
+      if (cursorPos <= 6) {
+        e.preventDefault();
+        return;
+      }
+
+      // Берем управление на себя для плавности
+      e.preventDefault();
+
+      // Получаем все цифры из поля
+      const allDigits = phoneInput.value.replace(/\D/g, '');
+      
+      // Находим индекс цифры для удаления
+      let digitIndexToDelete = -1;
+      let currentDigitPos = 0;
+      for (let i = 0; i < phoneInput.value.length; i++) {
+        if (/\d/.test(phoneInput.value[i])) {
+          const isTarget = (key === 'Backspace' && i === cursorPos - 1) || (key === 'Delete' && i === cursorPos);
+          if (isTarget) {
+            digitIndexToDelete = currentDigitPos;
+            break;
+          }
+          currentDigitPos++;
+        }
+      }
+      
+      if (digitIndexToDelete > -1) {
+        // Удаляем найденную цифру
+        const newDigits = allDigits.slice(0, digitIndexToDelete) + allDigits.slice(digitIndexToDelete + 1);
+        phoneInput.value = applyMask(newDigits);
+        
+        // Вычисляем и устанавливаем новую позицию курсора
+        let newCursorPos;
+        if (digitIndexToDelete <= 3) { // Удалили цифру из кода страны (не должно произойти, но на всякий случай)
+          newCursorPos = 6;
+        } else {
+          const indexInNumber = digitIndexToDelete - 4;
+          newCursorPos = digitToIndexMap[indexInNumber];
+        }
+        phoneInput.setSelectionRange(newCursorPos, newCursorPos);
+      } else {
+        // Если курсор не на цифре, просто двигаем его
+        const newPos = key === 'Backspace' ? cursorPos - 1 : cursorPos + 1;
+        phoneInput.setSelectionRange(newPos, newPos);
+      }
+    }
+  });
+
+  // Обработка вставки из буфера обмена
+  phoneInput.addEventListener('paste', function(e) {
+    e.preventDefault();
+    const pastedData = (e.clipboardData || window.clipboardData).getData('text');
+    const digits = pastedData.replace(/\D/g, '');
+    phoneInput.value = applyMask(digits);
+    phoneInput.setSelectionRange(phoneInput.value.length, phoneInput.value.length);
+  });
+
+  // Обработка клика и фокуса
+  function handleCursorFocus(e) {
+    const cursorPos = phoneInput.selectionStart;
+    if (cursorPos < 6) {
+      phoneInput.setSelectionRange(6, 6);
+    }
+  }
+
+  phoneInput.addEventListener('click', handleCursorFocus);
+  phoneInput.addEventListener('focus', handleCursorFocus);
+</script>

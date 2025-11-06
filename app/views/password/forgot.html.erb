@@ -1,0 +1,50 @@
+<div class="min-h-screen bg-base-200 flex items-center justify-center p-4">
+  <div class="card w-full max-w-md bg-base-100 shadow-2xl border border-base-300">
+    <div class="card-body p-8">
+      <!-- Шапка с кнопкой возврата -->
+      <div class="flex items-center justify-between mb-6">
+        <%= link_to login_path, class: "btn btn-circle btn-ghost btn-sm hover:bg-base-200 transition-colors" do %>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+        <% end %>
+      </div>
+
+      <!-- Заголовок -->
+      <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-20 h-20 bg-info/10 rounded-2xl mb-4 transition-all duration-300 hover:scale-105 hover:shadow-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-info" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 19v-8.93a2 2 0 01.89-1.664l7-4.666a2 2 0 012.22 0l7 4.666A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19l6.75-4.5M21 19l-6.75-4.5M3 10l6.75 4.5M21 10l-6.75 4.5m0 0l-1.14.76a2 2 0 01-2.22 0l-1.14-.76" />
+          </svg>
+        </div>
+        <h1 class="text-3xl font-bold mb-2">Забыли пароль?</h1>
+        <p class="text-base-content/50 text-sm">Введите email, и мы отправим вам ссылку для восстановления</p>
+      </div>
+
+      <!-- Блок для отображения ошибок -->
+      <% if flash[:alert] %>
+        <div class="alert alert-error shadow-lg mb-6">
+          <div>
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <span><%= flash[:alert] %></span>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Форма восстановления -->
+      <%= form_with url: password_forgot_path, method: :post, local: true, class: "space-y-6" do |f| %>
+        <div class="form-control w-full">
+          <label class="label">
+            <span class="label-text font-medium text-base-content/70">Email адрес</span>
+          </label>
+          <%= f.email_field :email, class: "input input-bordered input-lg w-full focus:ring-2 focus:ring-primary/20 transition-all", required: true, placeholder: "example@mail.com" %>
+        </div>
+        
+        <div class="flex justify-center">
+          <%= f.submit "Отправить ссылку",
+            class: "btn btn-primary btn-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] w-full" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

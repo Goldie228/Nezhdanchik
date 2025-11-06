@@ -13,6 +13,7 @@
 #
 require "rails_helper"
 
+
 RSpec.describe Ingredient, type: :model do
   it "is valid with valid attributes" do
     ingredient = Ingredient.new(name: "Cheese", price: 1.5, available: true, allergen: false)
@@ -22,7 +23,7 @@ RSpec.describe Ingredient, type: :model do
   it "is invalid without a name" do
     ingredient = Ingredient.new(price: 1.5)
     expect(ingredient).not_to be_valid
-    expect(ingredient.errors[:name]).to include("can't be blank")
+    expect(ingredient.errors[:name]).to include("не может быть пустым")
   end
 
   it "is invalid with duplicate name" do

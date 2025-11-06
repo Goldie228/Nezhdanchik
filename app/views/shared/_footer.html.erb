@@ -93,13 +93,9 @@
     <!-- Навигация -->
     <nav class="mb-8">
       <div class="flex flex-wrap justify-center gap-4 md:gap-6">
-        <%= link_to "Главная", "#", class: "link link-hover font-medium" %>
+        <%= link_to "Главная", root_path, class: "link link-hover font-medium" %>
         <%= link_to "Меню", menu_path, class: "link link-hover font-medium" %>
-        <%= link_to "Бронирование", "#", class: "link link-hover font-medium" %>
-        <%= link_to "О нас", "#", class: "link link-hover font-medium" %>
-        <%= link_to "Доставка", "#", class: "link link-hover font-medium" %>
-        <%= link_to "Акции", "#", class: "link link-hover font-medium" %>
-        <%= link_to "Контакты", "#", class: "link link-hover font-medium" %>
+        <%= link_to "Бронирование", new_reservation_path, class: "link link-hover font-medium" %>
       </div>
     </nav>
 

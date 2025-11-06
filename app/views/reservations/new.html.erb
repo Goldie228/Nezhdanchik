@@ -1,0 +1,438 @@
+<% content_for :title, "Бронирование столиков" %>
+
+<div class="hero min-h-screen bg-base-200">
+  <div class="hero-content flex-col lg:flex-row w-full p-0">
+    <!-- Секция с картой столиков -->
+    <div class="w-full lg:w-2/3 p-4 lg:p-8 bg-base-100 rounded-l-2xl">
+      <h1 class="text-3xl font-bold text-center mb-6">Выберите столик</h1>
+
+      <div id="table-map-container" class="relative w-full bg-white overflow-hidden rounded-xl shadow-2xl">
+        <%= image_tag 'map.png', alt: 'План зала', class: 'w-full h-auto block' %>
+
+        <% @tables.each do |table| %>
+          <div
+            class="absolute table-circle w-4 h-4 sm:w-6 sm:h-6 rounded-full border-2 border-base-100 cursor-pointer transition-all duration-200 hover:scale-110 z-20"
+            style="top: <%= table[:y_percent] %>%; left: <%= table[:x_percent] %>%;"
+            data-table-id="<%= table[:id] %>"
+            data-status="<%= table[:status] %>"
+            title="Столик <%= table[:id] %>"
+          >
+            <span class="hidden sm:inline absolute -top-6 left-1/2 transform -translate-x-1/2 text-xs font-semibold bg-base-100 px-1 rounded shadow-lg whitespace-nowrap">
+              <%= table[:id] %>
+            </span>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Легенда -->
+      <div class="flex justify-center gap-4 mt-6 text-sm">
+        <div class="flex items-center gap-2">
+          <div class="w-4 h-4 rounded-full bg-success"></div>
+          <span>Свободен</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="w-4 h-4 rounded-full bg-warning"></div>
+          <span>Забронирован</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="w-4 h-4 rounded-full bg-error"></div>
+          <span>Занят</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Секция с формой бронирования -->
+    <div class="w-full lg:w-1/3 p-4 lg:p-8 bg-base-100 rounded-r-2xl">
+      <!-- НОВЫЙ БЛОК: ЗАГЛУШКА КОРЗИНЫ -->
+      <div class="card bg-base-200 shadow-lg mb-6">
+        <div class="card-body p-4">
+          <div class="flex justify-between items-center">
+            <div>
+              <p class="text-sm text-base-content/70">3 позиции</p>
+              <p class="text-lg font-semibold">Итого: 60 BYN</p>
+            </div>
+            <button class="btn btn-outline btn-primary btn-sm">
+              Посмотреть корзину
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="text-2xl font-bold mb-6">Оформление брони</h2>
+      
+      <%= form_with url: '#', method: :post, id: 'reservation-form', class: "space-y-4" do |form| %>
+        <!-- Информация о выбранных столиках -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Выбранные столики</span>
+          </label>
+          <div id="selected-tables-info" class="p-3 bg-base-200 rounded-lg min-h-[50px] flex items-center justify-center text-base-content/70">
+            <span>Не выбрано</span>
+          </div>
+          <!-- Скрытое поле для передачи ID выбранных столиков -->
+          <%= form.hidden_field :table_ids, value: '', id: 'selected-tables-input' %>
+        </div>
+
+        <!-- Выбор даты -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Дата</span>
+          </label>
+          <%= form.date_field :date, id: 'reservation-date', class: "input input-bordered w-full", required: true, min: Date.today %>
+        </div>
+
+        <!-- Выбор времени -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Время</span>
+          </label>
+          <%= form.time_field :time, id: 'reservation-time', class: "input input-bordered w-full", required: true %>
+        </div>
+
+        <!-- Дополнительные опции -->
+        <div class="form-control">
+          <label class="label cursor-pointer justify-start gap-3">
+            <%= form.check_box :preorder, class: 'checkbox checkbox-primary', id: 'preorder-checkbox' %>
+            <span class="label-text">Выдать столик по паспорту</span>
+          </label>
+        </div>
+
+        <!-- Кнопка отправки -->
+        <div class="form-control mt-6">
+          <%= form.submit "Забронировать", class: "btn btn-primary w-full", disabled: true %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+  document.addEventListener('DOMContentLoaded', () => {
+    // --- Элементы DOM ---
+    const tableMapContainer = document.getElementById('table-map-container');
+    const selectedTablesInfo = document.getElementById('selected-tables-info');
+    const selectedTablesInput = document.getElementById('selected-tables-input');
+    const reservationForm = document.getElementById('reservation-form');
+    const submitButton = reservationForm.querySelector('button[type="submit"]');
+    const dateInput = document.getElementById('reservation-date');
+    const timeInput = document.getElementById('reservation-time');
+    const preorderCheckbox = document.getElementById('preorder-checkbox');
+    const preorderInfo = document.getElementById('preorder-info');
+
+    // --- Состояние приложения ---
+    const selectedTables = new Set();
+    
+    // --- Данные о часах работы ---
+    // Для простоты примера, часы работы захардкодены.
+    // В реальном приложении их лучше передать из Rails через data-атрибут.
+    const workingHoursData = {
+      '1-4': { open: '09:00', close: '23:00' }, // Пн-Чт (wday: 1-4)
+      '5-6': { open: '09:00', close: '00:00' }, // Пт-Сб (wday: 5-6)
+      '0':   { open: '09:00', close: '23:00' }  // Вс   (wday: 0)
+    };
+
+    // --- Функции ---
+
+    /**
+     * Применяет стили к кружку столика в зависимости от его статуса.
+     */
+    function applyTableStyles(circle, status) {
+      circle.classList.remove('bg-success', 'bg-warning', 'bg-error', 'ring-4', 'ring-primary', 'ring-offset-2');
+      switch (status) {
+        case 'available':
+          circle.classList.add('bg-success');
+          break;
+        case 'reserved':
+          circle.classList.add('bg-warning');
+          break;
+        case 'occupied':
+          circle.classList.add('bg-error');
+          break;
+      }
+    }
+
+    /**
+     * Обновляет интерфейс с информацией о выбранных столиках.
+     */
+    function updateSelectedTablesInfo() {
+      if (selectedTables.size === 0) {
+        selectedTablesInfo.innerHTML = '<span>Не выбрано</span>';
+        submitButton.disabled = true;
+      } else {
+        const tableNumbers = Array.from(selectedTables).sort((a, b) => a - b).join(', ');
+        selectedTablesInfo.innerHTML = `<span class="font-semibold">Столики: ${tableNumbers}</span>`;
+        submitButton.disabled = false;
+      }
+      selectedTablesInput.value = Array.from(selectedTables).join(',');
+    }
+
+    /**
+     * Устанавливает ограничения для поля времени в зависимости от выбранной даты.
+     */
+    function setTimeConstraints() {
+      const selectedDate = new Date(dateInput.value + 'T00:00:00'); // Добавляем время, чтобы избежать проблем с часовыми поясами
+      if (isNaN(selectedDate)) {
+        timeInput.min = '';
+        timeInput.max = '';
+        return;
+      }
+      const dayOfWeek = selectedDate.getDay(); // 0 = Вс, 1 = Пн, ...
+
+      let hours;
+      if (dayOfWeek >= 1 && dayOfWeek <= 4) { // Пн-Чт
+        hours = workingHoursData['1-4'];
+      } else if (dayOfWeek >= 5 && dayOfWeek <= 6) { // Пт-Сб
+        hours = workingHoursData['5-6'];
+      } else { // Вс
+        hours = workingHoursData['0'];
+      }
+
+      timeInput.min = hours.open;
+      timeInput.max = hours.close === '00:00' ? '23:59' : hours.close;
+      
+      // Если текущее время выходит за рамки, сбрасываем значение
+      if (timeInput.value && (timeInput.value < timeInput.min || timeInput.value > timeInput.max)) {
+        timeInput.value = '';
+      }
+    }
+
+    // --- Обработчики событий ---
+
+    // Используем делегирование событий для кликов по столикам
+    tableMapContainer.addEventListener('click', (event) => {
+      const circle = event.target.closest('.table-circle');
+      if (!circle) return;
+
+      const tableId = parseInt(circle.dataset.tableId, 10);
+      const status = circle.dataset.status;
+
+      if (status !== 'available') {
+        // Показываем уведомление, если столик не доступен
+        // Для простоты используем alert, но в реальном проекте лучше DaisyUI toast/modal
+        alert(`Столик №${tableId} сейчас ${status === 'reserved' ? 'забронирован' : 'занят'}.`);
+        return;
+      }
+
+      if (selectedTables.has(tableId)) {
+        // Снимаем выделение
+        selectedTables.delete(tableId);
+        circle.classList.remove('ring-4', 'ring-primary', 'ring-offset-2');
+      } else {
+        // Добавляем выделение
+        selectedTables.add(tableId);
+        circle.classList.add('ring-4', 'ring-primary', 'ring-offset-2');
+      }
+
+      updateSelectedTablesInfo();
+    });
+
+    // Обработчик изменения даты
+    dateInput.addEventListener('change', setTimeConstraints);
+
+    // Обработчик для чекбокса предзаказа
+    preorderCheckbox.addEventListener('change', () => {
+      preorderInfo.classList.toggle('hidden');
+    });
+
+    // Обработчик отправки формы
+    reservationForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+
+      if (selectedTables.size === 0) {
+        alert('Пожалуйста, выберите хотя бы один столик.');
+        return;
+      }
+
+      const formData = new FormData(reservationForm);
+      const reservationData = {
+        table_ids: formData.get('table_ids').split(',').map(Number),
+        date: formData.get('date'),
+        time: formData.get('time'),
+        preorder: formData.get('preorder') === '1'
+      };
+
+      console.log('Отправка данных на бэкенд:', reservationData);
+      
+      // Здесь будет fetch-запрос к вашему Rails API
+      // ...
+      
+      // Имитация успешной отправки для демонстрации
+      alert(`Ваша бронь на столики ${reservationData.table_ids.join(', ')} на ${reservationData.date} в ${reservationData.time} готова к отправке!`);
+    });
+
+    // --- Первоначальная настройка ---
+    // Применяем начальные стили ко всем столикам
+    document.querySelectorAll('.table-circle').forEach(circle => {
+      applyTableStyles(circle, circle.dataset.status);
+    });
+    
+    // Устанавливаем начальные ограничения времени для сегодняшнего дня
+    setTimeConstraints();
+  });
+</script>
+
+
+<script type="text/javascript">
+  document.addEventListener('DOMContentLoaded', () => {
+    // --- Элементы DOM ---
+    const tableMapContainer = document.getElementById('table-map-container');
+    const selectedTablesInfo = document.getElementById('selected-tables-info');
+    const selectedTablesInput = document.getElementById('selected-tables-input');
+    const reservationForm = document.getElementById('reservation-form');
+    const submitButton = reservationForm.querySelector('button[type="submit"]');
+    const dateInput = document.getElementById('reservation-date');
+    const timeInput = document.getElementById('reservation-time');
+    const preorderCheckbox = document.getElementById('preorder-checkbox');
+    const preorderInfo = document.getElementById('preorder-info');
+
+    // --- Состояние приложения ---
+    const selectedTables = new Set();
+    
+    // --- Данные о часах работы ---
+    // Для простоты примера, часы работы захардкодены.
+    // В реальном приложении их лучше передать из Rails через data-атрибут.
+    const workingHoursData = {
+      '1-4': { open: '09:00', close: '23:00' }, // Пн-Чт (wday: 1-4)
+      '5-6': { open: '09:00', close: '00:00' }, // Пт-Сб (wday: 5-6)
+      '0':   { open: '09:00', close: '23:00' }  // Вс   (wday: 0)
+    };
+
+    // --- Функции ---
+
+    /**
+     * Применяет стили к кружку столика в зависимости от его статуса.
+     */
+    function applyTableStyles(circle, status) {
+      circle.classList.remove('bg-success', 'bg-warning', 'bg-error', 'ring-4', 'ring-primary', 'ring-offset-2');
+      switch (status) {
+        case 'available':
+          circle.classList.add('bg-success');
+          break;
+        case 'reserved':
+          circle.classList.add('bg-warning');
+          break;
+        case 'occupied':
+          circle.classList.add('bg-error');
+          break;
+      }
+    }
+
+    /**
+     * Обновляет интерфейс с информацией о выбранных столиках.
+     */
+    function updateSelectedTablesInfo() {
+      if (selectedTables.size === 0) {
+        selectedTablesInfo.innerHTML = '<span>Не выбрано</span>';
+        submitButton.disabled = true;
+      } else {
+        const tableNumbers = Array.from(selectedTables).sort((a, b) => a - b).join(', ');
+        selectedTablesInfo.innerHTML = `<span class="font-semibold">Столики: ${tableNumbers}</span>`;
+        submitButton.disabled = false;
+      }
+      selectedTablesInput.value = Array.from(selectedTables).join(',');
+    }
+
+    /**
+     * Устанавливает ограничения для поля времени в зависимости от выбранной даты.
+     */
+    function setTimeConstraints() {
+      const selectedDate = new Date(dateInput.value + 'T00:00:00'); // Добавляем время, чтобы избежать проблем с часовыми поясами
+      if (isNaN(selectedDate)) {
+        timeInput.min = '';
+        timeInput.max = '';
+        return;
+      }
+      const dayOfWeek = selectedDate.getDay(); // 0 = Вс, 1 = Пн, ...
+
+      let hours;
+      if (dayOfWeek >= 1 && dayOfWeek <= 4) { // Пн-Чт
+        hours = workingHoursData['1-4'];
+      } else if (dayOfWeek >= 5 && dayOfWeek <= 6) { // Пт-Сб
+        hours = workingHoursData['5-6'];
+      } else { // Вс
+        hours = workingHoursData['0'];
+      }
+
+      timeInput.min = hours.open;
+      timeInput.max = hours.close === '00:00' ? '23:59' : hours.close;
+      
+      // Если текущее время выходит за рамки, сбрасываем значение
+      if (timeInput.value && (timeInput.value < timeInput.min || timeInput.value > timeInput.max)) {
+        timeInput.value = '';
+      }
+    }
+
+    // --- Обработчики событий ---
+
+    // Используем делегирование событий для кликов по столикам
+    tableMapContainer.addEventListener('click', (event) => {
+      const circle = event.target.closest('.table-circle');
+      if (!circle) return;
+
+      const tableId = parseInt(circle.dataset.tableId, 10);
+      const status = circle.dataset.status;
+
+      if (status !== 'available') {
+        // Показываем уведомление, если столик не доступен
+        // Для простоты используем alert, но в реальном проекте лучше DaisyUI toast/modal
+        alert(`Столик №${tableId} сейчас ${status === 'reserved' ? 'забронирован' : 'занят'}.`);
+        return;
+      }
+
+      if (selectedTables.has(tableId)) {
+        // Снимаем выделение
+        selectedTables.delete(tableId);
+        circle.classList.remove('ring-4', 'ring-primary', 'ring-offset-2');
+      } else {
+        // Добавляем выделение
+        selectedTables.add(tableId);
+        circle.classList.add('ring-4', 'ring-primary', 'ring-offset-2');
+      }
+
+      updateSelectedTablesInfo();
+    });
+
+    // Обработчик изменения даты
+    dateInput.addEventListener('change', setTimeConstraints);
+
+    // Обработчик для чекбокса предзаказа
+    preorderCheckbox.addEventListener('change', () => {
+      preorderInfo.classList.toggle('hidden');
+    });
+
+    // Обработчик отправки формы
+    reservationForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+
+      if (selectedTables.size === 0) {
+        alert('Пожалуйста, выберите хотя бы один столик.');
+        return;
+      }
+
+      const formData = new FormData(reservationForm);
+      const reservationData = {
+        table_ids: formData.get('table_ids').split(',').map(Number),
+        date: formData.get('date'),
+        time: formData.get('time'),
+        preorder: formData.get('preorder') === '1'
+      };
+
+      console.log('Отправка данных на бэкенд:', reservationData);
+      
+      // Здесь будет fetch-запрос к вашему Rails API
+      // ...
+      
+      // Имитация успешной отправки для демонстрации
+      alert(`Ваша бронь на столики ${reservationData.table_ids.join(', ')} на ${reservationData.date} в ${reservationData.time} готова к отправке!`);
+    });
+
+    // --- Первоначальная настройка ---
+    // Применяем начальные стили ко всем столикам
+    document.querySelectorAll('.table-circle').forEach(circle => {
+      applyTableStyles(circle, circle.dataset.status);
+    });
+    
+    // Устанавливаем начальные ограничения времени для сегодняшнего дня
+    setTimeConstraints();
+  });
+</script>

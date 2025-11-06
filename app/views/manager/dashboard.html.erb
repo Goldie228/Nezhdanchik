@@ -1,0 +1,367 @@
+<div class="min-h-screen bg-base-200">
+  <div class="container mx-auto px-4 py-4 md:py-6">
+    <!-- Хлебные крошки -->
+    <div class="text-sm breadcrumbs mb-4 md:mb-6">
+      <ul>
+        <li><a href="#" class="text-primary hover:text-primary-focus">Панель управления</a></li>
+        <li><span class="text-base-content/60">Управление заказами</span></li>
+      </ul>
+    </div>
+
+    <!-- Заголовок и статистика -->
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <div class="flex items-center gap-4">
+            <div class="bg-info/20 p-3 rounded-2xl">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-info" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
+            <div>
+              <div class="text-2xl font-bold text-info"><%= @active_orders.count %></div>
+              <div class="text-base-content/60">Активных заказов</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <div class="flex items-center gap-4">
+            <div class="bg-warning/20 p-3 rounded-2xl">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <div class="text-2xl font-bold text-warning"><%= @active_orders.select { |o| o[:status] == "preparing" }.count %></div>
+              <div class="text-base-content/60">Готовятся</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <div class="flex items-center gap-4">
+            <div class="bg-success/20 p-3 rounded-2xl">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <div class="text-2xl font-bold text-success"><%= @active_orders.select { |o| o[:status] == "ready" }.count %></div>
+              <div class="text-base-content/60">Готовы к подаче</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <div class="flex items-center gap-4">
+            <div class="bg-primary/20 p-3 rounded-2xl">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
+            <div>
+              <div class="text-2xl font-bold text-primary">3</div>
+              <div class="text-base-content/60">Официанты активны</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Список заказов -->
+    <div class="space-y-4 md:space-y-6">
+      <% @active_orders.each do |order| %>
+        <div class="collapse collapse-arrow bg-base-100 shadow-xl border-2 <%= 
+          order[:status] == 'new' ? 'border-info/20' : 
+          order[:status] == 'preparing' ? 'border-warning/20' : 
+          'border-success/20' 
+        %>">
+          <!-- Заголовок заказа (всегда виден) -->
+          <input type="checkbox" id="order-<%= order[:id] %>" class="peer" />
+          <div class="collapse-title p-4 md:p-6 cursor-pointer">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div class="flex items-center gap-4">
+                <div class="flex flex-col">
+                  <span class="text-sm text-base-content/60">Заказ №</span>
+                  <span class="text-xl font-bold text-primary"><%= order[:order_number] %></span>
+                </div>
+                <div class="flex flex-col">
+                  <span class="text-sm text-base-content/60">Столы</span>
+                  <div class="flex gap-1">
+                    <% if order[:table_numbers] %>
+                      <% order[:table_numbers].each do |table| %>
+                        <span class="badge badge-lg badge-outline">№<%= table %></span>
+                      <% end %>
+                    <% else %>
+                      <span class="badge badge-lg badge-outline">№<%= order[:table_number] %></span>
+                    <% end %>
+                  </div>
+                </div>
+                <div class="flex flex-col">
+                  <span class="text-sm text-base-content/60">Клиент</span>
+                  <span class="font-semibold"><%= order[:customer_name] %></span>
+                </div>
+              </div>
+              
+              <div class="flex items-center gap-4">
+                <div class="flex flex-col text-right">
+                  <span class="text-sm text-base-content/60">Сумма</span>
+                  <span class="text-xl font-bold text-primary">
+                    <%= number_to_currency(order[:total], unit: "BYN", format: "%n %u") %>
+                  </span>
+                </div>
+                <div class="badge badge-lg <%= 
+                  order[:status] == 'new' ? 'badge-info' : 
+                  order[:status] == 'preparing' ? 'badge-warning' : 
+                  'badge-success' 
+                %>">
+                  <%= order[:status_text] %>
+                </div>
+              </div>
+            </div>
+
+            <div class="text-sm text-base-content/60 mt-2">
+              Создан: <%= order[:created_at] %>
+            </div>
+
+            <!-- Краткая информация о блюдах (в свернутом виде) -->
+            <div class="hidden peer-checked:hidden mt-3">
+              <div class="flex flex-wrap gap-2">
+                <% order[:items].each do |item| %>
+                  <span class="badge badge-outline badge-sm"><%= item[:dish_name] %> ×<%= item[:quantity] %></span>
+                <% end %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Детали заказа (разворачиваются при клике) -->
+          <div class="collapse-content p-4 md:p-6 pt-0">
+            <!-- Комментарий к заказу -->
+            <div class="mt-4 mb-6">
+              <div class="flex items-center gap-2 mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                </svg>
+                <span class="font-semibold text-primary">Комментарий к заказу:</span>
+              </div>
+              <div class="form-control">
+                <textarea class="textarea textarea-bordered h-24" placeholder="Добавить комментарий к заказу..." id="comment-<%= order[:id] %>"><%= order[:comment] || "" %></textarea>
+                <button class="btn btn-sm btn-primary mt-2" onclick="saveComment(<%= order[:id] %>)">Сохранить комментарий</button>
+              </div>
+            </div>
+
+            <div class="divider my-2"></div>
+
+            <!-- Список блюд с модификациями -->
+            <div class="space-y-4">
+              <% order[:items].each do |item| %>
+                <div class="bg-base-200 rounded-xl p-4">
+                  <!-- Основная информация о блюде -->
+                  <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-3">
+                      <h4 class="font-bold text-lg"><%= item[:dish_name] %></h4>
+                      <span class="badge badge-outline">×<%= item[:quantity] %></span>
+                    </div>
+                    <div class="text-right">
+                      <div class="text-sm text-base-content/60">Итого за позицию</div>
+                      <div class="font-bold text-primary">
+                        <%= number_to_currency(item[:total_price] * item[:quantity], unit: "BYN", format: "%n %u") %>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Добавленные ингредиенты -->
+                  <% if item[:modifications][:added].any? %>
+                    <div class="mb-3">
+                      <div class="flex items-center gap-2 mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        <span class="font-semibold text-success text-sm">ДОБАВЛЕНО:</span>
+                      </div>
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <% item[:modifications][:added].each do |ingredient| %>
+                          <div class="flex items-center gap-2 p-2 bg-success/10 rounded-lg">
+                            <figure class="w-8 h-8 rounded-lg overflow-hidden bg-base-300 flex items-center justify-center">
+                              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-base-content/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                            </figure>
+                            <span class="font-medium text-sm flex-1"><%= ingredient[:name] %></span>
+                            <span class="text-success font-semibold text-sm">
+                              +<%= number_to_currency(ingredient[:price], unit: "BYN", format: "%n %u") %>
+                            </span>
+                          </div>
+                        <% end %>
+                      </div>
+                    </div>
+                  <% end %>
+
+                  <!-- Удаленные ингредиенты -->
+                  <% if item[:modifications][:removed].any? %>
+                    <div class="mb-3">
+                      <div class="flex items-center gap-2 mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-error" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        <span class="font-semibold text-error text-sm">УБРАНО:</span>
+                      </div>
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <% item[:modifications][:removed].each do |ingredient| %>
+                          <div class="flex items-center gap-2 p-2 bg-error/10 rounded-lg">
+                            <figure class="w-8 h-8 rounded-lg overflow-hidden bg-base-300 flex items-center justify-center">
+                              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-base-content/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                            </figure>
+                            <span class="font-medium text-sm flex-1 line-through text-base-content/60"><%= ingredient[:name] %></span>
+                          </div>
+                        <% end %>
+                      </div>
+                    </div>
+                  <% end %>
+
+                  <!-- Особые указания -->
+                  <% if item[:special_instructions] %>
+                    <div class="mt-3 p-3 bg-warning/10 rounded-lg border border-warning/20">
+                      <div class="flex items-center gap-2 mb-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="font-semibold text-warning text-sm">ОСОБЫЕ УКАЗАНИЯ:</span>
+                      </div>
+                      <p class="text-warning-content text-sm"><%= item[:special_instructions] %></p>
+                    </div>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+
+            <!-- Время приготовления -->
+            <div class="flex items-center justify-between mt-4 p-3 bg-base-300 rounded-lg">
+              <span class="font-semibold">Общее время приготовления:</span>
+              <span class="text-lg font-bold text-primary"><%= order[:preparation_time] %> мин</span>
+            </div>
+
+            <!-- Управление статусом -->
+            <div class="card-actions justify-between mt-4">
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-base-content/60">Изменить статус:</span>
+              </div>
+              <div class="flex gap-2">
+                <% @statuses.each do |status| %>
+                  <button 
+                    class="btn btn-xs <%= status[:value] == order[:status] ? status[:color].gsub('badge-', 'btn-') : 'btn-outline' %>"
+                    data-order-id="<%= order[:id] %>"
+                    data-status="<%= status[:value] %>"
+                    onclick="updateOrderStatus(<%= order[:id] %>, '<%= status[:value] %>')"
+                  >
+                    <%= status[:text] %>
+                  </button>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Сообщение если нет активных заказов -->
+    <% if @active_orders.empty? %>
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body text-center py-12">
+          <div class="flex justify-center mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-base-content/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-base-content/70 mb-2">Нет активных заказов</h3>
+          <p class="text-base-content/60">Новые заказы будут появляться здесь автоматически</p>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<script>
+  // Функция для обновления статуса заказа
+  function updateOrderStatus(orderId, newStatus) {
+    // В реальном приложении здесь будет AJAX-запрос к серверу
+    console.log(`Обновление статуса заказа ${orderId} на ${newStatus}`);
+    
+    // Визуальная обратная связь
+    const orderElement = document.getElementById(`order-${orderId}`);
+    if (orderElement) {
+      // Добавляем класс для визуальной индикации обновления
+      orderElement.classList.add('animate-pulse');
+      
+      // Симуляция ответа сервера
+      setTimeout(() => {
+        orderElement.classList.remove('animate-pulse');
+        // Показываем уведомление об успешном обновлении
+        const notification = document.createElement('div');
+        notification.className = 'toast toast-top toast-end';
+        notification.innerHTML = `
+          <div class="alert alert-success">
+            <div>
+              <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Статус заказа успешно обновлен</span>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(notification);
+        
+        // Удаляем уведомление через 3 секунды
+        setTimeout(() => {
+          notification.remove();
+        }, 3000);
+      }, 500);
+    }
+  }
+  
+  // Функция для сохранения комментария к заказу
+  function saveComment(orderId) {
+    const commentElement = document.getElementById(`comment-${orderId}`);
+    const comment = commentElement.value;
+    
+    // В реальном приложении здесь будет AJAX-запрос к серверу
+    console.log(`Сохранение комментария для заказа ${orderId}: ${comment}`);
+    
+    // Визуальная обратная связь
+    commentElement.classList.add('ring', 'ring-primary');
+    
+    // Симуляция ответа сервера
+    setTimeout(() => {
+      commentElement.classList.remove('ring', 'ring-primary');
+      
+      // Показываем уведомление об успешном сохранении
+      const notification = document.createElement('div');
+      notification.className = 'toast toast-top toast-end';
+      notification.innerHTML = `
+        <div class="alert alert-success">
+          <div>
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>Комментарий успешно сохранен</span>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(notification);
+      
+      // Удаляем уведомление через 3 секунды
+      setTimeout(() => {
+        notification.remove();
+      }, 3000);
+    }, 500);
+  }
+</script>

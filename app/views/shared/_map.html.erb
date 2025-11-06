@@ -1,0 +1,19 @@
+<div id="map" class="h-full w-full rounded-lg" style="height: 400px;"></div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    // координаты Просп. Победителей, 11
+    var lat = 53.909249;
+    var lng = 27.548249;
+
+    var map = L.map('map').setView([lat, lng], 16); // зум 16 для приближения
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    L.marker([lat, lng]).addTo(map)
+      .bindPopup("Просп. Победителей, 11, Минск")
+      .openPopup();
+  });
+</script>

@@ -4,6 +4,10 @@ ru:
     actions: "Действия"
 
     resource_translations:
+      user:
+        zero: "Пользователей"
+        one: "Пользователь"
+        other: "Пользователи"
       dish:
         zero: "Блюд"
         one: "Блюдо"
@@ -27,6 +31,14 @@ ru:
 
     field_translations:
       id: "ID"
+      email: "Электронная почта"
+      phone: "Телефон"
+      first_name: "Имя"
+      last_name: "Фамилия"
+      middle_name: "Отчество"
+      role: "Роль"
+      created_at: "Создан"
+      updated_at: "Обновлён"
       title: "Название"
       description: "Описание"
       price: "Цена"
@@ -48,3 +60,5 @@ ru:
       fats: "Жиры"
       carbohydrates: "Углеводы"
       nutrition: "Пищевая ценность"
+      password: "Пароль"
+      password_confirmation: "Подтверждение пароля"

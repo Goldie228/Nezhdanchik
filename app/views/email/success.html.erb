@@ -1,0 +1,39 @@
+<div class="min-h-screen bg-base-200 flex items-center justify-center p-4">
+  <div class="card w-full max-w-md bg-base-100 shadow-2xl border border-base-300">
+    <div class="card-body p-8">
+      <!-- Иконка статуса -->
+      <div class="flex justify-center mb-6">
+        <div class="w-20 h-20 bg-success/20 rounded-full flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- Заголовок -->
+      <h2 class="card-title justify-center text-2xl font-bold mb-4">Почта успешно изменена</h2>
+      
+      <!-- Сообщение -->
+      <p class="text-base-content/70 text-center mb-6">
+        Ваш электронный адрес успешно изменен. Теперь вы будете использовать новый адрес для входа в аккаунт.
+      </p>
+
+      <!-- Информация о почте -->
+      <div class="bg-base-200 rounded-lg p-4 mb-6">
+        <p class="text-sm text-base-content/70 mb-1">Новый адрес:</p>
+        <p class="font-semibold"><%= @email %></p>
+        <p class="text-xs text-success mt-2 flex items-center gap-1">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Подтверждено <%= l(Time.current, format: :short) %>
+        </p>
+      </div>
+
+      <!-- Кнопка -->
+      <div class="card-actions justify-center">
+        <%= link_to "Перейти в профиль", profile_path, class: "btn btn-primary btn-lg w-full shadow-lg hover:shadow-xl transition-all duration-300" %>
+      </div>
+    </div>
+  </div>
+</div>

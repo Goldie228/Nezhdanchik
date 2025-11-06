@@ -33,6 +33,12 @@ gem "avo", ">= 3.2"
 
 gem "active_storage_validations"
 
+gem "pundit", "~> 2.5"
+
+gem "devise", "~> 4.9"
+
+gem "leaflet-rails", "~> 1.9"
+
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
 
@@ -54,6 +60,8 @@ group :test do
   gem "capybara"
   gem "shoulda-matchers"
   gem "database_cleaner-active_record"
-  gem "shoulda-matchers"
   gem "selenium-webdriver"
+  gem "rails-controller-testing"
 end
+
+gem "connection_pool", "~> 2.5"

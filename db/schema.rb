@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_11_01_100847) do
+ActiveRecord::Schema[7.2].define(version: 2025_11_04_182959) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -103,6 +103,26 @@ ActiveRecord::Schema[7.2].define(version: 2025_11_01_100847) do
     t.bigint "ingredient_id"
     t.index ["dish_id"], name: "index_nutritions_on_dish_id"
     t.index ["ingredient_id"], name: "index_nutritions_on_ingredient_id"
+  end
+
+  create_table "users", force: :cascade do |t|
+    t.string "email", null: false
+    t.string "phone", null: false
+    t.string "first_name", limit: 255, null: false
+    t.string "last_name", limit: 255, null: false
+    t.string "middle_name", limit: 255
+    t.integer "role", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "password_digest", null: false
+    t.string "email_otp_code"
+    t.datetime "email_otp_sent_at"
+    t.integer "email_otp_attempts", default: 0, null: false
+    t.boolean "two_factor_enabled", default: false, null: false
+    t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["email_otp_code"], name: "index_users_on_email_otp_code"
+    t.index ["phone"], name: "index_users_on_phone", unique: true
+    t.index ["role"], name: "index_users_on_role"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"

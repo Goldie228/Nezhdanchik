@@ -1,0 +1,100 @@
+<div class="min-h-screen bg-base-200 flex items-center justify-center p-4">
+  <div class="card w-full max-w-md bg-base-100 shadow-2xl border border-base-300">
+    <div class="card-body p-8">
+      <!-- Заголовок -->
+      <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-20 h-20 bg-warning/10 rounded-2xl mb-4 transition-all duration-300 hover:scale-105 hover:shadow-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+          </svg>
+        </div>
+        <h1 class="text-3xl font-bold mb-2">Сброс пароля</h1>
+        <p class="text-base-content/50 text-sm">Введите ваш новый пароль</p>
+      </div>
+
+      <!-- Блок для отображения ошибок -->
+      <% if flash[:alert] %>
+        <div class="alert alert-error shadow-lg mb-6">
+          <div>
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <span><%= flash[:alert] %></span>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Форма сброса пароля -->
+      <%= form_with url: password_reset_path(token: @token), method: :patch, local: true, class: "space-y-6" do |f| %>
+        <div class="form-control w-full">
+          <label class="label">
+            <span class="label-text font-medium text-base-content/70">Новый пароль</span>
+            <span class="label-text-alt text-error">*</span>
+          </label>
+          <div class="relative">
+            <%= f.password_field :new_password, id: "new_password", class: "input input-bordered input-lg w-full pr-10 focus:ring-2 focus:ring-primary/20 transition-all", required: true, placeholder: "Минимум 8 символов" %>
+            <button type="button" class="absolute top-3 right-3 p-1 text-base-content/50 hover:text-base-content transition-colors z-10" onclick="togglePassword('new_password')" aria-label="Показать/скрыть пароль">
+              <svg id="eye-open-new_password" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden text-base-content/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+              </svg>
+              <svg id="eye-closed-new_password" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-base-content/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        
+        <div class="form-control w-full">
+          <label class="label">
+            <span class="label-text font-medium text-base-content/70">Подтвердите новый пароль</span>
+            <span class="label-text-alt text-error">*</span>
+          </label>
+          <div class="relative">
+            <%= f.password_field :password_confirmation, id: "password_confirmation", class: "input input-bordered input-lg w-full pr-10 focus:ring-2 focus:ring-primary/20 transition-all", required: true, placeholder: "Повторите новый пароль" %>
+            <button type="button" class="absolute top-3 right-3 p-1 text-base-content/50 hover:text-base-content transition-colors z-10" onclick="togglePassword('password_confirmation')" aria-label="Показать/скрыть пароль">
+              <svg id="eye-open-password_confirmation" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden text-base-content/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+              </svg>
+              <svg id="eye-closed-password_confirmation" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-base-content/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="flex justify-center">
+          <%= f.submit "Установить новый пароль",
+            class: "btn btn-primary btn-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] w-full" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<script>
+  function togglePassword(fieldId) {
+    const input = document.getElementById(fieldId);
+    const eyeOpen = document.getElementById("eye-open-" + fieldId);
+    const eyeClosed = document.getElementById("eye-closed-" + fieldId);
+    
+    if (input.type === "password") {
+      input.type = "text";
+      eyeOpen.classList.remove("hidden");
+      eyeClosed.classList.add("hidden");
+    } else {
+      input.type = "password";
+      eyeOpen.classList.add("hidden");
+      eyeClosed.classList.remove("hidden");
+    }
+  }
+
+  // Очистка flash сообщений через 5 секунд
+  setTimeout(() => {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+      alert.style.transition = 'opacity 0.5s';
+      alert.style.opacity = '0';
+      setTimeout(() => alert.remove(), 500);
+    });
+  }, 5000);
+</script>

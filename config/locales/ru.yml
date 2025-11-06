@@ -1,0 +1,92 @@
+ru:
+  date:
+    formats:
+      default: "%d.%m.%Y"
+      long: "%d %B %Y"
+      short: "%d %b"
+    day_names: [Воскресенье, Понедельник, Вторник, Среда, Четверг, Пятница, Суббота]
+    abbr_day_names: [Вс, Пн, Вт, Ср, Чт, Пт, Сб]
+    month_names: [~, Январь, Февраль, Март, Апрель, Май, Июнь, Июль, Август, Сентябрь, Октябрь, Ноябрь, Декабрь]
+    abbr_month_names: [~, Янв, Фев, Мар, Апр, Май, Июн, Июл, Авг, Сен, Окт, Ноя, Дек]
+  time:
+    formats:
+      default: "%d.%m.%Y %H:%M"
+      long: "%d %B %Y, %H:%M"
+      short: "%d %b %H:%M"
+
+  activerecord:
+    models:
+      user: "Пользователь"
+      nutrition: "Пищевая ценность"
+      ingredient: "Ингредиент"
+      dish_ingredient: "Связь блюда и ингредиента"
+      dish: "Блюдо"
+      category: "Категория"
+    enums:
+      user:
+        role:
+          customer: Клиент
+          manager: Менеджер
+          admin: Администратор
+    attributes:
+      user:
+        role: Роль
+        email: "Email"
+        phone: "Телефон"
+        first_name: "Имя"
+        last_name: "Фамилия"
+        middle_name: "Отчество"
+        password: "Пароль"
+        password_confirmation: "Подтверждение пароля"
+      nutrition:
+        proteins: "Белки"
+        fats: "Жиры"
+        carbohydrates: "Углеводы"
+        dish: "Блюдо"
+        ingredient: "Ингредиент"
+      ingredient:
+        name: "Название"
+        price: "Цена"
+        available: "Доступен"
+        allergen: "Аллерген"
+        weight: "Вес"
+        photo: "Фото"
+      dish_ingredient:
+        dish: "Блюдо"
+        ingredient: "Ингредиент"
+        default: "По умолчанию"
+      dish:
+        title: "Название"
+        description: "Описание"
+        price: "Цена"
+        slug: "Слаг"
+        active: "Активно"
+        cooking_time_minutes: "Время приготовления (мин)"
+        category: "Категория"
+        weight: "Вес"
+        photos: "Фотографии"
+      category:
+        name: "Название"
+        description: "Описание"
+        slug: "Слаг"
+        active: "Активна"
+        photo: "Фото"
+  errors:
+    messages:
+      blank: "не может быть пустым"
+      taken: "уже используется"
+      too_short: "слишком короткий (минимум %{count} символов)"
+      too_long: "слишком длинный (максимум %{count} символов)"
+      invalid: "имеет неверный формат"
+      invalid_phone: "должен содержать ровно 9 цифр без кода страны"
+      must_have_parent: "должна быть привязана либо к блюду, либо к ингредиенту"
+      cannot_have_both: "не может одновременно принадлежать и блюду, и ингредиенту"
+      not_a_number: "должен быть числом"
+      not_an_integer: "должен быть целым числом"
+      greater_than: "должен быть больше %{count}"
+      greater_than_or_equal_to: "должен быть больше или равен %{count}"
+      less_than: "должен быть меньше %{count}"
+      less_than_or_equal_to: "должен быть меньше или равен %{count}"
+      wrong_content_type: "имеет недопустимый формат файла"
+      file_size_out_of_range: "слишком большой файл (максимум %{file_size})"
+      inclusion: "имеет недопустимое значение"

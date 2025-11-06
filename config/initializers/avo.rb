@@ -19,11 +19,9 @@ Avo.configure do |config|
 
   ## == Authentication ==
   # config.current_user_method = :current_user
-  # config.authenticate_with do
-  # end
 
   ## == Authorization ==
-  # config.is_admin_method = :is_admin
+  # config.is_admin_method = :admin?
   # config.is_developer_method = :is_developer
   # config.authorization_methods = {
   #   index: 'index?',
@@ -40,7 +38,7 @@ Avo.configure do |config|
   config.explicit_authorization = true
 
   ## == Localization ==
-  # config.locale = 'en-US'
+  # config.locale = 'ru-RU'
 
   ## == Resource options ==
   # config.resource_row_controls_config = {

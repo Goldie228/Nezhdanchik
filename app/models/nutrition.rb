@@ -28,9 +28,9 @@ class Nutrition < ApplicationRecord
 
   def only_one_parent
     if dish_id.blank? && ingredient_id.blank?
-      errors.add(:base, "Nutrition must belong to either a dish or an ingredient")
+      errors.add(:base, :must_have_parent)
     elsif dish_id.present? && ingredient_id.present?
-      errors.add(:base, "Nutrition cannot belong to both dish and ingredient")
+      errors.add(:base, :cannot_have_both)
     end
   end
 end

@@ -21,7 +21,7 @@ RSpec.describe Nutrition, type: :model do
     it "is invalid without dish or ingredient" do
       nutrition = Nutrition.new(proteins: 10, fats: 5, carbohydrates: 20)
       expect(nutrition).not_to be_valid
-      expect(nutrition.errors[:base]).to include("Nutrition must belong to either a dish or an ingredient")
+      expect(nutrition.errors[:base]).to include(I18n.t("errors.messages.must_have_parent"))
     end
 
     it "is valid with dish" do
