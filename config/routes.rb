@@ -48,6 +48,16 @@ Rails.application.routes.draw do
   patch "password/reset/:token", to: "password#update_by_token"
   get "password/success", to: "password#success"
 
+  # Маршруты для корзины
+  get "cart", to: "cart#show", as: :cart
+  get "cart/info/:dish_id", to: "cart#cart_info", as: :cart_info
+  post "cart/add/:dish_id", to: "cart#add", as: :add_to_cart
+  post "cart/increase/:dish_id", to: "cart#increase", as: :increase_cart_item
+  post "cart/decrease/:dish_id", to: "cart#decrease", as: :decrease_cart_item
+  patch "cart/update/:id", to: "cart#update", as: :update_cart_item
+  delete "cart/remove/:id", to: "cart#remove", as: :remove_cart_item
+  delete "cart/clear", to: "cart#clear", as: :clear_cart
+
   # Форс мажорные пути
 
   get "orders/history", to: "orders#history"
@@ -57,10 +67,4 @@ Rails.application.routes.draw do
 
   get "privacy_policy", to: "pages#privacy_policy"
   get "terms_of_use", to: "pages#terms_of_use"
-
-  get "cart", to: "cart#show"
-  post "cart/add", to: "cart#add"
-  patch "cart/update", to: "cart#update"
-  delete "cart/remove", to: "cart#remove"
-  delete "cart/clear", to: "cart#clear"
 end

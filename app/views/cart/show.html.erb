@@ -1,214 +1,190 @@
 <div class="min-h-screen bg-base-200">
-  <div class="container mx-auto px-4 py-6 md:py-8">
-    <!-- Хлебные крошки -->
-    <div class="text-sm breadcrumbs mb-6 md:mb-8">
-      <ul>
-        <li><a href="#" class="text-primary hover:text-primary-focus">Главная</a></li>
-        <li><span class="text-base-content/60">Корзина</span></li>
-      </ul>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-      <!-- Левая колонка - Содержимое корзины -->
-      <div class="lg:col-span-2">
-        <!-- Заголовок -->
-        <div class="card bg-base-100 shadow-xl mb-6">
-          <div class="card-body">
-            <div class="flex items-center justify-between">
+  <div class="container mx-auto px-4 py-4 md:py-8">
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 md:gap-8">
+      <!-- Левая колонка: товары в корзине -->
+      <div class="xl:col-span-2">
+        <div class="card bg-base-100 shadow-xl md:shadow-2xl">
+          <div class="card-body p-4 md:p-6">
+            <div class="flex items-center justify-between mb-4 md:mb-6">
               <h1 class="card-title text-2xl md:text-3xl font-bold text-primary">
-                Корзина
+                Ваша корзина
               </h1>
-              <div class="badge badge-primary badge-lg">
+              <div class="badge badge-primary badge-lg" id="cart-items-badge">
                 <%= @total_items %> 
-                <% if @total_items == 1 %>
+                <% if @total_items % 10 == 1 && @total_items % 100 != 11 %>
                   товар
-                <% elsif @total_items > 1 && @total_items < 5 %>
+                <% elsif [2, 3, 4].include?(@total_items % 10) && ![12, 13, 14].include?(@total_items % 100) %>
                   товара
                 <% else %>
                   товаров
                 <% end %>
               </div>
             </div>
-          </div>
-        </div>
 
-        <!-- Список товаров -->
-        <% if @cart_items.present? %>
-          <div class="space-y-4">
-            <% @cart_items.each do |item| %>
-              <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300">
-                <div class="card-body p-4 md:p-6">
-                  <div class="flex flex-col md:flex-row gap-4 md:gap-6">
-                    <!-- Изображение товара -->
-                    <figure class="w-full md:w-32 h-32 rounded-2xl overflow-hidden bg-base-300 flex items-center justify-center flex-shrink-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-base-content/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                    </figure>
-
-                    <!-- Информация о товаре -->
-                    <div class="flex-1 min-w-0">
-                      <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-2 mb-3">
-                        <div class="flex-1">
-                          <h3 class="font-bold text-xl text-primary mb-1"><%= item[:name] %></h3>
-                          
-                          <!-- Модификации -->
-                          <% if item[:modifications].present? && (item[:modifications][:added].any? || item[:modifications][:removed].any?) %>
-                            <div class="space-y-1 mb-2">
-                              <% if item[:modifications][:added].any? %>
-                                <div class="flex items-center gap-1 text-sm">
-                                  <span class="text-success font-medium">+</span>
-                                  <span class="text-base-content/70"><%= item[:modifications][:added].join(', ') %></span>
-                                </div>
-                              <% end %>
-                              <% if item[:modifications][:removed].any? %>
-                                <div class="flex items-center gap-1 text-sm">
-                                  <span class="text-error font-medium">-</span>
-                                  <span class="text-base-content/70 line-through"><%= item[:modifications][:removed].join(', ') %></span>
-                                </div>
-                              <% end %>
-                            </div>
-                          <% end %>
-
-                          <!-- Особые указания -->
-                          <% if item[:special_instructions].present? %>
-                            <div class="bg-warning/10 rounded-lg p-2 mb-2">
-                              <p class="text-warning-content text-sm">
-                                <span class="font-medium">Примечание:</span> <%= item[:special_instructions] %>
-                              </p>
-                            </div>
-                          <% end %>
-                        </div>
-
-                        <div class="text-right">
-                          <div class="text-2xl font-bold text-primary mb-2">
-                            <%= number_to_currency(item[:price] * item[:quantity], unit: "BYN", format: "%n %u") %>
-                          </div>
-                          <div class="text-base-content/70 text-sm">
-                            <%= number_to_currency(item[:price], unit: "BYN", format: "%n %u") %> × <%= item[:quantity] %>
-                          </div>
-                        </div>
-                      </div>
-
-                      <!-- Управление количеством -->
-                      <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                          <button class="btn btn-outline btn-sm btn-circle" onclick="updateQuantity(<%= item[:id] %>, -1)">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
-                            </svg>
-                          </button>
-                          
-                          <span class="w-12 text-center font-semibold"><%= item[:quantity] %></span>
-                          
-                          <button class="btn btn-outline btn-sm btn-circle" onclick="updateQuantity(<%= item[:id] %>, 1)">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                            </svg>
-                          </button>
-                        </div>
-
-                        <button class="btn btn-ghost btn-sm text-error hover:bg-error hover:text-error-content" onclick="removeItem(<%= item[:id] %>)">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                          Удалить
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+            <% if @cart_items.any? %>
+              <div class="space-y-4 md:space-y-6" id="cart-items-container">
+                <%= render @cart_items %>
+              </div>
+            <% else %>
+              <div class="flex flex-col items-center justify-center py-12 md:py-16">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 text-primary mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+                <h3 class="text-xl font-semibold text-base-content/70 mb-2">Ваша корзина пуста</h3>
+                <p class="text-base-content/50 mb-6">Добавьте что-нибудь из нашего меню</p>
+                <%= link_to "Перейти в меню", menu_path, class: "btn btn-primary" %>
               </div>
             <% end %>
           </div>
-
-          <!-- Кнопка очистки корзины -->
-          <div class="mt-6 text-center">
-            <button class="btn btn-outline btn-error" onclick="clearCart()">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-              Очистить корзину
-            </button>
-          </div>
-        <% else %>
-          <!-- Пустая корзина -->
-          <div class="card bg-base-100 shadow-xl">
-            <div class="card-body text-center py-12">
-              <div class="flex justify-center mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-base-content/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                </svg>
-              </div>
-              <h3 class="text-xl font-bold text-base-content/70 mb-2">Корзина пуста</h3>
-              <p class="text-base-content/60 mb-6">Добавьте товары из меню, чтобы сделать заказ</p>
-              <a href="#" class="btn btn-primary">Перейти к меню</a>
-            </div>
-          </div>
-        <% end %>
+        </div>
       </div>
 
-      <!-- Правая колонка - Итоги и оформление -->
-      <% if @cart_items.present? %>
-        <div class="lg:col-span-1">
-          <div class="sticky top-4 space-y-6">
-            <!-- Итоговая информация -->
-            <div class="card bg-base-100 shadow-xl">
-              <div class="card-body">
-                <h2 class="card-title text-xl text-primary mb-4">Итоги заказа</h2>
-                
-                <div class="space-y-3">
-                  <div class="flex justify-between items-center">
-                    <span class="text-base-content/70">Товары (<%= @total_items %>)</span>
-                    <span class="font-semibold"><%= number_to_currency(@total_price, unit: "BYN", format: "%n %u") %></span>
-                  </div>
-
-                  <div class="divider my-2"></div>
-                  
-                  <div class="flex justify-between items-center text-lg font-bold text-primary">
-                    <span>Итого к оплате</span>
-                    <span class="text-xl">
-                      <%= number_to_currency(@total_price + (@total_price > 50 ? 0 : 5.00), unit: "BYN", format: "%n %u") %>
-                    </span>
-                  </div>
-                </div>
-
-                <div class="card-actions mt-6">
-                  <a href="#" class="btn btn-primary w-full shadow-lg">Перейти к бронированию и оформлению</a>
-                </div>
+      <!-- Правая колонка: итоговая информация -->
+      <div class="xl:col-span-1">
+        <div class="sticky top-4 md:top-6 space-y-4 md:space-y-6">
+          <!-- Итоговая информация -->
+          <div class="card from-primary/10 via-primary/5 to-secondary/10 shadow-xl md:shadow-2xl border border-primary/20">
+            <div class="card-body p-4 md:p-6">
+              <h2 class="card-title text-xl md:text-2xl text-primary mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                </svg>
+                Итого
+              </h2>
+              
+              <div id="cart-summary">
+                <%= render 'cart_summary' %>
               </div>
             </div>
           </div>
         </div>
-      <% end %>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- JavaScript для управления корзиной -->
 <script>
-function updateQuantity(itemId, change) {
-  // В реальном приложении здесь был бы AJAX запрос
-  console.log(`Updating item ${itemId} by ${change}`);
-  // Обновляем интерфейс
-  location.reload(); // Временное решение для демонстрации
-}
-
-function removeItem(itemId) {
-  if (confirm('Вы уверены, что хотите удалить этот товар из корзины?')) {
-    // В реальном приложении здесь был бы AJAX запрос
-    console.log(`Removing item ${itemId}`);
-    // Обновляем интерфейс
-    location.reload(); // Временное решение для демонстрации
+document.addEventListener('DOMContentLoaded', function() {
+  function getCsrfToken() {
+    const metaTag = document.querySelector('meta[name="csrf-token"]');
+    return metaTag ? metaTag.getAttribute('content') : null;
   }
-}
 
-function clearCart() {
-  if (confirm('Вы уверены, что хотите очистить всю корзину?')) {
-    // В реальном приложении здесь был бы AJAX запрос
-    console.log('Clearing cart');
-    // Обновляем интерфейс
-    location.reload(); // Временное решение для демонстрации
+  const csrfToken = getCsrfToken();
+
+  // Функция для обработки Turbo Stream ответов
+  function processTurboStream(turboStreamHTML) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(turboStreamHTML, 'text/html');
+    const turboStreams = doc.querySelectorAll('turbo-stream');
+    
+    turboStreams.forEach(stream => {
+      const action = stream.getAttribute('action');
+      const target = stream.getAttribute('target');
+      const targetElement = document.getElementById(target);
+      
+      if (targetElement) {
+        const template = stream.querySelector('template');
+        if (template) {
+          switch (action) {
+            case 'replace':
+              targetElement.innerHTML = template.innerHTML;
+              break;
+            case 'remove':
+              targetElement.remove();
+              break;
+            case 'update':
+              targetElement.textContent = template.innerHTML.trim();
+              break;
+          }
+        }
+      }
+    });
   }
-}
+
+  // Обработка кликов
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.quantity-decrease')) {
+      e.preventDefault();
+      const button = e.target.closest('.quantity-decrease');
+      const cartItemId = button.dataset.cartItemId;
+      updateCartItemQuantity(cartItemId, 'decrease');
+    } else if (e.target.closest('.quantity-increase')) {
+      e.preventDefault();
+      const button = e.target.closest('.quantity-increase');
+      const cartItemId = button.dataset.cartItemId;
+      updateCartItemQuantity(cartItemId, 'increase');
+    } else if (e.target.closest('.remove-item')) {
+      e.preventDefault();
+      const button = e.target.closest('.remove-item');
+      const cartItemId = button.dataset.cartItemId;
+      if (confirm('Вы уверены, что хотите удалить этот товар из корзины?')) {
+        removeCartItem(cartItemId);
+      }
+    } else if (e.target.closest('.edit-item')) {
+      e.preventDefault();
+      const button = e.target.closest('.edit-item');
+      window.location.href = `/menu/${button.dataset.categorySlug}/order`;
+    }
+  });
+
+  function updateCartItemQuantity(cartItemId, action) {
+    const headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'text/vnd.turbo-stream.html',
+      'X-CSRF-Token': csrfToken
+    };
+    
+    fetch(`/cart/update/${cartItemId}`, {
+      method: 'PATCH',
+      headers: headers,
+      body: JSON.stringify({
+        quantity_action: action
+      })
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.text();
+    })
+    .then(html => {
+      processTurboStream(html);
+    })
+    .catch(error => {
+      console.error('Error updating cart item:', error);
+      // В случае ошибки показываем уведомление и перезагружаем страницу
+      alert('Произошла ошибка при обновлении корзины');
+      location.reload();
+    });
+  }
+
+  function removeCartItem(cartItemId) {
+    const headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'text/vnd.turbo-stream.html',
+      'X-CSRF-Token': csrfToken
+    };
+    
+    fetch(`/cart/remove/${cartItemId}`, {
+      method: 'DELETE',
+      headers: headers
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.text();
+    })
+    .then(html => {
+      processTurboStream(html);
+    })
+    .catch(error => {
+      console.error('Error removing cart item:', error);
+      // В случае ошибки показываем уведомление и перезагружаем страницу
+      alert('Произошла ошибка при удалении товара');
+      location.reload();
+    });
+  }
+});
 </script>

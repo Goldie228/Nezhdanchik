@@ -100,6 +100,7 @@
                 
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                   <div class="text-xl md:text-2xl lg:text-3xl font-bold text-primary">
+                    <%= number_to_currency(@dish.price || 0, unit: "BYN", format: "%n %u") %>
                   </div>
                   <div class="flex gap-2">
                     <div class="badge badge-lg badge-outline">
@@ -382,95 +383,109 @@
       </div>
 
       <!-- Правая колонка: панель заказа и питательная ценность -->
-      <div class="xl:col-span-1">
-        <div class="sticky top-4 md:top-6 space-y-4 md:space-y-6">
-          <!-- Панель заказа -->
-          <div class="card from-primary/10 via-primary/5 to-secondary/10 shadow-xl md:shadow-2xl border border-primary/20">
-            <div class="card-body p-4 md:p-6">
-              <h2 class="card-title text-xl md:text-2xl text-primary mb-2 flex items-center gap-2">
-                <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                </svg>
-                Ваш заказ
-              </h2>
-              
-              <div class="space-y-3 md:space-y-4 bg-base-100/90 rounded-xl md:rounded-2xl p-4 md:p-6 backdrop-blur-sm border border-base-200">
-                <div class="flex justify-between items-center text-base md:text-lg">
-                  <span class="text-base-content/70">Базовая цена:</span>
-                  <span id="base-price" class="font-semibold" data-base-price="<%= @dish.price || 0 %>">
-                    <%= number_to_currency(@dish.price || 0, unit: "BYN", format: "%n %u") %>
-                  </span>
+    <div class="xl:col-span-1">
+      <div class="sticky top-4 md:top-6 space-y-4 md:space-y-6">
+        <!-- Панель заказа -->
+        <div class="card from-primary/10 via-primary/5 to-secondary/10 shadow-xl md:shadow-2xl border border-primary/20">
+          <div class="card-body p-4 md:p-6">
+            <h2 class="card-title text-xl md:text-2xl text-primary mb-2 flex items-center gap-2">
+              <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+              </svg>
+              Ваш заказ
+            </h2>
+            
+            <div class="space-y-3 md:space-y-4 bg-base-100/90 rounded-xl md:rounded-2xl p-4 md:p-6 backdrop-blur-sm border border-base-200">
+              <div class="flex justify-between items-center text-base md:text-lg">
+                <span class="text-base-content/70">Базовая цена:</span>
+                <span id="base-price" class="font-semibold" data-base-price="<%= @dish.price || 0 %>">
+                  <%= number_to_currency(@dish.price || 0, unit: "BYN", format: "%n %u") %>
+                </span>
+              </div>
+              <div class="flex justify-between items-center text-base md:text-lg">
+                <span class="text-base-content/70">Дополнительно:</span>
+                <span id="extras-price" class="font-semibold text-secondary-content">
+                  <%= number_to_currency(0, unit: "BYN", format: "%n %u") %>
+                </span>
+              </div>
+              <div class="divider my-1 md:my-2"></div>
+              <div class="flex justify-between items-center text-lg md:text-xl font-bold text-primary">
+                <span>Итого к оплате:</span>
+                <span id="total-price" class="text-xl md:text-2xl">
+                  <%= number_to_currency(@dish.price || 0, unit: "BYN", format: "%n %u") %>
+                </span>
+              </div>
+              <div class="flex justify-between items-center text-sm md:text-base text-base-content/70">
+                <span>Общий вес:</span>
+                <span id="total-weight" class="font-medium" data-base-weight="<%= @dish.weight || 0 %>">
+                  <%= @dish.weight || 0 %> г
+                </span>
+              </div>
+            </div>
+
+            <!-- Динамическая питательная ценность -->
+            <div class="mt-4 md:mt-6 bg-base-100/90 rounded-xl md:rounded-2xl p-4 md:p-6 backdrop-blur-sm border border-base-200">
+              <h3 class="text-lg font-bold mb-3 flex items-center gap-2">
+                Пищевая ценность
+              </h3>
+              <div class="grid grid-cols-2 gap-3 text-sm" 
+                   id="nutrition-block"
+                   data-base-proteins="<%= @dish.nutrition&.proteins || 0 %>"
+                   data-base-fats="<%= @dish.nutrition&.fats || 0 %>"
+                   data-base-carbohydrates="<%= @dish.nutrition&.carbohydrates || 0 %>">
+                <div class="text-base-content/70">Белки</div>
+                <div class="font-medium text-right" id="nutrition-proteins">
+                  <%= number_with_precision(@dish.nutrition&.proteins || 0, precision: 1) %> г
                 </div>
-                <div class="flex justify-between items-center text-base md:text-lg">
-                  <span class="text-base-content/70">Дополнительно:</span>
-                  <span id="extras-price" class="font-semibold text-secondary-content">
-                    <%= number_to_currency(0, unit: "BYN", format: "%n %u") %>
-                  </span>
+                
+                <div class="text-base-content/70">Жиры</div>
+                <div class="font-medium text-right" id="nutrition-fats">
+                  <%= number_with_precision(@dish.nutrition&.fats || 0, precision: 1) %> г
                 </div>
-                <div class="divider my-1 md:my-2"></div>
-                <div class="flex justify-between items-center text-lg md:text-xl font-bold text-primary">
-                  <span>Итого к оплате:</span>
-                  <span id="total-price" class="text-xl md:text-2xl">
-                    <%= number_to_currency(@dish.price || 0, unit: "BYN", format: "%n %u") %>
-                  </span>
+                
+                <div class="text-base-content/70">Углеводы</div>
+                <div class="font-medium text-right" id="nutrition-carbs">
+                  <%= number_with_precision(@dish.nutrition&.carbohydrates || 0, precision: 1) %> г
                 </div>
-                <div class="flex justify-between items-center text-sm md:text-base text-base-content/70">
-                  <span>Общий вес:</span>
-                  <span id="total-weight" class="font-medium" data-base-weight="<%= @dish.weight || 0 %>">
-                    <%= @dish.weight || 0 %> г
-                  </span>
+                
+                <div class="text-base-content/70">Калории</div>
+                <div class="font-medium text-right" id="nutrition-calories">
+                  <%= number_with_precision(calculate_calories(@dish.nutrition), precision: 0) %> ккал
                 </div>
               </div>
+            </div>
 
-              <!-- Динамическая питательная ценность -->
-              <div class="mt-4 md:mt-6 bg-base-100/90 rounded-xl md:rounded-2xl p-4 md:p-6 backdrop-blur-sm border border-base-200">
-                <h3 class="text-lg font-bold mb-3 flex items-center gap-2">
-                  Пищевая ценность
-                </h3>
-                <div class="grid grid-cols-2 gap-3 text-sm" 
-                     id="nutrition-block"
-                     data-base-proteins="<%= @dish.nutrition&.proteins || 0 %>"
-                     data-base-fats="<%= @dish.nutrition&.fats || 0 %>"
-                     data-base-carbohydrates="<%= @dish.nutrition&.carbohydrates || 0 %>">
-                  <div class="text-base-content/70">Белки</div>
-                  <div class="font-medium text-right" id="nutrition-proteins">
-                    <%= number_with_precision(@dish.nutrition&.proteins || 0, precision: 1) %> г
-                  </div>
-                  
-                  <div class="text-base-content/70">Жиры</div>
-                  <div class="font-medium text-right" id="nutrition-fats">
-                    <%= number_with_precision(@dish.nutrition&.fats || 0, precision: 1) %> г
-                  </div>
-                  
-                  <div class="text-base-content/70">Углеводы</div>
-                  <div class="font-medium text-right" id="nutrition-carbs">
-                    <%= number_with_precision(@dish.nutrition&.carbohydrates || 0, precision: 1) %> г
-                  </div>
-                  
-                  <div class="text-base-content/70">Калории</div>
-                  <div class="font-medium text-right" id="nutrition-calories">
-                    <%= number_with_precision(calculate_calories(@dish.nutrition), precision: 0) %> ккал
-                  </div>
-                </div>
-              </div>
-
-              <div class="card-actions mt-4 md:mt-6">
-                <%= button_to "#", 
-                    method: :post,
-                    class: "btn btn-primary btn-md md:btn-lg w-full shadow-lg transform transition-all hover:scale-105 active:scale-95 duration-200",
-                    id: "order-button",
-                    form: { 
-                      data: { 
-                        turbo: false,
-                        ingredient_ids: "",
-                        removed_ingredient_ids: ""
-                      } 
-                    } do %>
-                  <svg class="w-5 h-5 md:w-6 md:h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                  </svg>
-                  Добавить в корзину
+            <!-- Кнопки управления корзиной -->
+            <div class="card-actions mt-4 md:mt-6 flex justify-center">
+              <!-- Состояние: товар еще не в корзине -->
+              <div id="add-to-cart-container" class="w-full">
+                <%= form_with url: add_to_cart_path(@dish.id), method: :post, local: false, id: "add-to-cart-form", html: { "data-type": :json } do |form| %>
+                  <%= form.submit "Добавить в корзину", 
+                      class: "btn btn-primary btn-md md:btn-lg w-full shadow-lg transform transition-all hover:scale-105 active:scale-95 duration-200",
+                      id: "order-button" %>
                 <% end %>
+              </div>
+              
+              <!-- Состояние: товар уже в корзине (изначально скрыто) -->
+              <div id="quantity-controls" class="hidden w-full">
+                <div class="flex items-center justify-center gap-4">
+                  <button id="decrease-quantity" class="btn btn-circle btn-outline">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                    </svg>
+                  </button>
+                  
+                  <div class="flex flex-col items-center">
+                    <span id="cart-quantity" class="text-2xl font-bold text-primary">0</span>
+                    <span class="text-xs text-base-content/60">в корзине</span>
+                  </div>
+                  
+                  <button id="increase-quantity" class="btn btn-circle btn-outline">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -499,6 +514,42 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  function getCsrfToken() {
+    const metaTag = document.querySelector('meta[name="csrf-token"]');
+    if (metaTag) {
+      return metaTag.getAttribute('content');
+    }
+    
+    // Способ 2: из параметра мета-тега
+    const paramTag = document.querySelector('meta[name="csrf-param"]');
+    if (paramTag) {
+      const paramName = paramTag.getAttribute('content');
+      const input = document.querySelector(`input[name="${paramName}"]`);
+      if (input) {
+        return input.value;
+      }
+    }
+
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.startsWith('_rails_session=')) {
+        continue;
+      }
+      if (cookie.startsWith('CSRF-TOKEN=')) {
+        return cookie.substring('CSRF-TOKEN='.length);
+      }
+    }
+
+    const csrfInput = document.querySelector('input[name="authenticity_token"]');
+    if (csrfInput) {
+      return csrfInput.value;
+    }
+    
+    console.warn('CSRF token not found using any method');
+    return null;
+  }
+
   const safeElement = (id, fallback = null) => {
     const element = document.getElementById(id);
     if (!element) {
@@ -507,6 +558,68 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     return element;
   };
+
+  const dishId = <%= @dish.id %>;
+  const csrfToken = getCsrfToken();
+
+  const orderForm = document.getElementById('add-to-cart-form');
+  if (orderForm) {
+
+    orderForm.dataset.ingredientIds = '';
+    orderForm.dataset.removedIngredientIds = '';
+
+    orderForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const selectedIds = (orderForm.dataset.ingredientIds || '').split(',').filter(id => id);
+      const removedIds = (orderForm.dataset.removedIngredientIds || '').split(',').filter(id => id);
+      
+      const formData = new FormData();
+
+      if (selectedIds.length > 0) {
+        selectedIds.forEach(id => {
+          formData.append('selected_ingredient_ids[]', id);
+        });
+      }
+      
+      if (removedIds.length > 0) {
+        removedIds.forEach(id => {
+          formData.append('removed_ingredient_ids[]', id);
+        });
+      }
+
+      fetch(orderForm.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-CSRF-Token': csrfToken,
+          'Accept': 'application/json'
+        }
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        return response.text().then(text => {
+          try {
+            return text ? JSON.parse(text) : { in_cart: true, quantity: 1 };
+          } catch (e) {
+            console.warn('Failed to parse JSON, using default response');
+            return { in_cart: true, quantity: 1 };
+          }
+        });
+      })
+      .then(data => {
+        updateCartInfoDisplay(data);
+      })
+      .catch(error => {
+        console.error('Error adding to cart:', error);
+
+        updateCartInfoDisplay({ in_cart: true, quantity: 1 });
+      });
+    });
+  }
 
   const safeParseFloat = (value, fallback = 0) => {
     const parsed = parseFloat(value);
@@ -631,20 +744,157 @@ document.addEventListener('DOMContentLoaded', function() {
       extrasPriceElement.textContent = Math.max(0, extrasPrice).toFixed(2) + ' BYN';
     }
 
-    const orderForm = orderButton.closest('form');
     if (orderForm) {
       orderForm.dataset.ingredientIds = selectedIngredientIds.join(',');
       orderForm.dataset.removedIngredientIds = removedIngredientIds.join(',');
     }
 
     updateNutrition();
+    updateCartInfo();
+  };
+
+  const updateCartInfo = () => {
+    const selectedIds = (orderForm?.dataset?.ingredientIds || '').split(',').filter(id => id);
+    const removedIds = (orderForm?.dataset?.removedIngredientIds || '').split(',').filter(id => id);
+    
+    fetch(`/cart/info/${dishId}?selected_ingredient_ids=${selectedIds.join(',')}&removed_ingredient_ids=${removedIds.join(',')}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        return response.text().then(text => {
+          try {
+            return text ? JSON.parse(text) : { in_cart: false, quantity: 0 };
+          } catch (e) {
+            console.warn('Failed to parse JSON, using default response');
+            return { in_cart: false, quantity: 0 };
+          }
+        });
+      })
+      .then(data => {
+        updateCartInfoDisplay(data);
+      })
+      .catch(error => {
+        console.error('Error updating cart info:', error);
+        updateCartInfoDisplay({ in_cart: false, quantity: 0 });
+      });
+  };
+
+  const updateCartInfoDisplay = (data) => {
+    const addToCartContainer = safeElement('add-to-cart-container');
+    const quantityControls = safeElement('quantity-controls');
+    const cartQuantity = safeElement('cart-quantity');
+    
+    if (data.in_cart) {
+      if (addToCartContainer) addToCartContainer.classList.add('hidden');
+      if (quantityControls) quantityControls.classList.remove('hidden');
+      if (cartQuantity) cartQuantity.textContent = data.quantity || 1;
+    } else {
+      if (addToCartContainer) addToCartContainer.classList.remove('hidden');
+      if (quantityControls) quantityControls.classList.add('hidden');
+    }
+  };
+
+  const increaseQuantity = () => {
+    const selectedIds = (orderForm?.dataset?.ingredientIds || '').split(',').filter(id => id);
+    const removedIds = (orderForm?.dataset?.removedIngredientIds || '').split(',').filter(id => id);
+    
+    const headers = {
+      'Content-Type': 'application/json'
+    };
+
+    if (csrfToken) {
+      headers['X-CSRF-Token'] = csrfToken;
+    }
+    
+    fetch(`/cart/increase/${dishId}?selected_ingredient_ids=${selectedIds.join(',')}&removed_ingredient_ids=${removedIds.join(',')}`, {
+      method: 'POST',
+      headers: headers
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        return response.text().then(text => {
+          try {
+            return text ? JSON.parse(text) : { in_cart: true, quantity: 1 };
+          } catch (e) {
+            console.warn('Failed to parse JSON, using default response');
+            return { in_cart: true, quantity: 1 };
+          }
+        });
+      })
+      .then(data => {
+        updateCartInfoDisplay(data);
+      })
+      .catch(error => {
+        console.error('Error increasing quantity:', error);
+      });
+  };
+
+  const decreaseQuantity = () => {
+    const selectedIds = (orderForm?.dataset?.ingredientIds || '').split(',').filter(id => id);
+    const removedIds = (orderForm?.dataset?.removedIngredientIds || '').split(',').filter(id => id);
+    
+    const headers = {
+      'Content-Type': 'application/json'
+    };
+
+    if (csrfToken) {
+      headers['X-CSRF-Token'] = csrfToken;
+    }
+    
+    fetch(`/cart/decrease/${dishId}?selected_ingredient_ids=${selectedIds.join(',')}&removed_ingredient_ids=${removedIds.join(',')}`, {
+      method: 'POST',
+      headers: headers
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.text().then(text => {
+          try {
+            return text ? JSON.parse(text) : { in_cart: false, quantity: 0 };
+          } catch (e) {
+            console.warn('Failed to parse JSON, using default response');
+            return { in_cart: false, quantity: 0 };
+          }
+        });
+      })
+      .then(data => {
+        updateCartInfoDisplay(data);
+      })
+      .catch(error => {
+        console.error('Error decreasing quantity:', error);
+      });
   };
 
   ingredientCheckboxes.forEach(checkbox => {
     checkbox.addEventListener('change', updateTotals);
   });
 
+  const increaseButton = document.getElementById('increase-quantity');
+  const decreaseButton = document.getElementById('decrease-quantity');
+  
+  if (increaseButton) {
+    increaseButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      increaseQuantity();
+    });
+  }
+  
+  if (decreaseButton) {
+    decreaseButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      decreaseQuantity();
+    });
+  }
+
   updateTotals();
+
+  updateCartInfo();
 
   const carouselContainer = document.getElementById('dish-carousel-container');
   const carouselTrack = document.getElementById('carousel-track');
@@ -652,7 +902,6 @@ document.addEventListener('DOMContentLoaded', function() {
   const nextButton = document.getElementById('next-slide');
   const indicators = document.querySelectorAll('.carousel-indicator');
   const slides = document.querySelectorAll('.carousel-slide');
-  const skeleton = document.getElementById('carousel-skeleton');
   
   if (carouselContainer && carouselTrack && slides.length > 0) {
     let currentIndex = 0;
@@ -730,36 +979,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     };
 
-    checkImagesLoaded();
     updateCarousel();
-  }
-
-  const orderForm = orderButton.closest('form');
-  if (orderForm) {
-    orderForm.addEventListener('submit', (e) => {
-      const selectedIds = (orderForm.dataset.ingredientIds || '').split(',').filter(id => id);
-      const removedIds = (orderForm.dataset.removedIngredientIds || '').split(',').filter(id => id);
-      
-      if (selectedIds.length > 0) {
-        selectedIds.forEach(id => {
-          const input = document.createElement('input');
-          input.type = 'hidden';
-          input.name = 'selected_ingredient_ids[]';
-          input.value = id;
-          orderForm.appendChild(input);
-        });
-      }
-      
-      if (removedIds.length > 0) {
-        removedIds.forEach(id => {
-          const input = document.createElement('input');
-          input.type = 'hidden';
-          input.name = 'removed_ingredient_ids[]';
-          input.value = id;
-          orderForm.appendChild(input);
-        });
-      }
-    });
   }
 });
 

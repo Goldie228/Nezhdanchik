@@ -28,9 +28,30 @@ ru:
         zero: "Пищевых ценностей"
         one: "Пищевая ценность"
         other: "Пищевые ценности"
+      cart:
+        one: "Корзина"
+        other: "Корзины"
+      cart_item:
+        one: "Позиция корзины"
+        other: "Позиции корзин"
+      cart_item_ingredient:
+        one: "Ингредиент позиции корзины"
+        other: "Ингредиенты позиций корзин"
 
     field_translations:
       id: "ID"
+      cart: "Корзина"
+      cart_items: "Позиции корзины"
+      cart_item: "Позиция корзины"
+      cart_item_ingredients: "Ингредиенты позиции"
+      quantity: "Количество"
+      user: "Пользователь"
+      dish: "Блюдо"
+      ingredient: "Ингредиент"
+      included: "Включено"
+      default: "По умолчанию"
+      price: "Цена"
+      active: "Активно"
       email: "Электронная почта"
       phone: "Телефон"
       first_name: "Имя"

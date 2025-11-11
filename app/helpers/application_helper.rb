@@ -39,4 +39,12 @@ module ApplicationHelper
   def email_change_confirmation_url(token)
     "http://localhost:3000/email/confirm/#{token}"
   end
+
+  def current_cart
+    @current_cart ||= Cart.for_user!(current_user) if current_user
+  end
+
+  def cart_items_count
+    current_cart&.total_items_count || 0
+  end
 end
