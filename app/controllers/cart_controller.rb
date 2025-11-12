@@ -2,7 +2,7 @@ class CartController < ApplicationController
   before_action :authenticate_user!
   # Оставляем только установку @cart. Остальные данные будем готовить в методах.
   before_action :set_cart
-  before_action :set_cart_item, only: [:update, :remove]
+  before_action :set_cart_item, only: [ :update, :remove ]
 
   def show
     prepare_cart_data
@@ -113,9 +113,9 @@ class CartController < ApplicationController
   end
 
   def update
-    if params[:quantity_action] == 'increase'
+    if params[:quantity_action] == "increase"
       @cart_item.increment!(:quantity)
-    elsif params[:quantity_action] == 'decrease'
+    elsif params[:quantity_action] == "decrease"
       if @cart_item.quantity > 1
         @cart_item.decrement!(:quantity)
       else
@@ -132,7 +132,7 @@ class CartController < ApplicationController
         # Перезагружаем объект, чтобы получить актуальное состояние (quantity, persisted?)
         @cart_item = @cart.cart_items.find_by(id: params[:id]) if @cart_item.destroyed?
         @cart_item.reload if @cart_item&.persisted?
-        
+
         # Готовим актуальные данные для всего ответа
         prepare_cart_data
       end
@@ -185,20 +185,20 @@ class CartController < ApplicationController
     removed_raw  = params_source[:removed_ingredient_ids]
 
     selected = case selected_raw
-               when String then selected_raw.split(',')
-               when Array  then selected_raw
-               when nil    then []
-               else Array(selected_raw)
-               end.map(&:to_i).sort
+    when String then selected_raw.split(",")
+    when Array  then selected_raw
+    when nil    then []
+    else Array(selected_raw)
+    end.map(&:to_i).sort
 
     removed = case removed_raw
-              when String then removed_raw.split(',')
-              when Array  then removed_raw
-              when nil    then []
-              else Array(removed_raw)
-              end.map(&:to_i).sort
+    when String then removed_raw.split(",")
+    when Array  then removed_raw
+    when nil    then []
+    else Array(removed_raw)
+    end.map(&:to_i).sort
 
-    [selected, removed]
+    [ selected, removed ]
   end
 
   def find_existing_cart_item(dish, selected_ingredient_ids, removed_ingredient_ids)

@@ -18,7 +18,10 @@ class Order < ApplicationRecord
   has_many :dishes, through: :order_items
 
   validates :order_number, uniqueness: true
+  validates :total_amount, numericality: { greater_than_or_equal_to: 0 }
+
   before_validation :generate_order_number, on: :create
+  before_validation :set_default_total_amount
 
   def generate_order_number
     self.order_number ||= "ORD#{Time.current.to_i}#{rand(100..999)}"
@@ -26,5 +29,11 @@ class Order < ApplicationRecord
 
   def calculate_total
     update(total_amount: order_items.sum(:total_price))
+  end
+
+  private
+
+  def set_default_total_amount
+    self.total_amount = 0 if total_amount.nil?
   end
 end

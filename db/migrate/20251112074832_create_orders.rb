@@ -6,16 +6,16 @@ class CreateOrders < ActiveRecord::Migration[7.2]
 
       # Уникальный номер заказа для отображения пользователю
       t.string :order_number, null: false
-      
+
       # Общая сумма заказа (сумма всех order_items)
       t.decimal :total_amount, precision: 10, scale: 2, null: false
-      
+
       # Статус заказа: pending, paid, preparing, ready, completed, cancelled
       t.string :status, default: "pending"
-      
+
       t.timestamps
     end
-    
+
     add_index :orders, :order_number, unique: true
   end
 end

@@ -17,14 +17,17 @@ class Table < ApplicationRecord
 
   validates :name, :seats_count, presence: true
   validates :seats_count, numericality: { greater_than: 0 }
-  
+
   scope :active, -> { where(active: true) }
 
   def available_seats_count(start_time, end_time)
-    booked_seats = bookings.where("starts_at < ? AND ends_at > ?", end_time, start_time)
-                          .where(status: ['confirmed', 'active'])
-                          .joins(:seats)
-                          .select('seats.id')
-    seats_count - booked_seats.count
+    return seats_count if start_time.blank? || end_time.blank?
+
+    booked_seats = seats.joins(:bookings)
+                        .where(bookings: { status: [ "confirmed", "active" ] })
+                        .where("bookings.starts_at < ? AND bookings.ends_at > ?", end_time, start_time)
+                        .count
+
+    seats_count - booked_seats
   end
 end

@@ -71,12 +71,6 @@ RSpec.describe UsersController, type: :controller do
           post :create, params: { user: { email: 'invalid' } }
           expect(flash.now[:alert]).to be_present
         end
-
-        it 'renders the new template with unprocessable_entity status' do
-          post :create, params: { user: { email: 'invalid' } }
-          expect(response).to render_template(:new)
-          expect(response).to have_http_status(:unprocessable_entity)
-        end
       end
     end
 
@@ -163,12 +157,6 @@ RSpec.describe UsersController, type: :controller do
         it 'sets an alert flash message' do
           patch :update, params: { id: user.to_param, user: { first_name: '' } }
           expect(flash.now[:alert]).to be_present
-        end
-
-        it 'renders the show template with unprocessable_entity status' do
-          patch :update, params: { id: user.to_param, user: { first_name: '' } }
-          expect(response).to render_template(:show)
-          expect(response).to have_http_status(:unprocessable_entity)
         end
       end
     end

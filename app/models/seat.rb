@@ -21,7 +21,7 @@ class Seat < ApplicationRecord
 
   def available?(start_time, end_time)
     bookings.where("starts_at < ? AND ends_at > ?", end_time, start_time)
-            .where(status: ['confirmed', 'active'])
+            .where(status: [ "confirmed", "active" ])
             .none?
   end
 end

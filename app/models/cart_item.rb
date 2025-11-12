@@ -19,7 +19,7 @@ class CartItem < ApplicationRecord
 
   validates :cart, presence: true
   validates :quantity, numericality: { only_integer: true, greater_than: 0 }, presence: true
-  validates :active, inclusion: { in: [true, false] }
+  validates :active, inclusion: { in: [ true, false ] }
 
   scope :active, -> { where(active: true) }
 
