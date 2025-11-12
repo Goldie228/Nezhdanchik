@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_11_08_190830) do
+ActiveRecord::Schema[7.2].define(version: 2025_11_12_080924) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -42,6 +42,40 @@ ActiveRecord::Schema[7.2].define(version: 2025_11_08_190830) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "booking_seats", force: :cascade do |t|
+    t.bigint "booking_id", null: false
+    t.bigint "seat_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["booking_id", "seat_id"], name: "index_booking_seats_on_booking_id_and_seat_id", unique: true
+    t.index ["booking_id"], name: "index_booking_seats_on_booking_id"
+    t.index ["seat_id"], name: "index_booking_seats_on_seat_id"
+  end
+
+  create_table "bookings", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "cart_id"
+    t.datetime "starts_at", null: false
+    t.datetime "ends_at", null: false
+    t.integer "booking_type", default: 0, null: false
+    t.boolean "require_passport", default: false
+    t.string "status", default: "pending"
+    t.string "booking_number", null: false
+    t.decimal "total_price", precision: 8, scale: 2, default: "0.0"
+    t.text "special_requests"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "order_id"
+    t.index ["booking_number"], name: "index_bookings_on_booking_number", unique: true
+    t.index ["booking_type"], name: "index_bookings_on_booking_type"
+    t.index ["cart_id"], name: "index_bookings_on_cart_id"
+    t.index ["ends_at"], name: "index_bookings_on_ends_at"
+    t.index ["order_id"], name: "index_bookings_on_order_id"
+    t.index ["starts_at"], name: "index_bookings_on_starts_at"
+    t.index ["status"], name: "index_bookings_on_status"
+    t.index ["user_id"], name: "index_bookings_on_user_id"
+  end
+
   create_table "cart_item_ingredients", force: :cascade do |t|
     t.bigint "cart_item_id", null: false
     t.bigint "ingredient_id", null: false
@@ -70,6 +104,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_11_08_190830) do
     t.bigint "user_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "booking_id"
+    t.index ["booking_id"], name: "index_carts_on_booking_id"
     t.index ["user_id"], name: "index_carts_on_user_id", unique: true
   end
 
@@ -136,6 +172,52 @@ ActiveRecord::Schema[7.2].define(version: 2025_11_08_190830) do
     t.index ["ingredient_id"], name: "index_nutritions_on_ingredient_id"
   end
 
+  create_table "order_items", force: :cascade do |t|
+    t.bigint "order_id", null: false
+    t.bigint "dish_id", null: false
+    t.integer "quantity", null: false
+    t.decimal "unit_price", precision: 8, scale: 2, null: false
+    t.decimal "total_price", precision: 8, scale: 2, null: false
+    t.text "special_instructions"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["dish_id"], name: "index_order_items_on_dish_id"
+    t.index ["order_id"], name: "index_order_items_on_order_id"
+  end
+
+  create_table "orders", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "order_number", null: false
+    t.decimal "total_amount", precision: 10, scale: 2, null: false
+    t.string "status", default: "pending"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "booking_id"
+    t.index ["booking_id"], name: "index_orders_on_booking_id"
+    t.index ["order_number"], name: "index_orders_on_order_number", unique: true
+    t.index ["user_id"], name: "index_orders_on_user_id"
+  end
+
+  create_table "seats", force: :cascade do |t|
+    t.bigint "table_id", null: false
+    t.integer "number", null: false
+    t.boolean "active", default: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["number"], name: "index_seats_on_number", unique: true
+    t.index ["table_id"], name: "index_seats_on_table_id"
+  end
+
+  create_table "tables", force: :cascade do |t|
+    t.string "name", null: false
+    t.integer "seats_count", null: false
+    t.decimal "booking_price", precision: 8, scale: 2, default: "0.0"
+    t.boolean "active", default: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["active"], name: "index_tables_on_active"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email", null: false
     t.string "phone", null: false
@@ -158,14 +240,25 @@ ActiveRecord::Schema[7.2].define(version: 2025_11_08_190830) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "booking_seats", "bookings"
+  add_foreign_key "booking_seats", "seats"
+  add_foreign_key "bookings", "carts"
+  add_foreign_key "bookings", "orders"
+  add_foreign_key "bookings", "users"
   add_foreign_key "cart_item_ingredients", "cart_items"
   add_foreign_key "cart_item_ingredients", "ingredients"
   add_foreign_key "cart_items", "carts"
   add_foreign_key "cart_items", "dishes"
+  add_foreign_key "carts", "bookings"
   add_foreign_key "carts", "users"
   add_foreign_key "dish_ingredients", "dishes"
   add_foreign_key "dish_ingredients", "ingredients"
   add_foreign_key "dishes", "categories"
   add_foreign_key "nutritions", "dishes"
   add_foreign_key "nutritions", "ingredients"
+  add_foreign_key "order_items", "dishes"
+  add_foreign_key "order_items", "orders"
+  add_foreign_key "orders", "bookings"
+  add_foreign_key "orders", "users"
+  add_foreign_key "seats", "tables"
 end
