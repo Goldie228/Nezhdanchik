@@ -1,10 +1,20 @@
-
+# == Schema Information
+#
+# Table name: cart_items
+#
+#  id         :bigint           not null, primary key
+#  created_at :datetime         not null
+#  updated_at :datetime         not null
+#  cart_id    :bigint           not null
+#  quantity   :integer          default(1), not null
+#  active     :boolean          default(TRUE), not null
+#  dish_id    :bigint           not null
+#
 require "digest"
 
 class CartItem < ApplicationRecord
-  belongs_to :cart
   belongs_to :dish
-
+  has_many :ingredients, through: :cart_item_ingredients
   has_many :cart_item_ingredients, dependent: :destroy, inverse_of: :cart_item
 
   validates :cart, presence: true

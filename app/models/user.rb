@@ -27,6 +27,8 @@ class User < ApplicationRecord
   enum :role, { customer: 0, manager: 1, admin: 2 }, default: :customer, prefix: true
 
   has_one :cart, dependent: :destroy
+  has_many :bookings, dependent: :destroy
+  has_many :orders, dependent: :destroy
 
   validates :email,
             presence: true,
