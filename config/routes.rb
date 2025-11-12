@@ -15,7 +15,7 @@ Rails.application.routes.draw do
   get "menu/:slug/order" => "dishes#show", as: :dish
   get "more_dishes/:slug" => "dishes#load_more", as: :load_more_dishes
 
-  get "reservations/new", to: "reservations#new", as: :new_reservation
+  get "reservation", to: "reservations#show", as: :reservation
 
   get "profile", to: "users#show", as: :profile
   patch "profile", to: "users#update"

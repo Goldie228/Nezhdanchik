@@ -1,11 +1,8 @@
 class ReservationsController < ApplicationController
   # В реальном приложении здесь будет аутентификация, например, через before_action :authenticate_user!
 
-  def new
+  def show
     # --- Моковые данные для столиков ---
-    # Клиент будет задавать x_percent и y_percent для каждого столика.
-    # Это процентные координаты относительно левого верхнего угла изображения.
-    # 0% - самый верх/лево, 100% - самый низ/право.
     @tables = [
       { id: 1,  x_percent: 37, y_percent: 29, status: "available" },
       { id: 2,  x_percent: 46.4, y_percent: 29, status: "reserved" },
@@ -34,6 +31,11 @@ class ReservationsController < ApplicationController
       5..6 => { open: "09:00", close: "00:00" }, # Пт-Сб
       0..0 => { open: "09:00", close: "23:00" }  # Вс
     }
+
+    @cart = Cart.for_user!(current_user)
+
+    @total_price = @cart.total_cents / 100.0
+    @total_items = @cart.total_items_count
   end
 
   # В реальном приложении здесь будет действие create для обработки формы
