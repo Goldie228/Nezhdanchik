@@ -4,19 +4,40 @@
     <div class="w-full lg:w-2/3 p-4 lg:p-8 bg-base-100 rounded-l-2xl">
       <h1 class="text-3xl font-bold text-center mb-6">Выберите столик</h1>
 
-      <div id="table-map-container" class="relative w-full bg-white overflow-hidden rounded-xl shadow-2xl">
+      <div id="seat-map-container" class="relative w-full bg-white overflow-hidden rounded-xl shadow-2xl">
         <%= image_tag 'map.png', alt: 'План зала', class: 'w-full h-auto block' %>
 
+        <!-- Отображение столов -->
         <% @tables.each do |table| %>
           <div
-            class="absolute table-circle w-4 h-4 sm:w-6 sm:h-6 rounded-full border-2 border-base-100 cursor-pointer transition-all duration-200 hover:scale-110 z-20"
-            style="top: <%= table[:y_percent] %>%; left: <%= table[:x_percent] %>%;"
+            class="absolute table-rect border-2 border-base-300 cursor-pointer transition-all duration-200 hover:scale-105 z-10"
+            style="top: <%= table[:y_percent] %>%; left: <%= table[:x_percent] %>%; width: <%= table[:width_percent] %>%; height: <%= table[:height_percent] %>%;"
             data-table-id="<%= table[:id] %>"
             data-status="<%= table[:status] %>"
-            title="Столик <%= table[:id] %>"
+            data-seats-count="<%= table[:seats_count] %>"
+            data-booking-price="<%= table[:booking_price] %>"
+            title="Стол <%= table[:name] %> (Мест: <%= table[:seats_count] %>)"
+          >
+            <div class="flex items-center justify-center h-full">
+              <span class="text-xs font-semibold bg-base-100 px-1 rounded shadow-lg whitespace-nowrap">
+                <%= table[:name] %>
+              </span>
+            </div>
+          </div>
+        <% end %>
+
+        <!-- Отображение стульев -->
+        <% @seats.each do |seat| %>
+          <div
+            class="absolute seat-circle w-4 h-4 sm:w-6 sm:h-6 rounded-full border-2 border-base-100 cursor-pointer transition-all duration-200 hover:scale-110 z-20"
+            style="top: <%= seat[:y_percent] %>%; left: <%= seat[:x_percent] %>%;"
+            data-seat-id="<%= seat[:id] %>"
+            data-status="<%= seat[:status] %>"
+            data-table-id="<%= seat[:table_id] %>"
+            title="Стул <%= seat[:id] %>"
           >
             <span class="hidden sm:inline absolute -top-6 left-1/2 transform -translate-x-1/2 text-xs font-semibold bg-base-100 px-1 rounded shadow-lg whitespace-nowrap">
-              <%= table[:id] %>
+              <%= seat[:id] %>
             </span>
           </div>
         <% end %>
@@ -36,18 +57,22 @@
           <div class="w-4 h-4 rounded-full bg-error"></div>
           <span>Занят</span>
         </div>
+        <div class="flex items-center gap-2">
+          <div class="w-4 h-4 rounded-full bg-primary"></div>
+          <span>Выбран</span>
+        </div>
       </div>
     </div>
 
     <!-- Секция с формой бронирования -->
     <div class="w-full lg:w-1/3 p-4 lg:p-8 bg-base-100 rounded-r-2xl">
-      <!-- НОВЫЙ БЛОК: ЗАГЛУШКА КОРЗИНЫ -->
+      <!-- Корзина -->
       <div class="card bg-base-200 shadow-lg mb-6">
         <div class="card-body p-4">
           <div class="flex justify-between items-center">
             <div>
               <p class="text-sm text-base-content/70">
-                <%= @total_items %>
+                <span id="cart-items-count"><%= @total_items %></span>
                 <% if @total_items % 10 == 1 && @total_items % 100 != 11 %>
                   позиция
                 <% elsif [2, 3, 4].include?(@total_items % 10) && ![12, 13, 14].include?(@total_items % 100) %>
@@ -56,7 +81,7 @@
                   позиций
                 <% end %>
               </p>
-              <p class="text-lg font-semibold">Итого: <%= number_to_currency(@total_price, unit: "BYN", format: "%n %u") %></p>
+              <p class="text-lg font-semibold">Итого: <span id="cart-total-price"><%= number_to_currency(@total_price, unit: "BYN", format: "%n %u") %></span></p>
             </div>
 
             <%= link_to "Посмотреть корзину", cart_path, class: "btn btn-outline btn-primary btn-sm" %>
@@ -70,13 +95,25 @@
         <!-- Информация о выбранных столиках -->
         <div class="form-control">
           <label class="label">
-            <span class="label-text">Выбранные столики</span>
+            <span class="label-text">Выбранные места</span>
           </label>
-          <div id="selected-tables-info" class="p-3 bg-base-200 rounded-lg min-h-[50px] flex items-center justify-center text-base-content/70">
+          <div id="selected-seats-info" class="p-3 bg-base-200 rounded-lg min-h-[50px] flex items-center justify-center text-base-content/70">
             <span>Не выбрано</span>
           </div>
-          <!-- Скрытое поле для передачи ID выбранных столиков -->
+          <!-- Скрытое поле для передачи ID выбранных стульев -->
+          <%= form.hidden_field :seat_ids, value: '', id: 'selected-seats-input' %>
+          <!-- Скрытое поле для передачи ID выбранных столов -->
           <%= form.hidden_field :table_ids, value: '', id: 'selected-tables-input' %>
+        </div>
+
+        <!-- Информация о стоимости -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Стоимость бронирования</span>
+          </label>
+          <div id="reservation-price" class="p-3 bg-base-200 rounded-lg">
+            <span class="text-lg font-semibold">0.00 BYN</span>
+          </div>
         </div>
 
         <!-- Выбор даты -->
@@ -115,22 +152,27 @@
 <script type="text/javascript">
   document.addEventListener('DOMContentLoaded', () => {
     // --- Элементы DOM ---
-    const tableMapContainer = document.getElementById('table-map-container');
-    const selectedTablesInfo = document.getElementById('selected-tables-info');
+    const seatMapContainer = document.getElementById('seat-map-container');
+    const selectedSeatsInfo = document.getElementById('selected-seats-info');
+    const selectedSeatsInput = document.getElementById('selected-seats-input');
     const selectedTablesInput = document.getElementById('selected-tables-input');
     const reservationForm = document.getElementById('reservation-form');
     const submitButton = reservationForm.querySelector('button[type="submit"]');
     const dateInput = document.getElementById('reservation-date');
     const timeInput = document.getElementById('reservation-time');
     const preorderCheckbox = document.getElementById('preorder-checkbox');
-    const preorderInfo = document.getElementById('preorder-info');
+    const reservationPrice = document.getElementById('reservation-price');
+    const cartItemsCount = document.getElementById('cart-items-count');
+    const cartTotalPrice = document.getElementById('cart-total-price');
 
     // --- Состояние приложения ---
+    const selectedSeats = new Set();
     const selectedTables = new Set();
+    const tableSeatsMap = new Map(); // table_id -> Set of seat_ids
+    const seatTableMap = new Map(); // seat_id -> table_id
+    const tablePriceMap = new Map(); // table_id -> booking_price
     
     // --- Данные о часах работы ---
-    // Для простоты примера, часы работы захардкодены.
-    // В реальном приложении их лучше передать из Rails через data-атрибут.
     const workingHoursData = {
       '1-4': { open: '09:00', close: '23:00' }, // Пн-Чт (wday: 1-4)
       '5-6': { open: '09:00', close: '00:00' }, // Пт-Сб (wday: 5-6)
@@ -140,10 +182,10 @@
     // --- Функции ---
 
     /**
-     * Применяет стили к кружку столика в зависимости от его статуса.
+     * Применяет стили к кружку стула в зависимости от его статуса.
      */
-    function applyTableStyles(circle, status) {
-      circle.classList.remove('bg-success', 'bg-warning', 'bg-error', 'ring-4', 'ring-primary', 'ring-offset-2');
+    function applySeatStyles(circle, status) {
+      circle.classList.remove('bg-success', 'bg-warning', 'bg-error', 'bg-primary', 'ring-4', 'ring-primary', 'ring-offset-2');
       switch (status) {
         case 'available':
           circle.classList.add('bg-success');
@@ -154,104 +196,280 @@
         case 'occupied':
           circle.classList.add('bg-error');
           break;
+        case 'selected':
+          circle.classList.add('bg-primary', 'ring-4', 'ring-primary', 'ring-offset-2');
+          break;
       }
     }
 
     /**
-     * Обновляет интерфейс с информацией о выбранных столиках.
+     * Применяет стили к прямоугольнику стола в зависимости от его статуса.
      */
-    function updateSelectedTablesInfo() {
-      if (selectedTables.size === 0) {
-        selectedTablesInfo.innerHTML = '<span>Не выбрано</span>';
+    function applyTableStyles(rect, status) {
+      rect.classList.remove('bg-success', 'bg-warning', 'bg-error', 'bg-primary', 'ring-4', 'ring-primary', 'ring-offset-2');
+      switch (status) {
+        case 'available':
+          rect.classList.add('bg-success', 'bg-opacity-30');
+          break;
+        case 'reserved':
+          rect.classList.add('bg-warning', 'bg-opacity-30');
+          break;
+        case 'occupied':
+          rect.classList.add('bg-error', 'bg-opacity-30');
+          break;
+        case 'selected':
+          rect.classList.add('bg-primary', 'bg-opacity-30', 'ring-4', 'ring-primary', 'ring-offset-2');
+          break;
+      }
+    }
+
+    /**
+     * Обновляет интерфейс с информацией о выбранных местах и столах.
+     */
+    function updateSelectedInfo() {
+      let html = '';
+      let totalPrice = 0;
+      
+      if (selectedSeats.size === 0 && selectedTables.size === 0) {
+        html = '<span>Не выбрано</span>';
         submitButton.disabled = true;
       } else {
-        const tableNumbers = Array.from(selectedTables).sort((a, b) => a - b).join(', ');
-        selectedTablesInfo.innerHTML = `<span class="font-semibold">Столики: ${tableNumbers}</span>`;
+        const seatNumbers = Array.from(selectedSeats).sort((a, b) => a - b);
+        const tableNumbers = Array.from(selectedTables).sort((a, b) => a - b);
+        
+        if (seatNumbers.length > 0) {
+          html += `<div class="mb-1"><span class="font-semibold">Места:</span> ${seatNumbers.join(', ')}</div>`;
+        }
+        
+        if (tableNumbers.length > 0) {
+          html += `<div><span class="font-semibold">Столы:</span> ${tableNumbers.join(', ')}</div>`;
+        }
+        
+        // Расчет стоимости
+        // Стоимость выбранных столов
+        selectedTables.forEach(tableId => {
+          totalPrice += tablePriceMap.get(tableId) || 0;
+        });
+        
+        // Стоимость выбранных стульев (не входящих в выбранные столы)
+        selectedSeats.forEach(seatId => {
+          const tableId = seatTableMap.get(seatId);
+          if (!tableId || !selectedTables.has(tableId)) {
+            // Если стул не принадлежит выбранному столу, добавляем базовую стоимость
+            // В реальном приложении здесь может быть своя логика ценообразования
+            totalPrice += 5; // Базовая стоимость стула
+          }
+        });
+        
         submitButton.disabled = false;
       }
+      
+      selectedSeatsInfo.innerHTML = html;
+      selectedSeatsInput.value = Array.from(selectedSeats).join(',');
       selectedTablesInput.value = Array.from(selectedTables).join(',');
+      
+      // Обновление отображения стоимости
+      reservationPrice.innerHTML = `<span class="text-lg font-semibold">${totalPrice.toFixed(2)} BYN</span>`;
+      
+      // Обновление корзины
+      const totalItems = parseInt(cartItemsCount.textContent) + selectedSeats.size + selectedTables.size;
+      const currentTotal = parseFloat(cartTotalPrice.textContent.replace(' BYN', '').replace(',', '.'));
+      const newTotal = currentTotal + totalPrice;
+      
+      cartItemsCount.textContent = totalItems;
+      cartTotalPrice.textContent = `${newTotal.toFixed(2).replace('.', ',')} BYN`;
+    }
+
+    /**
+     * Проверяет, все ли места за столом выбраны, и если да, выбирает весь стол.
+     */
+    function checkTableComplete(tableId) {
+      const tableSeats = tableSeatsMap.get(tableId);
+      if (!tableSeats) return;
+      
+      const allSeatsSelected = Array.from(tableSeats).every(seatId => selectedSeats.has(seatId));
+      
+      if (allSeatsSelected && !selectedTables.has(tableId)) {
+        // Выбираем весь стол
+        selectedTables.add(tableId);
+        
+        // Обновляем стиль стола
+        const tableElement = document.querySelector(`[data-table-id="${tableId}"]`);
+        if (tableElement) {
+          applyTableStyles(tableElement, 'selected');
+        }
+        
+        // Обновляем стили всех стульев за столом
+        tableSeats.forEach(seatId => {
+          const seatElement = document.querySelector(`[data-seat-id="${seatId}"]`);
+          if (seatElement) {
+            applySeatStyles(seatElement, 'selected');
+          }
+        });
+        
+        updateSelectedInfo();
+      } else if (!allSeatsSelected && selectedTables.has(tableId)) {
+        // Если не все места выбраны, но стол был выбран ранее, снимаем выбор со стола
+        selectedTables.delete(tableId);
+        
+        // Обновляем стиль стола
+        const tableElement = document.querySelector(`[data-table-id="${tableId}"]`);
+        if (tableElement) {
+          applyTableStyles(tableElement, tableElement.dataset.status);
+        }
+        
+        updateSelectedInfo();
+      }
     }
 
     /**
      * Устанавливает ограничения для поля времени в зависимости от выбранной даты.
      */
     function setTimeConstraints() {
-      const selectedDate = new Date(dateInput.value + 'T00:00:00'); // Добавляем время, чтобы избежать проблем с часовыми поясами
+      const selectedDate = new Date(dateInput.value + 'T00:00:00');
       if (isNaN(selectedDate)) {
         timeInput.min = '';
         timeInput.max = '';
         return;
       }
-      const dayOfWeek = selectedDate.getDay(); // 0 = Вс, 1 = Пн, ...
+      const dayOfWeek = selectedDate.getDay();
 
       let hours;
-      if (dayOfWeek >= 1 && dayOfWeek <= 4) { // Пн-Чт
+      if (dayOfWeek >= 1 && dayOfWeek <= 4) {
         hours = workingHoursData['1-4'];
-      } else if (dayOfWeek >= 5 && dayOfWeek <= 6) { // Пт-Сб
+      } else if (dayOfWeek >= 5 && dayOfWeek <= 6) {
         hours = workingHoursData['5-6'];
-      } else { // Вс
+      } else {
         hours = workingHoursData['0'];
       }
 
       timeInput.min = hours.open;
       timeInput.max = hours.close === '00:00' ? '23:59' : hours.close;
       
-      // Если текущее время выходит за рамки, сбрасываем значение
       if (timeInput.value && (timeInput.value < timeInput.min || timeInput.value > timeInput.max)) {
         timeInput.value = '';
       }
     }
 
+    // --- Инициализация данных о столах и местах ---
+    document.querySelectorAll('.table-rect').forEach(table => {
+      const tableId = parseInt(table.dataset.tableId, 10);
+      const seatsCount = parseInt(table.dataset.seatsCount, 10);
+      const bookingPrice = parseFloat(table.dataset.bookingPrice, 10);
+      
+      tableSeatsMap.set(tableId, new Set());
+      tablePriceMap.set(tableId, bookingPrice);
+    });
+    
+    document.querySelectorAll('.seat-circle').forEach(seat => {
+      const seatId = parseInt(seat.dataset.seatId, 10);
+      const tableId = parseInt(seat.dataset.tableId, 10);
+      
+      if (tableId) {
+        seatTableMap.set(seatId, tableId);
+        const tableSeats = tableSeatsMap.get(tableId);
+        if (tableSeats) {
+          tableSeats.add(seatId);
+        }
+      }
+    });
+
     // --- Обработчики событий ---
 
-    // Используем делегирование событий для кликов по столикам
-    tableMapContainer.addEventListener('click', (event) => {
-      const circle = event.target.closest('.table-circle');
-      if (!circle) return;
+    // Используем делегирование событий для кликов по стульям
+    seatMapContainer.addEventListener('click', (event) => {
+      const circle = event.target.closest('.seat-circle');
+      if (circle) {
+        const seatId = parseInt(circle.dataset.seatId, 10);
+        const status = circle.dataset.status;
+        const tableId = parseInt(circle.dataset.tableId, 10);
 
-      const tableId = parseInt(circle.dataset.tableId, 10);
-      const status = circle.dataset.status;
+        if (status !== 'available') {
+          alert(`Место №${seatId} сейчас ${status === 'reserved' ? 'забронировано' : 'занято'}.`);
+          return;
+        }
 
-      if (status !== 'available') {
-        // Показываем уведомление, если столик не доступен
-        // Для простоты используем alert, но в реальном проекте лучше DaisyUI toast/modal
-        alert(`Столик №${tableId} сейчас ${status === 'reserved' ? 'забронирован' : 'занят'}.`);
+        if (selectedSeats.has(seatId)) {
+          // Снимаем выделение
+          selectedSeats.delete(seatId);
+          applySeatStyles(circle, 'available');
+        } else {
+          // Добавляем выделение
+          selectedSeats.add(seatId);
+          applySeatStyles(circle, 'selected');
+        }
+
+        // Проверяем, не выбран ли теперь весь стол
+        if (tableId) {
+          checkTableComplete(tableId);
+        } else {
+          updateSelectedInfo();
+        }
         return;
       }
 
-      if (selectedTables.has(tableId)) {
-        // Снимаем выделение
-        selectedTables.delete(tableId);
-        circle.classList.remove('ring-4', 'ring-primary', 'ring-offset-2');
-      } else {
-        // Добавляем выделение
-        selectedTables.add(tableId);
-        circle.classList.add('ring-4', 'ring-primary', 'ring-offset-2');
-      }
+      // Обработка кликов по столам
+      const tableRect = event.target.closest('.table-rect');
+      if (tableRect) {
+        const tableId = parseInt(tableRect.dataset.tableId, 10);
+        const status = tableRect.dataset.status;
+        const tableSeats = tableSeatsMap.get(tableId);
 
-      updateSelectedTablesInfo();
+        if (status !== 'available') {
+          alert(`Стол №${tableId} сейчас ${status === 'reserved' ? 'забронирован' : 'занят'}.`);
+          return;
+        }
+
+        if (selectedTables.has(tableId)) {
+          // Снимаем выделение со стола и всех его мест
+          selectedTables.delete(tableId);
+          applyTableStyles(tableRect, 'available');
+          
+          if (tableSeats) {
+            tableSeats.forEach(seatId => {
+              selectedSeats.delete(seatId);
+              const seatElement = document.querySelector(`[data-seat-id="${seatId}"]`);
+              if (seatElement) {
+                applySeatStyles(seatElement, 'available');
+              }
+            });
+          }
+        } else {
+          // Выбираем стол и все его места
+          selectedTables.add(tableId);
+          applyTableStyles(tableRect, 'selected');
+          
+          if (tableSeats) {
+            tableSeats.forEach(seatId => {
+              selectedSeats.add(seatId);
+              const seatElement = document.querySelector(`[data-seat-id="${seatId}"]`);
+              if (seatElement) {
+                applySeatStyles(seatElement, 'selected');
+              }
+            });
+          }
+        }
+
+        updateSelectedInfo();
+      }
     });
 
     // Обработчик изменения даты
     dateInput.addEventListener('change', setTimeConstraints);
 
-    // Обработчик для чекбокса предзаказа
-    preorderCheckbox.addEventListener('change', () => {
-      preorderInfo.classList.toggle('hidden');
-    });
-
     // Обработчик отправки формы
     reservationForm.addEventListener('submit', (event) => {
       event.preventDefault();
 
-      if (selectedTables.size === 0) {
-        alert('Пожалуйста, выберите хотя бы один столик.');
+      if (selectedSeats.size === 0 && selectedTables.size === 0) {
+        alert('Пожалуйста, выберите хотя бы одно место или стол.');
         return;
       }
 
       const formData = new FormData(reservationForm);
       const reservationData = {
-        table_ids: formData.get('table_ids').split(',').map(Number),
+        seat_ids: formData.get('seat_ids').split(',').filter(id => id !== '').map(Number),
+        table_ids: formData.get('table_ids').split(',').filter(id => id !== '').map(Number),
         date: formData.get('date'),
         time: formData.get('time'),
         preorder: formData.get('preorder') === '1'
@@ -263,179 +481,26 @@
       // ...
       
       // Имитация успешной отправки для демонстрации
-      alert(`Ваша бронь на столики ${reservationData.table_ids.join(', ')} на ${reservationData.date} в ${reservationData.time} готова к отправке!`);
+      let message = 'Ваша бронь ';
+      if (reservationData.table_ids.length > 0) {
+        message += `на столы ${reservationData.table_ids.join(', ')} `;
+      }
+      if (reservationData.seat_ids.length > 0) {
+        message += `на места ${reservationData.seat_ids.join(', ')} `;
+      }
+      message += `на ${reservationData.date} в ${reservationData.time} готова к отправке!`;
+      
+      alert(message);
     });
 
     // --- Первоначальная настройка ---
-    // Применяем начальные стили ко всем столикам
-    document.querySelectorAll('.table-circle').forEach(circle => {
-      applyTableStyles(circle, circle.dataset.status);
+    // Применяем начальные стили ко всем элементам
+    document.querySelectorAll('.seat-circle').forEach(circle => {
+      applySeatStyles(circle, circle.dataset.status);
     });
     
-    // Устанавливаем начальные ограничения времени для сегодняшнего дня
-    setTimeConstraints();
-  });
-</script>
-
-
-<script type="text/javascript">
-  document.addEventListener('DOMContentLoaded', () => {
-    // --- Элементы DOM ---
-    const tableMapContainer = document.getElementById('table-map-container');
-    const selectedTablesInfo = document.getElementById('selected-tables-info');
-    const selectedTablesInput = document.getElementById('selected-tables-input');
-    const reservationForm = document.getElementById('reservation-form');
-    const submitButton = reservationForm.querySelector('button[type="submit"]');
-    const dateInput = document.getElementById('reservation-date');
-    const timeInput = document.getElementById('reservation-time');
-    const preorderCheckbox = document.getElementById('preorder-checkbox');
-    const preorderInfo = document.getElementById('preorder-info');
-
-    // --- Состояние приложения ---
-    const selectedTables = new Set();
-    
-    // --- Данные о часах работы ---
-    // Для простоты примера, часы работы захардкодены.
-    // В реальном приложении их лучше передать из Rails через data-атрибут.
-    const workingHoursData = {
-      '1-4': { open: '09:00', close: '23:00' }, // Пн-Чт (wday: 1-4)
-      '5-6': { open: '09:00', close: '00:00' }, // Пт-Сб (wday: 5-6)
-      '0':   { open: '09:00', close: '23:00' }  // Вс   (wday: 0)
-    };
-
-    // --- Функции ---
-
-    /**
-     * Применяет стили к кружку столика в зависимости от его статуса.
-     */
-    function applyTableStyles(circle, status) {
-      circle.classList.remove('bg-success', 'bg-warning', 'bg-error', 'ring-4', 'ring-primary', 'ring-offset-2');
-      switch (status) {
-        case 'available':
-          circle.classList.add('bg-success');
-          break;
-        case 'reserved':
-          circle.classList.add('bg-warning');
-          break;
-        case 'occupied':
-          circle.classList.add('bg-error');
-          break;
-      }
-    }
-
-    /**
-     * Обновляет интерфейс с информацией о выбранных столиках.
-     */
-    function updateSelectedTablesInfo() {
-      if (selectedTables.size === 0) {
-        selectedTablesInfo.innerHTML = '<span>Не выбрано</span>';
-        submitButton.disabled = true;
-      } else {
-        const tableNumbers = Array.from(selectedTables).sort((a, b) => a - b).join(', ');
-        selectedTablesInfo.innerHTML = `<span class="font-semibold">Столики: ${tableNumbers}</span>`;
-        submitButton.disabled = false;
-      }
-      selectedTablesInput.value = Array.from(selectedTables).join(',');
-    }
-
-    /**
-     * Устанавливает ограничения для поля времени в зависимости от выбранной даты.
-     */
-    function setTimeConstraints() {
-      const selectedDate = new Date(dateInput.value + 'T00:00:00'); // Добавляем время, чтобы избежать проблем с часовыми поясами
-      if (isNaN(selectedDate)) {
-        timeInput.min = '';
-        timeInput.max = '';
-        return;
-      }
-      const dayOfWeek = selectedDate.getDay(); // 0 = Вс, 1 = Пн, ...
-
-      let hours;
-      if (dayOfWeek >= 1 && dayOfWeek <= 4) { // Пн-Чт
-        hours = workingHoursData['1-4'];
-      } else if (dayOfWeek >= 5 && dayOfWeek <= 6) { // Пт-Сб
-        hours = workingHoursData['5-6'];
-      } else { // Вс
-        hours = workingHoursData['0'];
-      }
-
-      timeInput.min = hours.open;
-      timeInput.max = hours.close === '00:00' ? '23:59' : hours.close;
-      
-      // Если текущее время выходит за рамки, сбрасываем значение
-      if (timeInput.value && (timeInput.value < timeInput.min || timeInput.value > timeInput.max)) {
-        timeInput.value = '';
-      }
-    }
-
-    // --- Обработчики событий ---
-
-    // Используем делегирование событий для кликов по столикам
-    tableMapContainer.addEventListener('click', (event) => {
-      const circle = event.target.closest('.table-circle');
-      if (!circle) return;
-
-      const tableId = parseInt(circle.dataset.tableId, 10);
-      const status = circle.dataset.status;
-
-      if (status !== 'available') {
-        // Показываем уведомление, если столик не доступен
-        // Для простоты используем alert, но в реальном проекте лучше DaisyUI toast/modal
-        alert(`Столик №${tableId} сейчас ${status === 'reserved' ? 'забронирован' : 'занят'}.`);
-        return;
-      }
-
-      if (selectedTables.has(tableId)) {
-        // Снимаем выделение
-        selectedTables.delete(tableId);
-        circle.classList.remove('ring-4', 'ring-primary', 'ring-offset-2');
-      } else {
-        // Добавляем выделение
-        selectedTables.add(tableId);
-        circle.classList.add('ring-4', 'ring-primary', 'ring-offset-2');
-      }
-
-      updateSelectedTablesInfo();
-    });
-
-    // Обработчик изменения даты
-    dateInput.addEventListener('change', setTimeConstraints);
-
-    // Обработчик для чекбокса предзаказа
-    preorderCheckbox.addEventListener('change', () => {
-      preorderInfo.classList.toggle('hidden');
-    });
-
-    // Обработчик отправки формы
-    reservationForm.addEventListener('submit', (event) => {
-      event.preventDefault();
-
-      if (selectedTables.size === 0) {
-        alert('Пожалуйста, выберите хотя бы один столик.');
-        return;
-      }
-
-      const formData = new FormData(reservationForm);
-      const reservationData = {
-        table_ids: formData.get('table_ids').split(',').map(Number),
-        date: formData.get('date'),
-        time: formData.get('time'),
-        preorder: formData.get('preorder') === '1'
-      };
-
-      console.log('Отправка данных на бэкенд:', reservationData);
-      
-      // Здесь будет fetch-запрос к вашему Rails API
-      // ...
-      
-      // Имитация успешной отправки для демонстрации
-      alert(`Ваша бронь на столики ${reservationData.table_ids.join(', ')} на ${reservationData.date} в ${reservationData.time} готова к отправке!`);
-    });
-
-    // --- Первоначальная настройка ---
-    // Применяем начальные стили ко всем столикам
-    document.querySelectorAll('.table-circle').forEach(circle => {
-      applyTableStyles(circle, circle.dataset.status);
+    document.querySelectorAll('.table-rect').forEach(table => {
+      applyTableStyles(table, table.dataset.status);
     });
     
     // Устанавливаем начальные ограничения времени для сегодняшнего дня
