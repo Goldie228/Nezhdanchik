@@ -1,9 +1,10 @@
+<!-- app/views/reservations/show.html.erb -->
 <div class="hero min-h-screen bg-base-200">
   <div class="hero-content flex-col lg:flex-row w-full p-0">
-    <!-- Секция с картой столиков -->
     <div class="w-full lg:w-2/3 p-4 lg:p-8 bg-base-100 rounded-l-2xl">
       <h1 class="text-3xl font-bold text-center mb-6">Выберите столик</h1>
 
+      <!-- План зала -->
       <div id="seat-map-container" class="relative w-full bg-white overflow-hidden rounded-xl shadow-2xl">
         <%= image_tag 'map.png', alt: 'План зала', class: 'w-full h-auto block' %>
 
@@ -55,15 +56,11 @@
         </div>
         <div class="flex items-center gap-2">
           <div class="w-4 h-4 rounded-full bg-warning shadow-sm"></div>
-          <span>Забронирован</span>
+          <span>Выбран</span>
         </div>
         <div class="flex items-center gap-2">
           <div class="w-4 h-4 rounded-full bg-error shadow-sm"></div>
           <span>Занят</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <div class="w-4 h-4 rounded-full bg-primary shadow-sm ring-2 ring-primary ring-offset-1"></div>
-          <span>Выбран</span>
         </div>
       </div>
     </div>
@@ -95,7 +92,7 @@
 
       <h2 class="text-2xl font-bold mb-6">Оформление брони</h2>
       
-      <%= form_with url: '#', method: :post, id: 'reservation-form', class: "space-y-4" do |form| %>
+      <%= form_with url: create_reservation_path, method: :post, id: 'reservation-form', class: "space-y-4" do |form| %>
         <!-- Информация о выбранных столиках -->
         <div class="form-control">
           <label class="label">
@@ -107,12 +104,35 @@
               <svg class="w-8 h-8 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
               </svg>
-              <span class="text-sm font-medium">Кликните на места или столы на плане</span>
+              <span class="text-sm font-medium">Выберите места или столы на плане</span>
             </div>
           </div>
           <!-- Скрытые поля для передачи ID -->
           <%= form.hidden_field :seat_ids, value: '', id: 'selected-seats-input' %>
           <%= form.hidden_field :table_ids, value: '', id: 'selected-tables-input' %>
+        </div>
+
+        <!-- Кнопка выбора времени -->
+        <div class="form-control">
+          <button id="select-time-btn" class="btn btn-primary btn-outline w-full" disabled>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Выбрать время бронирования
+          </button>
+        </div>
+
+        <!-- Отображение выбранного времени -->
+        <div id="selected-time-display" class="form-control hidden">
+          <div class="alert alert-info">
+            <div class="flex justify-between items-center w-full">
+              <div>
+                <span class="text-sm opacity-80">Выбранное время:</span>
+                <div id="selected-time-text" class="font-semibold"></div>
+              </div>
+              <button id="change-time-btn" class="btn btn-sm btn-ghost">Изменить</button>
+            </div>
+          </div>
         </div>
 
         <!-- Информация о стоимости -->
@@ -134,27 +154,10 @@
           </div>
         </div>
 
-        <!-- Выбор даты и времени -->
-        <div class="grid grid-cols-2 gap-4">
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text font-semibold">Дата</span>
-            </label>
-            <%= form.date_field :date, id: 'reservation-date', class: "input input-bordered w-full", required: true, min: Date.today %>
-          </div>
-
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text font-semibold">Время</span>
-            </label>
-            <%= form.time_field :time, id: 'reservation-time', class: "input input-bordered w-full", required: true %>
-          </div>
-        </div>
-
         <!-- Дополнительные опции -->
         <div class="form-control bg-base-200 rounded-lg p-4 border border-base-300">
           <label class="label cursor-pointer justify-start gap-3 p-0">
-            <%= form.check_box :preorder, class: 'checkbox checkbox-primary', id: 'preorder-checkbox' %>
+            <%= form.check_box :require_passport, class: 'checkbox checkbox-primary', id: 'require-passport-checkbox' %>
             <div class="flex flex-col">
               <span class="label-text font-semibold">Выдать столик по паспорту</span>
               <span class="label-text-alt text-base-content/60 text-xs mt-1">Бронирование будет привязано к вашему документу</span>
@@ -166,23 +169,49 @@
         <div class="form-control mt-6">
           <%= form.submit "Забронировать выбранное", class: "btn btn-primary w-full btn-lg font-semibold transition-all duration-300", disabled: true, id: 'submit-button' %>
         </div>
+        
+        <!-- Скрытые поля для времени -->
+        <%= form.hidden_field :date, value: '', id: 'selected-date-input' %>
+        <%= form.hidden_field :start_time, value: '', id: 'selected-start-time-input' %>
+        <%= form.hidden_field :end_time, value: '', id: 'selected-end-time-input' %>
       <% end %>
     </div>
   </div>
 </div>
 
-<script type="text/javascript">
-  document.addEventListener('DOMContentLoaded', () => {
-    // --- Элементы DOM ---
+<!-- Модальное окно выбора времени -->
+<dialog id="time_modal" class="modal">
+  <%= render 'reservations/time_modal' %>
+</dialog>
+
+<!-- Уведомления -->
+<div id="toast-container" class="fixed top-4 right-4 z-50 max-w-sm w-full"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- Элементы основной страницы ---
     const seatMapContainer = document.getElementById('seat-map-container');
     const selectedSeatsInfo = document.getElementById('selected-seats-info');
     const selectedSeatsInput = document.getElementById('selected-seats-input');
     const selectedTablesInput = document.getElementById('selected-tables-input');
+    const selectedDateInput = document.getElementById('selected-date-input');
+    const selectedStartTimeInput = document.getElementById('selected-start-time-input');
+    const selectedEndTimeInput = document.getElementById('selected-end-time-input');
     const reservationForm = document.getElementById('reservation-form');
     const submitButton = document.getElementById('submit-button');
-    const dateInput = document.getElementById('reservation-date');
-    const timeInput = document.getElementById('reservation-time');
-    const preorderCheckbox = document.getElementById('preorder-checkbox');
+    const selectTimeBtn = document.getElementById('select-time-btn');
+    const changeTimeBtn = document.getElementById('change-time-btn');
+    
+    const timeModal = document.getElementById('time_modal');
+    if (!timeModal) {
+        console.error("Modal dialog with id 'time_modal' not found");
+        showToast('Ошибка: модальное окно не найдено', 'error');
+        return;
+    }
+    
+    const selectedTimeDisplay = document.getElementById('selected-time-display');
+    const selectedTimeText = document.getElementById('selected-time-text');
+    const requirePassportCheckbox = document.getElementById('require-passport-checkbox');
     const reservationPrice = document.getElementById('reservation-price');
     const priceBreakdown = document.getElementById('price-breakdown');
     const cartItemsCount = document.getElementById('cart-items-count');
@@ -192,83 +221,25 @@
     const priceChangeArrow = document.getElementById('price-change-arrow');
     const priceChangeAmount = document.getElementById('price-change-amount');
 
-    // --- Функция для показа уведомлений ---
-    function showToast(message, type = 'info') {
-      const toastId = 'toast-' + Date.now();
-      const toastContainer = document.getElementById('toast-container') || createToastContainer();
-      
-      const toastHtml = `
-        <div id="${toastId}" class="alert ${getToastClass(type)} transform transition-all duration-300 translate-x-full mb-2 shadow-lg">
-          <div class="flex items-center">
-            <span>${message}</span>
-          </div>
-          <button class="btn btn-sm btn-ghost" onclick="document.getElementById('${toastId}').remove()">✕</button>
-        </div>
-      `;
-      
-      toastContainer.insertAdjacentHTML('beforeend', toastHtml);
-      
-      // Анимация появления
-      setTimeout(() => {
-        const toast = document.getElementById(toastId);
-        if (toast) {
-          toast.classList.remove('translate-x-full');
-        }
-      }, 10);
-      
-      // Автоматическое удаление через 5 секунд
-      setTimeout(() => {
-        const toast = document.getElementById(toastId);
-        if (toast) {
-          toast.style.opacity = '0';
-          toast.style.transform = 'translateX(100%)';
-          setTimeout(() => toast.remove(), 300);
-        }
-      }, 5000);
-    }
-
-    function createToastContainer() {
-      const container = document.createElement('div');
-      container.id = 'toast-container';
-      container.className = 'fixed top-4 right-4 z-50 max-w-sm w-full';
-      document.body.appendChild(container);
-      return container;
-    }
-
-    function getToastClass(type) {
-      switch(type) {
-        case 'error': return 'alert-error text-white';
-        case 'success': return 'alert-success text-white';
-        case 'warning': return 'alert-warning text-white';
-        default: return 'alert-info text-white';
-      }
-    }
-
-    // --- Анимация изменения цены ---
-    function showPriceChangeAnimation(oldPrice, newPrice) {
-      if (oldPrice === newPrice) return;
-      
-      const diff = newPrice - oldPrice;
-      const isIncrease = diff > 0;
-      
-      priceChangeArrow.textContent = isIncrease ? '↗' : '↙';
-      priceChangeAmount.textContent = `${isIncrease ? '+' : ''}${diff.toFixed(2)} BYN`;
-      
-      priceIndicator.classList.remove('badge-success', 'badge-error', 'opacity-0');
-      priceIndicator.classList.add(isIncrease ? 'badge-error' : 'badge-success');
-      priceIndicator.classList.remove('opacity-0');
-      
-      // Пульсация основной цены
-      reservationPrice.classList.add('ring-2', 'ring-primary', 'ring-opacity-50');
-      setTimeout(() => {
-        reservationPrice.classList.remove('ring-2', 'ring-primary', 'ring-opacity-50');
-      }, 1000);
-      
-      // Скрываем индикатор через 3 секунды
-      setTimeout(() => {
-        priceIndicator.classList.add('opacity-0');
-      }, 3000);
-    }
+    // --- Элементы модального окна (будут инициализированы позже) ---
+    let modalDate = null;
+    let loadButton = null;
+    let workingHoursDiv = null;
+    let startTimeGrid = null;
+    let durationButtons = null;
+    let loadingIndicator = null;
+    let modalSelectedSeatsDisplay = null;
+    let cancelTimeSelection = null;
+    let confirmTimeSelection = null;
+    let selectedTimeSummary = null;
+    let availabilityStatus = null;
+    let durationValidationMessage = null;
+    // --- НОВОЕ ---
+    let quickDateButtons = null;
+    let dateValidationMessage = null;
+    let timeSelectionContainer = null; // <-- ИСПРАВЛЕНО: Добавлена недостающая переменная
+    
+    let modalInitialized = false;
 
     // --- Состояние приложения ---
     const selectedSeats = new Set();
@@ -278,15 +249,468 @@
     const tablePriceMap = new Map();
     const tablePriceCentsMap = new Map();
     let currentTotalPrice = 0;
+    let timeSelected = false;
     
-    // --- Данные о часах работы ---
-    const workingHoursData = {
-      '1-4': { open: '09:00', close: '23:00' },
-      '5-6': { open: '09:00', close: '00:00' },
-      '0':   { open: '09:00', close: '23:00' }
-    };
+    // --- Состояние времени бронирования ---
+    let reservationDateTime = { date: null, startTime: null, endTime: null, duration: 1 };
+    let selectedStartTime = null;
+    let selectedDuration = 1; // Устанавливаем длительность по умолчанию
+    let availabilityChecked = false;
+    let currentAvailability = null;
 
     // --- Функции ---
+    
+    // --- НОВОЕ: Инициализация быстрых кнопок выбора даты ---
+    function initializeQuickDateButtons() {
+      const today = new Date();
+      const options = { weekday: 'short', month: 'short', day: 'numeric' };
+      
+      quickDateButtons.innerHTML = '';
+      
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() + i);
+        
+        const dateStr = date.toISOString().split('T')[0];
+        const label = i === 0 ? 'Сегодня' : 
+                     i === 1 ? 'Завтра' : 
+                     date.toLocaleDateString('ru-RU', options);
+        
+        const button = document.createElement('button');
+        button.className = 'btn btn-outline btn-sm';
+        button.textContent = label;
+        button.dataset.date = dateStr;
+        
+        button.addEventListener('click', () => {
+          modalDate.value = dateStr;
+          validateDate();
+          loadTimeSlots();
+        });
+        
+        quickDateButtons.appendChild(button);
+      }
+    }
+    
+    // --- НОВОЕ: Валидация даты ---
+    function validateDate() {
+      const selectedDate = new Date(modalDate.value);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      dateValidationMessage.classList.add('hidden');
+      
+      if (!modalDate.value) {
+        dateValidationMessage.textContent = 'Пожалуйста, выберите дату';
+        dateValidationMessage.classList.remove('hidden');
+        dateValidationMessage.classList.add('text-error');
+        return false;
+      }
+      
+      if (selectedDate < today) {
+        dateValidationMessage.textContent = 'Выбранная дата уже прошла. Пожалуйста, выберите сегодняшнюю или будущую дату.';
+        dateValidationMessage.classList.remove('hidden');
+        dateValidationMessage.classList.add('text-error');
+        return false;
+      }
+      
+      return true;
+    }
+    
+    // Инициализация модального окна и его обработчиков
+    function initializeModal() {
+      if (modalInitialized) return true;
+
+      // Find all modal elements
+      modalDate = timeModal.querySelector('#modal-date');
+      loadButton = timeModal.querySelector('#load-availability');
+      workingHoursDiv = timeModal.querySelector('#working-hours');
+      startTimeGrid = timeModal.querySelector('#start-time-grid');
+      durationButtons = timeModal.querySelector('#duration-buttons');
+      loadingIndicator = timeModal.querySelector('#loading-indicator');
+      modalSelectedSeatsDisplay = timeModal.querySelector('#modal-selected-seats-display');
+      cancelTimeSelection = timeModal.querySelector('#cancel-time-selection');
+      confirmTimeSelection = timeModal.querySelector('#confirm-time-selection');
+      selectedTimeSummary = timeModal.querySelector('#selected-time-summary');
+      availabilityStatus = timeModal.querySelector('#availability-status');
+      durationValidationMessage = timeModal.querySelector('#duration-validation-message');
+      // --- НОВОЕ ---
+      quickDateButtons = timeModal.querySelector('#quick-date-buttons');
+      dateValidationMessage = timeModal.querySelector('#date-validation-message');
+      timeSelectionContainer = timeModal.querySelector('#time-selection-container'); // <-- ИСПРАВЛЕНО: Инициализация переменной
+
+      if (!modalDate || !startTimeGrid || !durationButtons || !loadingIndicator || 
+          !modalSelectedSeatsDisplay || !cancelTimeSelection || !confirmTimeSelection || 
+          !selectedTimeSummary || !availabilityStatus || !durationValidationMessage || !quickDateButtons || !dateValidationMessage || !timeSelectionContainer) { // <-- ИСПРАВЛЕНО: Проверка переменной
+        console.error("One or more modal elements not found");
+        showToast('Ошибка при инициализации модального окна', 'error');
+        return false;
+      }
+      
+      // Add event listeners
+      cancelTimeSelection.addEventListener('click', () => {
+        if (typeof timeModal.close === 'function') {
+          timeModal.close();
+        } else {
+          timeModal.style.display = 'none';
+          timeModal.classList.remove('modal-open');
+        }
+      });
+      
+      modalDate.addEventListener('change', () => { 
+        if (modalDate.value) {
+            validateDate(); // --- НОВОЕ ---
+            loadTimeSlots(); 
+        }
+      });
+      
+      loadButton.addEventListener('click', loadTimeSlots);
+      
+      confirmTimeSelection.addEventListener('click', () => {
+        if (!selectedStartTime || !selectedDuration || !availabilityChecked) {
+          showToast('Пожалуйста, выберите время и проверьте доступность', 'error');
+          return;
+        }
+        reservationDateTime.date = modalDate.value;
+        reservationDateTime.startTime = selectedStartTime;
+        reservationDateTime.duration = selectedDuration;
+        
+        const [hours, minutes] = selectedStartTime.split(':').map(Number);
+        const totalMinutes = hours * 60 + minutes + selectedDuration * 60;
+        const endHours = Math.floor(totalMinutes / 60) % 24;
+        const endMinutes = totalMinutes % 60;
+        reservationDateTime.endTime = `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`;
+        
+        selectedTimeDisplay.classList.remove('hidden');
+        selectedTimeText.textContent = `${modalDate.value}, ${selectedStartTime} - ${reservationDateTime.endTime} (${selectedDuration}ч)`;
+        
+        selectedDateInput.value = modalDate.value;
+        selectedStartTimeInput.value = selectedStartTime;
+        selectedEndTimeInput.value = reservationDateTime.endTime;
+        
+        timeSelected = true;
+        updateSubmitButtonState();
+        
+        if (typeof timeModal.close === 'function') {
+          timeModal.close();
+        } else {
+          timeModal.style.display = 'none';
+          timeModal.classList.remove('modal-open');
+        }
+        
+        showToast('Время выбрано', 'success');
+      });
+
+      // --- НОВОЕ: Инициализация быстрых кнопок при открытии модального окна ---
+      initializeQuickDateButtons();
+
+      modalInitialized = true;
+      return true;
+    }
+    
+    function loadTimeSlots() {
+      if (!modalInitialized) {
+        if (!initializeModal()) {
+          showToast('Ошибка при инициализации модального окна', 'error');
+          return;
+        }
+      }
+      
+      // --- НОВОЕ: Вызов валидации перед загрузкой ---
+      if (!validateDate()) {
+        return;
+      }
+      
+      showLoading(true);
+      const selectedDate = modalDate.value;
+      
+      fetch(`/reservation/time_slots?date=${selectedDate}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.error) { 
+            showToast(data.error, 'error'); 
+            return; 
+          }
+          workingHoursDiv.innerHTML = `Часы работы: ${data.working_hours.open} - ${data.working_hours.close}`;
+          generateTimeGrid(data.working_hours);
+          timeSelectionContainer.classList.remove('hidden'); // Теперь эта переменная определена
+        })
+        .catch(error => {
+          console.error('Error loading time slots:', error);
+          showToast('Ошибка при загрузке временных слотов', 'error');
+        })
+        .finally(() => showLoading(false));
+    }
+    
+    function generateTimeGrid(workingHours) {
+      if (!startTimeGrid) return;
+      
+      startTimeGrid.innerHTML = '';
+      const [openHours, openMinutes] = workingHours.open.split(':').map(Number);
+      const [closeHours, closeMinutes] = workingHours.close.split(':').map(Number);
+      const startMinutes = openHours * 60 + openMinutes;
+      let endMinutes = closeHours * 60 + closeMinutes;
+      if (closeHours === 0 && closeMinutes === 0) endMinutes = 24 * 60;
+      
+      const now = new Date();
+      const today = new Date().toISOString().split('T')[0];
+      const isToday = modalDate.value === today;
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+      
+      for (let minutes = startMinutes; minutes < endMinutes; minutes += 15) {
+        const hours = Math.floor(minutes / 60);
+        const mins = minutes % 60;
+        const timeString = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+        
+        const timeButton = document.createElement('button');
+        timeButton.className = 'btn btn-sm btn-outline time-slot-btn';
+        timeButton.textContent = timeString;
+        timeButton.dataset.time = timeString;
+        
+        // --- НОВОЕ: Улучшенная проверка на прошедшее время ---
+        if (isToday && minutes <= currentMinutes) {
+          timeButton.disabled = true;
+          timeButton.classList.add('btn-disabled');
+          timeButton.title = 'Это время уже прошло';
+        }
+        
+        timeButton.addEventListener('click', () => {
+          const [h, m] = timeString.split(':').map(Number);
+          const btnTotalMinutes = h * 60 + m;
+          const latestStartMinutes = getLatestStartMinutes(workingHours);
+
+          if ((isToday && btnTotalMinutes <= currentMinutes) || btnTotalMinutes > latestStartMinutes) {
+            return;
+          }
+
+          document.querySelectorAll('.time-slot-btn').forEach(btn => {
+            btn.classList.remove('btn-primary');
+            btn.classList.add('btn-outline');
+          });
+          timeButton.classList.remove('btn-outline');
+          timeButton.classList.add('btn-primary');
+          
+          selectedStartTime = timeString;
+          availabilityChecked = false;
+          updateSelectedTimeSummary();
+          updateDurationButtons(workingHours);
+          checkAvailability();
+        });
+        
+        startTimeGrid.appendChild(timeButton);
+      }
+      
+      document.querySelectorAll('.duration-btn').forEach(btn => {
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+      });
+
+      document.querySelectorAll('.duration-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.duration-btn').forEach(b => {
+            b.classList.remove('btn-primary');
+            b.classList.add('btn-outline');
+          });
+          btn.classList.remove('btn-outline');
+          btn.classList.add('btn-primary');
+          
+          selectedDuration = parseFloat(btn.dataset.duration);
+          availabilityChecked = false;
+          updateSelectedTimeSummary();
+          updateStartTimeGrid(workingHours);
+          checkAvailability();
+        });
+      });
+      
+      const defaultDurationBtn = document.querySelector('.duration-btn[data-duration="1"]');
+      if (defaultDurationBtn) {
+        defaultDurationBtn.click();
+      } else {
+        updateStartTimeGrid(workingHours);
+        updateDurationButtons(workingHours);
+      }
+    }
+
+    function getLatestStartMinutes(workingHours) {
+      let closeTotalMinutes;
+      if (workingHours.close === '00:00') {
+        closeTotalMinutes = 24 * 60;
+      } else {
+        const [closeHours, closeMinutes] = workingHours.close.split(':').map(Number);
+        closeTotalMinutes = closeHours * 60 + closeMinutes;
+      }
+      return closeTotalMinutes - (selectedDuration * 60);
+    }
+
+    function updateStartTimeGrid(workingHours) {
+      if (!startTimeGrid) return;
+      
+      const now = new Date();
+      const today = new Date().toISOString().split('T')[0];
+      const isToday = modalDate.value === today;
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+      const latestStartMinutes = getLatestStartMinutes(workingHours);
+
+      document.querySelectorAll('.time-slot-btn').forEach(btn => {
+        const [hours, minutes] = btn.dataset.time.split(':').map(Number);
+        const btnTotalMinutes = hours * 60 + minutes;
+        const isInPast = isToday && btnTotalMinutes <= currentMinutes;
+        const isTooLate = btnTotalMinutes > latestStartMinutes;
+
+        if (isInPast || isTooLate) {
+          btn.disabled = true;
+          btn.classList.add('btn-disabled', 'duration-invalid');
+          btn.title = isInPast ? 'Это время уже прошло' : `Для выбранной длительности (${selectedDuration}ч) это время слишком позднее`;
+        } else {
+          btn.disabled = false;
+          btn.classList.remove('btn-disabled', 'duration-invalid');
+          btn.title = '';
+        }
+      });
+    }
+
+    function updateDurationButtons(workingHours) {
+      if (!selectedStartTime) {
+        document.querySelectorAll('.duration-btn').forEach(btn => {
+          btn.disabled = false;
+          btn.classList.remove('btn-disabled', 'duration-invalid');
+          btn.title = '';
+        });
+        if(durationValidationMessage) durationValidationMessage.classList.add('hidden');
+        return;
+      }
+      
+      const [startHours, startMinutes] = selectedStartTime.split(':').map(Number);
+      const startTotalMinutes = startHours * 60 + startMinutes;
+      
+      let endMinutes;
+      if (workingHours.close === '00:00') {
+        endMinutes = 24 * 60;
+      } else {
+        const [closeHours, closeMinutes] = workingHours.close.split(':').map(Number);
+        endMinutes = closeHours * 60 + closeMinutes;
+      }
+
+      let hasInvalidOptions = false;
+      
+      document.querySelectorAll('.duration-btn').forEach(btn => {
+        const duration = parseFloat(btn.dataset.duration);
+        const endTotalMinutes = startTotalMinutes + duration * 60;
+        
+        if (endTotalMinutes > endMinutes) {
+          btn.disabled = true;
+          btn.classList.add('btn-disabled', 'duration-invalid');
+          btn.title = `Эта длительность превысит часы работы (закрытие в ${workingHours.close})`;
+          hasInvalidOptions = true;
+        } else {
+          btn.disabled = false;
+          btn.classList.remove('btn-disabled', 'duration-invalid');
+          btn.title = '';
+        }
+      });
+
+      if (hasInvalidOptions && durationValidationMessage) {
+        durationValidationMessage.textContent = 'Некоторые длительности недоступны для выбранного времени начала.';
+        durationValidationMessage.classList.remove('hidden');
+        durationValidationMessage.classList.add('text-warning');
+      } else if (durationValidationMessage) {
+        durationValidationMessage.classList.add('hidden');
+      }
+    }
+    
+    function updateSelectedTimeSummary() {
+      if (selectedStartTime && selectedDuration) {
+        const [hours, minutes] = selectedStartTime.split(':').map(Number);
+        const totalMinutes = hours * 60 + minutes + selectedDuration * 60;
+        const endHours = Math.floor(totalMinutes / 60) % 24;
+        const endMinutes = totalMinutes % 60;
+        const endTime = `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`;
+        
+        selectedTimeSummary.innerHTML = `
+          <div class="flex items-center gap-4">
+            <div><span class="font-semibold">Начало:</span> ${selectedStartTime}</div>
+            <div><span class="font-semibold">Конец:</span> ${endTime}</div>
+            <div><span class="font-semibold">Длительность:</span> ${selectedDuration}ч</div>
+          </div>
+        `;
+      } else {
+        selectedTimeSummary.textContent = 'Выберите время начала и длительность';
+      }
+    }
+    
+    function checkAvailability() {
+      if (!selectedStartTime || !selectedDuration) {
+        availabilityStatus.innerHTML = `<div class="text-center text-base-content/60">Выберите время начала и длительность для проверки доступности</div>`;
+        confirmTimeSelection.disabled = true;
+        return;
+      }
+      
+      const [hours, minutes] = selectedStartTime.split(':').map(Number);
+      const totalMinutes = hours * 60 + minutes + selectedDuration * 60;
+      const endHours = Math.floor(totalMinutes / 60) % 24;
+      const endMinutes = totalMinutes % 60;
+      const endTime = `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`;
+      
+      showLoading(true);
+      
+      fetch(`/reservation/check_availability?date=${modalDate.value}&start_time=${selectedStartTime}&end_time=${endTime}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.error) {
+            availabilityStatus.innerHTML = `<div class="alert alert-error"><span>${data.error}</span></div>`;
+            confirmTimeSelection.disabled = true;
+            return;
+          }
+          
+          currentAvailability = data;
+          const availableSeats = data.seats.filter(s => s.status === 'available').length;
+          const availableTables = data.tables.filter(t => t.status === 'available').length;
+          
+          if (availableSeats > 0 || availableTables > 0) {
+            availabilityStatus.innerHTML = `
+              <div class="alert alert-success">
+                <div><div class="font-semibold">Места доступны!</div><div class="text-sm">Свободных мест: ${availableSeats}, столов: ${availableTables}</div></div>
+              </div>
+            `;
+            updateMapAvailability(data);
+            confirmTimeSelection.disabled = false;
+          } else {
+            availabilityStatus.innerHTML = `
+              <div class="alert alert-warning">
+                <div><div class="font-semibold">К сожалению, все места заняты</div><div class="text-sm">Попробуйте выбрать другое время</div></div>
+              </div>
+            `;
+            confirmTimeSelection.disabled = true;
+          }
+          
+          availabilityChecked = true;
+        })
+        .catch(error => {
+          console.error('Error checking availability:', error);
+          availabilityStatus.innerHTML = `<div class="alert alert-error"><span>Ошибка при проверке доступности</span></div>`;
+          confirmTimeSelection.disabled = true;
+        })
+        .finally(() => showLoading(false));
+    }
+    
+    function updateMapAvailability(data) {
+      document.querySelectorAll('.table-rect').forEach(table => {
+        const tableId = parseInt(table.dataset.tableId);
+        const tableData = data.tables.find(t => t.id === tableId);
+        if (tableData) {
+          table.dataset.status = tableData.status;
+          applyTableStyles(table, tableData.status);
+        }
+      });
+      
+      document.querySelectorAll('.seat-circle').forEach(seat => {
+        const seatId = parseInt(seat.dataset.seatId);
+        const seatData = data.seats.find(s => s.id === seatId);
+        if (seatData) {
+          seat.dataset.status = seatData.status;
+          applySeatStyles(seat, seatData.status);
+        }
+      });
+    }
 
     function calculateSeatsPrice(seatCount) {
       if (seatCount === 0) return 0;
@@ -302,36 +726,20 @@
     function applySeatStyles(circle, status) {
       circle.classList.remove('bg-success', 'bg-warning', 'bg-error', 'bg-primary', 'ring-4', 'ring-primary', 'ring-offset-2');
       switch (status) {
-        case 'available':
-          circle.classList.add('bg-success');
-          break;
-        case 'reserved':
-          circle.classList.add('bg-warning');
-          break;
-        case 'occupied':
-          circle.classList.add('bg-error');
-          break;
-        case 'selected':
-          circle.classList.add('bg-primary', 'ring-4', 'ring-primary', 'ring-offset-2');
-          break;
+        case 'available': circle.classList.add('bg-success'); break;
+        case 'reserved': circle.classList.add('bg-warning'); break;
+        case 'occupied': circle.classList.add('bg-error'); break;
+        case 'selected': circle.classList.add('bg-primary', 'ring-4', 'ring-primary', 'ring-offset-2'); break;
       }
     }
 
     function applyTableStyles(rect, status) {
       rect.classList.remove('bg-success', 'bg-warning', 'bg-error', 'bg-primary', 'ring-4', 'ring-primary', 'ring-offset-2');
       switch (status) {
-        case 'available':
-          rect.classList.add('bg-success', 'bg-opacity-30');
-          break;
-        case 'reserved':
-          rect.classList.add('bg-warning', 'bg-opacity-30');
-          break;
-        case 'occupied':
-          rect.classList.add('bg-error', 'bg-opacity-30');
-          break;
-        case 'selected':
-          rect.classList.add('bg-primary', 'bg-opacity-30', 'ring-4', 'ring-primary', 'ring-offset-2');
-          break;
+        case 'available': rect.classList.add('bg-success', 'bg-opacity-30'); break;
+        case 'reserved': rect.classList.add('bg-warning', 'bg-opacity-30'); break;
+        case 'occupied': rect.classList.add('bg-error', 'bg-opacity-30'); break;
+        case 'selected': rect.classList.add('bg-primary', 'bg-opacity-30', 'ring-4', 'ring-primary', 'ring-offset-2'); break;
       }
     }
 
@@ -364,9 +772,7 @@
     function handleSeatInSelectedTable(seatId, seatElement, tableId) {
       selectedTables.delete(tableId);
       const tableElement = document.querySelector(`[data-table-id="${tableId}"]`);
-      if (tableElement) {
-        applyTableStyles(tableElement, 'available');
-      }
+      if (tableElement) applyTableStyles(tableElement, 'available');
       
       const tableSeats = tableSeatsMap.get(tableId);
       if (tableSeats) {
@@ -374,16 +780,13 @@
           if (selectedSeats.has(tableSeatId)) {
             selectedSeats.delete(tableSeatId);
             const tableSeatElement = document.querySelector(`[data-seat-id="${tableSeatId}"]`);
-            if (tableSeatElement) {
-              applySeatStyles(tableSeatElement, 'available');
-            }
+            if (tableSeatElement) applySeatStyles(tableSeatElement, 'available');
           }
         });
       }
       
       selectedSeats.add(seatId);
       applySeatStyles(seatElement, 'selected');
-      
       showToast(`Стол ${tableId} снят с выбора. Выбрано место ${seatId}.`, 'info');
     }
 
@@ -407,9 +810,7 @@
         <div class="text-right">
           <div class="${priceClass} text-sm">${priceFormatted}</div>
           <button class="btn btn-xs btn-ghost btn-circle text-error mt-1 remove-item" title="Удалить">
-            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
           </button>
         </div>
       `;
@@ -422,7 +823,6 @@
       let totalPriceCents = 0;
       let breakdownItems = [];
       
-      // Очищаем контейнер
       selectedSeatsInfo.innerHTML = '';
       
       if (selectedSeats.size === 0 && selectedTables.size === 0) {
@@ -431,16 +831,14 @@
             <svg class="w-8 h-8 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
             </svg>
-            <span class="text-sm font-medium">Кликните на места или столы на плане</span>
+            <span class="text-sm font-medium">Выберите места или столы на плане</span>
           </div>
         `;
-        submitButton.disabled = true;
+        selectTimeBtn.disabled = true;
         selectionCount.textContent = '0';
       } else {
-        const seatNumbers = Array.from(selectedSeats).sort((a, b) => a - b);
         const tableNumbers = Array.from(selectedTables).sort((a, b) => a - b);
         
-        // Добавляем выбранные столы
         tableNumbers.forEach(tableId => {
           const priceCents = tablePriceCentsMap.get(tableId) || 0;
           totalPriceCents += priceCents;
@@ -455,7 +853,6 @@
           breakdownItems.push(`Стол ${tableId}: ${price.toFixed(2)} BYN`);
         });
         
-        // Добавляем отдельные места (не входящие в выбранные столы)
         const independentSeats = Array.from(selectedSeats).filter(seatId => {
           const tableId = seatTableMap.get(seatId);
           return !tableId || !selectedTables.has(tableId);
@@ -478,17 +875,14 @@
           }
         }
         
-        submitButton.disabled = false;
+        selectTimeBtn.disabled = false;
         selectionCount.textContent = (selectedTables.size + independentSeats.length).toString();
       }
       
-      // Обновляем стоимость
       currentTotalPrice = totalPriceCents / 100;
-      
       selectedSeatsInput.value = Array.from(selectedSeats).join(',');
       selectedTablesInput.value = Array.from(selectedTables).join(',');
       
-      // Обновление отображения стоимости
       const totalElement = reservationPrice.querySelector('.text-lg');
       if (currentTotalPrice === 0 && (selectedSeats.size > 0 || selectedTables.size > 0)) {
         totalElement.innerHTML = '<span class="text-lg font-bold text-success">Бесплатно</span>';
@@ -500,100 +894,152 @@
         `<div class="flex justify-between"><span>${item.split(':')[0]}:</span><span class="font-medium">${item.split(':')[1]}</span></div>`
       ).join('');
       
-      // Показываем анимацию изменения цены
       showPriceChangeAnimation(oldPrice, currentTotalPrice);
+      updateSubmitButtonState();
+      updateModalSelectedSeats();
+    }
+
+    function updateModalSelectedSeats() {
+      if (!modalSelectedSeatsDisplay) return;
+      
+      if (selectedSeats.size === 0 && selectedTables.size === 0) {
+        modalSelectedSeatsDisplay.innerHTML = '<span class="text-base-content/60">Не выбраны</span>';
+      } else {
+        const selectedItems = [];
+        selectedTables.forEach(tableId => {
+          const tableElement = document.querySelector(`[data-table-id="${tableId}"]`);
+          const tableName = tableElement ? tableElement.querySelector('span').textContent.trim() : tableId;
+          selectedItems.push(`<div class="badge badge-warning">Стол ${tableName}</div>`);
+        });
+        selectedSeats.forEach(seatId => selectedItems.push(`<div class="badge badge-warning">М${seatId}</div>`));
+        modalSelectedSeatsDisplay.innerHTML = selectedItems.join('');
+      }
+    }
+
+    function updateSubmitButtonState() {
+      submitButton.disabled = !(selectedSeats.size > 0 || selectedTables.size > 0) || !timeSelected;
     }
 
     function handleSingleSeatSelection(seatId, seatElement) {
       const tableId = seatTableMap.get(seatId);
-
       if (selectedSeats.has(seatId)) {
         selectedSeats.delete(seatId);
         applySeatStyles(seatElement, 'available');
-        
-        if (tableId) {
-          autoDeselectTableIfNotAllSeatsSelected(tableId);
-        }
+        if (tableId) autoDeselectTableIfNotAllSeatsSelected(tableId);
       } else {
         selectedSeats.add(seatId);
         applySeatStyles(seatElement, 'selected');
-        
-        if (tableId) {
-          autoSelectTableIfAllSeatsSelected(tableId);
-        }
+        if (tableId) autoSelectTableIfAllSeatsSelected(tableId);
       }
-      
+      resetTimeSelection();
       updateSelectedInfo();
     }
 
     function handleTableSelection(tableId, tableElement) {
       const tableSeats = tableSeatsMap.get(tableId);
-      
       if (selectedTables.has(tableId)) {
         selectedTables.delete(tableId);
         applyTableStyles(tableElement, 'available');
-        
         if (tableSeats) {
           tableSeats.forEach(seatId => {
             selectedSeats.delete(seatId);
             const seatElement = document.querySelector(`[data-seat-id="${seatId}"]`);
-            if (seatElement) {
-              applySeatStyles(seatElement, 'available');
-            }
+            if (seatElement) applySeatStyles(seatElement, 'available');
           });
         }
       } else {
         selectedTables.add(tableId);
         applyTableStyles(tableElement, 'selected');
-        
         if (tableSeats) {
           tableSeats.forEach(seatId => {
             selectedSeats.add(seatId);
             const seatElement = document.querySelector(`[data-seat-id="${seatId}"]`);
-            if (seatElement) {
-              applySeatStyles(seatElement, 'selected');
-            }
+            if (seatElement) applySeatStyles(seatElement, 'selected');
           });
         }
       }
-      
+      resetTimeSelection();
       updateSelectedInfo();
     }
 
-    function setTimeConstraints() {
-      const selectedDate = new Date(dateInput.value + 'T00:00:00');
-      if (isNaN(selectedDate)) {
-        timeInput.min = '';
-        timeInput.max = '';
+    function resetTimeSelection() {
+      timeSelected = false;
+      reservationDateTime = { date: null, startTime: null, endTime: null, duration: 1 };
+      selectedDateInput.value = '';
+      selectedStartTimeInput.value = '';
+      selectedEndTimeInput.value = '';
+      selectedTimeDisplay.classList.add('hidden');
+      selectedTimeText.textContent = '';
+      updateSubmitButtonState();
+    }
+
+    function showLoading(show) {
+      if (loadingIndicator) {
+        if (show) {
+          loadingIndicator.classList.remove('hidden');
+        } else {
+          loadingIndicator.classList.add('hidden');
+        }
+      }
+    }
+
+    function showToast(message, type = 'info') {
+      const toastId = 'toast-' + Date.now();
+      const toastContainer = document.getElementById('toast-container');
+      if (!toastContainer) {
+        console.error("Toast container not found");
         return;
       }
-      const dayOfWeek = selectedDate.getDay();
-
-      let hours;
-      if (dayOfWeek >= 1 && dayOfWeek <= 4) {
-        hours = workingHoursData['1-4'];
-      } else if (dayOfWeek >= 5 && dayOfWeek <= 6) {
-        hours = workingHoursData['5-6'];
-      } else {
-        hours = workingHoursData['0'];
-      }
-
-      timeInput.min = hours.open;
-      timeInput.max = hours.close === '00:00' ? '23:59' : hours.close;
       
-      if (timeInput.value && (timeInput.value < timeInput.min || timeInput.value > timeInput.max)) {
-        timeInput.value = '';
-        showToast('Выбранное время вне часов работы заведения', 'warning');
+      const toastHtml = `
+        <div id="${toastId}" class="alert ${getToastClass(type)} transform transition-all duration-300 translate-x-full mb-2 shadow-lg">
+          <div class="flex items-center"><span>${message}</span></div>
+          <button class="btn btn-sm btn-ghost" onclick="document.getElementById('${toastId}').remove()">✕</button>
+        </div>
+      `;
+      toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+      setTimeout(() => { 
+        const toast = document.getElementById(toastId); 
+        if (toast) toast.classList.remove('translate-x-full'); 
+      }, 10);
+      setTimeout(() => { 
+        const toast = document.getElementById(toastId); 
+        if (toast) { 
+          toast.style.opacity = '0'; 
+          toast.style.transform = 'translateX(100%)'; 
+          setTimeout(() => toast.remove(), 300); 
+        } 
+      }, 5000);
+    }
+
+    function getToastClass(type) {
+      switch(type) {
+        case 'error': return 'alert-error text-white';
+        case 'success': return 'alert-success text-white';
+        case 'warning': return 'alert-warning text-white';
+        default: return 'alert-info text-white';
       }
+    }
+
+    function showPriceChangeAnimation(oldPrice, newPrice) {
+      if (oldPrice === newPrice) return;
+      const diff = newPrice - oldPrice;
+      const isIncrease = diff > 0;
+      priceChangeArrow.textContent = isIncrease ? '↗' : '↙';
+      priceChangeAmount.textContent = `${isIncrease ? '+' : ''}${diff.toFixed(2)} BYN`;
+      priceIndicator.classList.remove('badge-success', 'badge-error', 'opacity-0');
+      priceIndicator.classList.add(isIncrease ? 'badge-error' : 'badge-success');
+      priceIndicator.classList.remove('opacity-0');
+      reservationPrice.classList.add('ring-2', 'ring-primary', 'ring-opacity-50');
+      setTimeout(() => { reservationPrice.classList.remove('ring-2', 'ring-primary', 'ring-opacity-50'); }, 1000);
+      setTimeout(() => { priceIndicator.classList.add('opacity-0'); }, 3000);
     }
 
     // --- Инициализация данных ---
     document.querySelectorAll('.table-rect').forEach(table => {
       const tableId = parseInt(table.dataset.tableId, 10);
-      const seatsCount = parseInt(table.dataset.seatsCount, 10);
       const bookingPrice = parseFloat(table.dataset.bookingPrice);
       const bookingPriceCents = parseInt(table.dataset.bookingPriceCents, 10);
-      
       tableSeatsMap.set(tableId, new Set());
       tablePriceMap.set(tableId, bookingPrice);
       tablePriceCentsMap.set(tableId, bookingPriceCents);
@@ -602,36 +1048,69 @@
     document.querySelectorAll('.seat-circle').forEach(seat => {
       const seatId = parseInt(seat.dataset.seatId, 10);
       const tableId = parseInt(seat.dataset.tableId, 10);
-      
       if (tableId) {
         seatTableMap.set(seatId, tableId);
         const tableSeats = tableSeatsMap.get(tableId);
-        if (tableSeats) {
-          tableSeats.add(seatId);
-        }
+        if (tableSeats) tableSeats.add(seatId);
       }
     });
 
     // --- Обработчики событий ---
+    selectTimeBtn.addEventListener('click', () => {
+      if (!modalInitialized) {
+        if (!initializeModal()) {
+          showToast('Ошибка при инициализации модального окна', 'error');
+          return;
+        }
+      }
+      
+      const today = new Date().toISOString().split('T')[0];
+      modalDate.value = reservationDateTime.date || today;
+      modalDate.min = today;
+      updateModalSelectedSeats();
+      
+      if (typeof timeModal.showModal === 'function') {
+        timeModal.showModal();
+      } else {
+        timeModal.style.display = 'block';
+        timeModal.classList.add('modal-open');
+      }
+      
+      loadTimeSlots();
+    });
+    
+    changeTimeBtn.addEventListener('click', () => {
+      if (!modalInitialized) {
+        if (!initializeModal()) {
+          showToast('Ошибка при инициализации модального окна', 'error');
+          return;
+        }
+      }
+      
+      updateModalSelectedSeats();
+      
+      if (typeof timeModal.showModal === 'function') {
+        timeModal.showModal();
+      } else {
+        timeModal.style.display = 'block';
+        timeModal.classList.add('modal-open');
+      }
+    });
 
-    // Обработчик кликов по карте
     seatMapContainer.addEventListener('click', (event) => {
       const circle = event.target.closest('.seat-circle');
       if (circle) {
         const seatId = parseInt(circle.dataset.seatId, 10);
         const status = circle.dataset.status;
         const tableId = parseInt(circle.dataset.tableId, 10);
-
         if (status !== 'available') {
           showToast(`Место №${seatId} сейчас ${status === 'reserved' ? 'забронировано' : 'занято'}.`, 'error');
           return;
         }
-
         if (tableId && selectedTables.has(tableId)) {
           handleSeatInSelectedTable(seatId, circle, tableId);
           return;
         }
-
         handleSingleSeatSelection(seatId, circle);
         return;
       }
@@ -640,17 +1119,14 @@
       if (tableRect) {
         const tableId = parseInt(tableRect.dataset.tableId, 10);
         const status = tableRect.dataset.status;
-
         if (status !== 'available') {
           showToast(`Стол №${tableId} сейчас ${status === 'reserved' ? 'забронирован' : 'занят'}.`, 'error');
           return;
         }
-
         handleTableSelection(tableId, tableRect);
       }
     });
 
-    // Обработчик удаления элементов из списка
     selectedSeatsInfo.addEventListener('click', (event) => {
       if (event.target.closest('.remove-item')) {
         const item = event.target.closest('[data-type]');
@@ -659,31 +1135,19 @@
         
         if (type === 'table') {
           const tableElement = document.querySelector(`[data-table-id="${id}"]`);
-          if (tableElement) {
-            handleTableSelection(id, tableElement);
-          }
+          if (tableElement) handleTableSelection(id, tableElement);
         } else if (type === 'seat') {
           const seatElement = document.querySelector(`[data-seat-id="${id}"]`);
-          if (seatElement) {
-            handleSingleSeatSelection(id, seatElement);
-          }
+          if (seatElement) handleSingleSeatSelection(id, seatElement);
         }
       }
     });
 
-    // Обработчик изменения даты
-    dateInput.addEventListener('change', setTimeConstraints);
-
-    // Обработчик отправки формы
-    reservationForm.addEventListener('submit', (event) => {
+    reservationForm.addEventListener('submit', async (event) => {
       event.preventDefault();
+      if (!timeSelected) { showToast('Пожалуйста, выберите время бронирования', 'error'); return; }
+      if (selectedSeats.size === 0 && selectedTables.size === 0) { showToast('Пожалуйста, выберите хотя бы одно место или стол.', 'error'); return; }
 
-      if (selectedSeats.size === 0 && selectedTables.size === 0) {
-        showToast('Пожалуйста, выберите хотя бы одно место или стол.', 'error');
-        return;
-      }
-
-      // Анимация кнопки
       submitButton.disabled = true;
       submitButton.innerHTML = '<span class="loading loading-spinner"></span> Бронирование...';
       
@@ -692,79 +1156,191 @@
         seat_ids: formData.get('seat_ids').split(',').filter(id => id !== '').map(Number),
         table_ids: formData.get('table_ids').split(',').filter(id => id !== '').map(Number),
         date: formData.get('date'),
-        time: formData.get('time'),
-        preorder: formData.get('preorder') === '1'
+        start_time: formData.get('start_time'),
+        end_time: formData.get('end_time'),
+        require_passport: formData.get('require_passport') === '1'
       };
 
-      // Имитация API-запроса
-      setTimeout(() => {
-        console.log('Бронирование создано:', reservationData);
-        showToast('Бронирование успешно создано!', 'success');
-        
-        // Сброс формы
-        selectedSeats.clear();
-        selectedTables.clear();
-        updateSelectedInfo();
-        
-        document.querySelectorAll('.seat-circle').forEach(circle => {
-          applySeatStyles(circle, circle.dataset.status);
-        });
-        document.querySelectorAll('.table-rect').forEach(table => {
-          applyTableStyles(table, table.dataset.status);
-        });
-        
+      const csrfTokenElement = document.querySelector('meta[name="csrf-token"]');
+      if (!csrfTokenElement) {
+        console.error("CSRF token meta tag not found. Make sure <%= csrf_meta_tags %> is in your layout.");
+        showToast('Ошибка безопасности: токен CSRF не найден. Пожалуйста, обновите страницу и попробуйте снова.', 'error');
         submitButton.disabled = false;
         submitButton.textContent = 'Забронировать выбранное';
-      }, 2000);
-    });
+        return;
+      }
 
-    // --- Первоначальная настройка ---
-    document.querySelectorAll('.seat-circle').forEach(circle => {
-      applySeatStyles(circle, circle.dataset.status);
+      try {
+        const response = await fetch('/reservation', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfTokenElement.getAttribute('content')
+          },
+          body: JSON.stringify({ reservation: reservationData })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Ошибка при создании бронирования');
+        }
+        
+        showToast('Бронирование успешно создано!', 'success');
+        window.location.href = `/reservation/${data.id}`;
+      } catch (error) {
+        showToast(error.message, 'error');
+        submitButton.disabled = false;
+        submitButton.textContent = 'Забронировать выбранное';
+      }
     });
-    
-    document.querySelectorAll('.table-rect').forEach(table => {
-      applyTableStyles(table, table.dataset.status);
-    });
-    
-    setTimeConstraints();
-    
-    const today = new Date().toISOString().split('T')[0];
-    dateInput.min = today;
-    if (!dateInput.value) {
-      dateInput.value = today;
-    }
-  });
+});
 </script>
 
 <style>
   @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  
-  .animate-fadeIn {
-    animation: fadeIn 0.3s ease-out;
-  }
-  
-  .table-rect {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.table-rect {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(2px);
+}
+
+.table-rect:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.seat-circle {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(2px);
+}
+
+.seat-circle:hover {
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+#selected-seats-info::-webkit-scrollbar {
+  width: 4px;
+}
+
+#selected-seats-info::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#selected-seats-info::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 2px;
+}
+
+.time-slot-btn {
+  transition: all 0.2s ease;
+}
+
+.time-slot-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.duration-btn {
+  transition: all 0.2s ease;
+}
+
+.duration-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.duration-invalid {
+  opacity: 0.5;
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+
+.modal-box {
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+}
+
+.btn {
+  transition: all 0.2s ease;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.loading-spinner {
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+.alert {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Улучшения для мобильных устройств */
+@media (max-width: 768px) {
+  .hero-content {
+    flex-direction: column;
   }
   
   .seat-circle {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 16px;
+    height: 16px;
   }
   
-  #selected-seats-info::-webkit-scrollbar {
-    width: 4px;
+  .table-rect {
+    min-width: 40px;
+    min-height: 20px;
   }
   
-  #selected-seats-info::-webkit-scrollbar-track {
-    background: transparent;
+  #start-time-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Улучшения для доступности */
+@media (prefers-reduced-motion: reduce) {
+  .table-rect,
+  .seat-circle,
+  .time-slot-btn,
+  .duration-btn,
+  .btn {
+    transition: none;
   }
   
-  #selected-seats-info::-webkit-scrollbar-thumb {
-    background: #d1d5db;
-    border-radius: 2px;
+  .animate-fadeIn {
+    animation: none;
   }
+}
+
+/* Темная тема */
+@media (prefers-color-scheme: dark) {
+  .table-rect,
+  .seat-circle {
+    backdrop-filter: blur(4px);
+  }
+}
 </style>

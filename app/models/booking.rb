@@ -29,6 +29,7 @@ class Booking < ApplicationRecord
   validates :starts_at, :ends_at, :booking_number, presence: true
   validates :booking_number, uniqueness: true
   validate :ends_after_starts
+  validate :max_duration
   validate :no_overlapping_bookings
 
   before_validation :generate_booking_number, on: :create
@@ -46,6 +47,26 @@ class Booking < ApplicationRecord
     seats.first.table if seats.any?
   end
 
+  # Проверяет, является ли бронирование текущим (активным сейчас)
+  def current?
+    starts_at <= Time.current && ends_at >= Time.current
+  end
+
+  # Проверяет, является ли бронирование будущим
+  def future?
+    starts_at > Time.current
+  end
+
+  # Проверяет, является ли бронирование прошедшим
+  def past?
+    ends_at < Time.current
+  end
+
+  # Возвращает продолжительность в минутах
+  def duration_minutes
+    ((ends_at - starts_at) / 1.minute).round
+  end
+
   private
 
   def generate_booking_number
@@ -55,6 +76,15 @@ class Booking < ApplicationRecord
   def ends_after_starts
     return if starts_at.blank? || ends_at.blank?
     errors.add(:ends_at, "должно быть после времени начала") if ends_at <= starts_at
+  end
+
+  def max_duration
+    return if starts_at.blank? || ends_at.blank?
+    
+    duration = ends_at - starts_at
+    if duration > 5.hours
+      errors.add(:base, "Максимальная длительность бронирования - 5 часов")
+    end
   end
 
   def no_overlapping_bookings
@@ -76,7 +106,23 @@ class Booking < ApplicationRecord
       first_seat = seats.first
       self.total_price = first_seat&.table&.booking_price || 0
     else
-      self.total_price = 0 # бесплатно для отдельных мест
+      # Расчет цены для отдельных мест
+      independent_seats_count = seats.reject { |seat| seat.table.present? }.count
+      self.total_price = calculate_seats_price(independent_seats_count)
+    end
+  end
+
+  # Расчет цены для отдельных мест
+  def calculate_seats_price(seat_count)
+    case seat_count
+    when 0 then 0
+    when 1 then 0
+    when 2 then 500
+    when 3 then 1000
+    when 4 then 1500
+    when 5 then 1750
+    when 6 then 2000
+    else 2000 + (seat_count - 6) * 300
     end
   end
 end

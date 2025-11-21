@@ -1,6 +1,8 @@
+# app/controllers/reservations_controller.rb
 class ReservationsController < ApplicationController
   before_action :authenticate_user!
-
+  before_action :set_reservation, only: [:details, :update, :cancel]
+  
   STATUSES = { 
     available: "available", 
     reserved: "reserved", 
@@ -48,9 +50,308 @@ class ReservationsController < ApplicationController
     set_working_hours
     set_cart
     set_tables
+    set_time_slots
+  end
+
+  def time_slots
+    date = params[:date]
+    
+    if date.blank?
+      return render json: { error: 'Дата обязательна' }, status: :bad_request
+    end
+    
+    begin
+      selected_date = Date.parse(date)
+    rescue ArgumentError
+      return render json: { error: 'Неверный формат даты' }, status: :bad_request
+    end
+    
+    # Получаем часы работы для выбранной даты
+    working_hours = working_hours_for(selected_date.wday)
+    
+    # Генерируем все возможные слоты с шагом в 15 минут
+    slots = generate_time_slots_for_date(selected_date, working_hours)
+    
+    render json: { 
+      slots: slots,
+      working_hours: working_hours,
+      # Добавляем информацию о текущем времени для проверки на клиенте
+      current_time: Time.current.strftime('%H:%M'),
+      current_date: Date.current.strftime('%Y-%m-%d')
+    }
+  end
+
+  def check_availability
+    date = params[:date]
+    start_time = params[:start_time]
+    end_time = params[:end_time]
+    
+    if date.blank? || start_time.blank? || end_time.blank?
+      return render json: { error: 'Необходимо указать дату, время начала и окончания' }, status: :bad_request
+    end
+    
+    # Преобразуем строки в datetime
+    begin
+      start_datetime = DateTime.parse("#{date} #{start_time}")
+      end_datetime = DateTime.parse("#{date} #{end_time}")
+    rescue ArgumentError
+      return render json: { error: 'Неверный формат даты или времени' }, status: :bad_request
+    end
+
+    # --- ИСПРАВЛЕНИЕ ЗДЕСЬ ---
+    # Если время окончания "00:00", это значит, что бронирование длится до полуночи следующего дня.
+    # Добавляем один день к end_datetime для корректного сравнения.
+    if end_time == '00:00'
+      end_datetime = end_datetime + 1.day
+    end
+    # --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+
+    # Проверяем, что время окончания позже времени начала
+    if end_datetime <= start_datetime
+      return render json: { error: 'Время окончания должно быть позже времени начала' }, status: :bad_request
+    end
+    
+    # Проверяем, что бронирование не слишком длинное (максимум 5 часов)
+    if (end_datetime - start_datetime) > 5.hours
+      return render json: { error: 'Максимальная длительность бронирования - 5 часов' }, status: :bad_request
+    end
+    
+    # Проверяем, что выбранное время в пределах часов работы
+    day_of_week = start_datetime.wday
+    working_hours = working_hours_for(day_of_week)
+    
+    # Проверка времени начала
+    if start_datetime.strftime('%H:%M') < working_hours[:open]
+      return render json: { error: 'Выбранное время вне часов работы заведения' }, status: :bad_request
+    end
+    
+    # Проверка времени окончания. Если заведение работает до полуночи (00:00),
+    # то эта проверка не нужна, так как мы уже обработали этот случай выше.
+    if working_hours[:close] != '00:00' && end_datetime.strftime('%H:%M') > working_hours[:close]
+      return render json: { error: 'Выбранное время вне часов работы заведения' }, status: :bad_request
+    end
+    
+    # Проверяем, что выбранное время не в прошлом
+    if start_datetime < DateTime.now
+      return render json: { error: 'Нельзя забронировать столик на прошедшее время' }, status: :bad_request
+    end
+    
+    # Добавляем небольшой буфер (15 минут) к текущему времени
+    min_booking_time = DateTime.now + 15.minutes
+    if start_datetime < min_booking_time
+      return render json: { error: 'Минимальное время для бронирования - через 15 минут' }, status: :bad_request
+    end
+    
+    # Получаем все бронирования, которые пересекаются с выбранным временем
+    overlapping_bookings = Booking.confirmed.where(
+      "(starts_at <= ? AND ends_at > ?) OR (starts_at < ? AND ends_at >= ?)",
+      end_datetime, start_datetime, end_datetime, start_datetime
+    )
+    
+    # Получаем ID забронированных мест
+    booked_seat_ids = BookingSeat.where(booking_id: overlapping_bookings.pluck(:id)).pluck(:seat_id)
+    
+    # Получаем ID полностью забронированных столов через места
+    booked_seats = Seat.where(id: booked_seat_ids)
+    booked_table_ids = booked_seats.pluck(:table_id).compact.uniq
+    
+    # Обновляем статусы мест
+    seats_with_status = SEATS_COORDS.map do |coords|
+      seat = Seat.find_by(number: coords[:num])
+      next unless seat
+      
+      status = if booked_seat_ids.include?(seat.id)
+                   STATUSES[:occupied]
+                 else
+                   STATUSES[:available]
+                 end
+      
+      {
+        id: seat.number,
+        status: status
+      }
+    end.compact
+    
+    # Обновляем статусы столов
+    tables_with_status = TABLE_COORDS.map do |coords|
+      table = Table.find_by(id: coords[:num])
+      next unless table
+      
+      status = if booked_table_ids.include?(table.id)
+                   STATUSES[:occupied]
+                 else
+                   STATUSES[:available]
+                 end
+      
+      {
+        id: table.id,
+        status: status
+      }
+    end.compact
+    
+    render json: {
+      seats: seats_with_status,
+      tables: tables_with_status
+    }
+  end
+
+  def create
+    date = params[:reservation][:date]
+    start_time = params[:reservation][:start_time]
+    end_time = params[:reservation][:end_time]
+    seat_ids = params[:reservation][:seat_ids]
+    table_ids = params[:reservation][:table_ids]
+    require_passport = params[:reservation][:require_passport] == 'true'
+    special_requests = params[:reservation][:special_requests]
+    
+    # Валидация обязательных полей
+    if date.blank? || start_time.blank? || end_time.blank?
+      return render json: { error: 'Необходимо указать дату, время начала и окончания' }, status: :bad_request
+    end
+    
+    if seat_ids.blank? && table_ids.blank?
+      return render json: { error: 'Необходимо выбрать хотя бы одно место или стол' }, status: :bad_request
+    end
+    
+    # Преобразуем строки в datetime
+    begin
+      start_datetime = DateTime.parse("#{date} #{start_time}")
+      end_datetime = DateTime.parse("#{date} #{end_time}")
+    rescue ArgumentError
+      return render json: { error: 'Неверный формат даты или времени' }, status: :bad_request
+    end
+    
+    # Проверяем, что время окончания позже времени начала
+    if end_datetime <= start_datetime
+      return render json: { error: 'Время окончания должно быть позже времени начала' }, status: :bad_request
+    end
+    
+    # Проверяем, что бронирование не слишком длинное (максимум 5 часов)
+    if (end_datetime - start_datetime) > 5.hours
+      return render json: { error: 'Максимальная длительность бронирования - 5 часов' }, status: :bad_request
+    end
+    
+    # Проверяем, что выбранное время в пределах часов работы
+    day_of_week = start_datetime.wday
+    working_hours = working_hours_for(day_of_week)
+    
+    if start_datetime.strftime('%H:%M') < working_hours[:open] || 
+       (end_datetime.strftime('%H:%M') > working_hours[:close] && working_hours[:close] != '00:00')
+      return render json: { error: 'Выбранное время вне часов работы заведения' }, status: :bad_request
+    end
+    
+    # Определяем тип бронирования
+    booking_type = table_ids.present? ? 'whole_table' : 'individual_seats'
+    
+    # Создаем бронирование
+    ActiveRecord::Base.transaction do
+      booking = Booking.create!(
+        user_id: current_user.id,
+        starts_at: start_datetime,
+        ends_at: end_datetime,
+        require_passport: require_passport,
+        status: 'confirmed',
+        booking_type: booking_type,
+        special_requests: special_requests,
+        total_price: 0  # Будет рассчитано в before_save
+      )
+      
+      # Добавляем выбранные места
+      selected_seat_ids = seat_ids.split(',').map(&:to_i)
+      selected_seat_ids.each do |seat_id|
+        BookingSeat.create!(
+          booking_id: booking.id,
+          seat_id: seat_id
+        )
+      end
+      
+      # Добавляем выбранные столы
+      selected_table_ids = table_ids.split(',').map(&:to_i)
+      selected_table_ids.each do |table_id|
+        BookingTable.create!(
+          booking_id: booking.id,
+          table_id: table_id
+        )
+      end
+      
+      # Пересчитываем итоговую цену
+      booking.save!  # Это вызовет before_save :calculate_total_price
+      
+      render json: { 
+        id: booking.id, 
+        message: 'Бронирование успешно создано',
+        booking_number: booking.booking_number
+      }, status: :created
+    end
+  rescue => e
+    render json: { error: e.message }, status: :internal_server_error
+  end
+  
+  def details
+    # Отображение деталей бронирования
+  end
+  
+  def update
+    # Обновление бронирования
+    if @booking.update(booking_params)
+      redirect_to reservation_details_path(@booking), notice: 'Бронирование успешно обновлено'
+    else
+      render :details
+    end
+  end
+  
+  def cancel
+    # Отмена бронирования
+    if @booking.update(status: 'cancelled')
+      redirect_to profile_path, notice: 'Бронирование успешно отменено'
+    else
+      redirect_to profile_path, alert: 'Не удалось отменить бронирование'
+    end
   end
 
   private
+
+  def generate_time_slots_for_date(date, working_hours)
+    slots = []
+    current_time = Time.parse("#{date} #{working_hours[:open]}")
+    end_time = Time.parse("#{date} #{working_hours[:close]}")
+    
+    # Если закрытие в полночь, добавляем день
+    if working_hours[:close] == '00:00'
+      end_time = end_time + 1.day
+    end
+    
+    # Генерируем слоты с шагом в 15 минут
+    while current_time < end_time
+      # Генерируем слоты разной длительности (1-5 часов)
+      (1..5).each do |duration|
+        slot_end = current_time + duration.hours
+        
+        if slot_end <= end_time
+          slots << {
+            start_time: current_time.strftime('%H:%M'),
+            end_time: slot_end.strftime('%H:%M'),
+            duration: duration,
+            available: true # Будет проверено на клиенте
+          }
+        end
+      end
+      
+      # Переходим к следующему интервалу в 15 минут
+      current_time = current_time + 15.minutes
+    end
+    
+    slots
+  end
+
+  def set_reservation
+    @reservation = Booking.find(params[:id])
+    @booking = @reservation  # Для совместимости с существующим кодом
+  end
+  
+  def booking_params
+    params.require(:booking).permit(:special_requests)
+  end
 
   def set_seats
     seats = Seat.all
@@ -110,6 +411,14 @@ class ReservationsController < ApplicationController
         height_percent: coords[:height_percent]
       }
     end.compact
+  end
+  
+  def set_time_slots
+    date = params[:date] || Date.today.strftime('%Y-%m-%d')
+    @selected_date = Date.parse(date) rescue Date.today
+    
+    working_hours = working_hours_for(@selected_date.wday)
+    @time_slots = generate_time_slots_for_date(@selected_date, working_hours)
   end
 
   def status_class(status)
