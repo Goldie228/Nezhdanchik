@@ -45,20 +45,25 @@ group :development, :test do
   gem "brakeman", require: false
 
   gem "rubocop-rails-omakase", require: false
-  gem "factory_bot_rails"
 
   gem "dotenv-rails"
+
+  gem "annotate"
+
+  gem "rails-erd"
+
+  gem "rspec-rails", "~> 6.1.1"
+  gem "factory_bot_rails", "~> 6.4.4"
+  gem "faker", "~> 3.2.1"
+  gem "shoulda-matchers", "~> 5.3.0"
 end
 
 group :development do
-  gem "rspec-rails"
-  gem "annotate"
   gem "web-console"
 end
 
 group :test do
   gem "capybara"
-  gem "shoulda-matchers"
   gem "database_cleaner-active_record"
   gem "selenium-webdriver"
   gem "rails-controller-testing"

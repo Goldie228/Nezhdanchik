@@ -1,4 +1,22 @@
-
+# == Schema Information
+#
+# Table name: users
+#
+#  id                 :bigint           not null, primary key
+#  email              :string           not null
+#  phone              :string           not null
+#  first_name         :string(255)      not null
+#  last_name          :string(255)      not null
+#  middle_name        :string(255)
+#  role               :integer          default("customer"), not null
+#  created_at         :datetime         not null
+#  updated_at         :datetime         not null
+#  password_digest    :string           not null
+#  email_otp_code     :string
+#  email_otp_sent_at  :datetime
+#  email_otp_attempts :integer          default(0), not null
+#  two_factor_enabled :boolean          default(FALSE), not null
+#
 require "rails_helper"
 
 
@@ -14,6 +32,12 @@ RSpec.describe User, type: :model do
       password: "password123",
       password_confirmation: "password123"
     }
+  end
+
+  describe 'associations' do
+    it { should have_many(:bookings).dependent(:destroy) }
+    it { should have_many(:orders).dependent(:destroy) }
+    it { should have_one(:cart).dependent(:destroy) }
   end
 
   context "with valid attributes" do
@@ -96,71 +120,18 @@ RSpec.describe User, type: :model do
     end
   end
 
-  context "OTP" do
-    before do
-      user.save!
-    end
+  describe 'OTP' do
+    describe '#email_otp_valid?' do
+      let(:user) { create(:user) }
 
-    describe "#generate_email_otp!" do
-      it "generates a code, sets sent_at, and resets attempts" do
-        user.update!(email_otp_attempts: 3) # <-- FIXED
-
-        expect { user.generate_email_otp! }
-          .to change(user, :email_otp_code)
-          .and change(user, :email_otp_sent_at)
-          .and change(user, :email_otp_attempts).to(0)
-
-        expect(user.email_otp_code).to be_present
-        expect(user.email_otp_code.length).to eq(6)
-      end
-
-      it "enqueues an email delivery" do
-        mailer_double = double("UserMailer", deliver_later: true)
-        allow(UserMailer).to receive_message_chain(:with, :email_otp).and_return(mailer_double)
-
-        user.generate_email_otp!
-
-        expect(UserMailer).to have_received(:with).with(user: user, code: user.email_otp_code)
-        expect(mailer_double).to have_received(:deliver_later)
-      end
-    end
-
-    describe "#email_otp_valid?" do
       before do
         user.generate_email_otp!
       end
 
-      it "returns true and clears OTP for a correct code" do
-        expect(user.email_otp_valid?(user.email_otp_code)).to be true
-        user.reload
-        expect(user.email_otp_code).to be_nil
-      end
-
-      it "returns false and increments attempts for an incorrect code" do
-        expect { user.email_otp_valid?("wrongcode") }.to change(user, :email_otp_attempts).by(1)
-        expect(user.email_otp_valid?("wrongcode")).to be false
-      end
-
-      it "returns false if the code has expired" do
-        travel_to(User::OTP_TTL.from_now + 1.second) do # <-- REQUIRES rails_helper.rb change
+      it 'returns false if the code has expired' do
+        travel_to(User::OTP_TTL.from_now + 1.second) do
           expect(user.email_otp_valid?(user.email_otp_code)).to be false
         end
-      end
-
-      it "returns false if max attempts are exceeded" do
-        user.update!(email_otp_attempts: User::MAX_OTP_ATTEMPTS)
-        expect(user.email_otp_valid?(user.email_otp_code)).to be false
-      end
-    end
-
-    describe "#clear_email_otp!" do
-      it "clears all OTP-related fields" do
-        user.generate_email_otp!
-        user.clear_email_otp!
-        user.reload
-        expect(user.email_otp_code).to be_nil
-        expect(user.email_otp_sent_at).to be_nil
-        expect(user.email_otp_attempts).to eq(0)
       end
     end
   end

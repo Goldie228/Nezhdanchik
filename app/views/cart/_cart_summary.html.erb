@@ -1,7 +1,7 @@
 <% if @cart_items.any? %>
   <div class="space-y-3 md:space-y-4 bg-base-100/90 rounded-xl md:rounded-2xl p-4 md:p-6 backdrop-blur-sm border border-base-200">
     <div class="flex justify-between items-center text-base md:text-lg">
-      <span class="text-base-content/70">Товаров:</span>
+      <span class="text-base-content/70">Позиций:</span>
       <span id="total-items" class="font-semibold"><%= @total_items %> шт.</span>
     </div>
     <div class="divider my-1 md:my-2"></div>
@@ -15,7 +15,7 @@
 
   <!-- Кнопки действий -->
   <div class="card-actions mt-4 md:mt-6 flex flex-col gap-3" id="cart-actions">
-    <%= link_to "Оформить заказ", "#", class: "btn btn-primary btn-md md:btn-lg w-full shadow-lg transform transition-all hover:scale-105 active:scale-95 duration-200" %>
+    <%= link_to "Оформить заказ", reservation_path, class: "btn btn-primary btn-md md:btn-lg w-full shadow-lg transform transition-all hover:scale-105 active:scale-95 duration-200" %>
     <%= button_to "Очистить корзину", clear_cart_path, method: :delete,
       class: "btn btn-outline btn-md md:btn-lg w-full",
       form_class: "w-full inline" %>

@@ -1,4 +1,3 @@
-
 Rails.application.routes.draw do
   constraints AdminConstraint.new do
     mount Avo::Engine => "/admin"
@@ -15,7 +14,14 @@ Rails.application.routes.draw do
   get "menu/:slug/order" => "dishes#show", as: :dish
   get "more_dishes/:slug" => "dishes#load_more", as: :load_more_dishes
 
-  get "reservations/new", to: "reservations#new", as: :new_reservation
+  get "reservation", to: "reservations#show", as: :reservation
+  get "reservation/check_availability", to: "reservations#check_availability", as: :check_reservation_availability
+  get "reservation/time_slots", to: "reservations#time_slots", as: :reservation_time_slots
+  get "reservation/check_seat_availability", to: "reservations#check_seat_availability", as: :check_seat_availability
+  post "reservation", to: "reservations#create", as: :create_reservation
+  get "reservation/:id", to: "reservations#details", as: :reservation_details
+  patch "reservation/:id", to: "reservations#update", as: :update_reservation
+  delete "reservation/:id", to: "reservations#cancel", as: :cancel_reservation
 
   get "profile", to: "users#show", as: :profile
   patch "profile", to: "users#update"
@@ -48,7 +54,6 @@ Rails.application.routes.draw do
   patch "password/reset/:token", to: "password#update_by_token"
   get "password/success", to: "password#success"
 
-  # Маршруты для корзины
   get "cart", to: "cart#show", as: :cart
   get "cart/info/:dish_id", to: "cart#cart_info", as: :cart_info
   post "cart/add/:dish_id", to: "cart#add", as: :add_to_cart
@@ -59,7 +64,6 @@ Rails.application.routes.draw do
   delete "cart/clear", to: "cart#clear", as: :clear_cart
 
   # Форс мажорные пути
-
   get "orders/history", to: "orders#history"
 
   get "manager/dashboard", to: "manager#dashboard"
