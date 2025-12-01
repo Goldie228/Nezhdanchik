@@ -3,8 +3,8 @@
     <!-- Хлебные крошки -->
     <div class="text-sm breadcrumbs mb-4 md:mb-6">
       <ul>
-        <li><a href="#" class="text-primary hover:text-primary-focus">Главная</a></li>
-        <li><span class="text-base-content/60">История заказов</span></li>
+        <li><a href="/" class="text-primary hover:text-primary-focus">Главная</a></li>
+        <li><span class="text-base-content/60">История бронирований</span></li>
       </ul>
     </div>
 
@@ -14,166 +14,196 @@
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 class="card-title text-2xl md:text-3xl font-bold text-primary mb-2">
-              История заказов
+              История бронирований
             </h1>
             <p class="text-base-content/70">
-              Здесь вы можете просмотреть все ваши предыдущие заказы
+              Здесь вы можете просмотреть все ваши предыдущие бронирования и заказы
             </p>
           </div>
           <div class="stats shadow">
             <div class="stat">
-              <div class="stat-title">Всего заказов</div>
-              <div class="stat-value text-primary"><%= @orders.count %></div>
-              <div class="stat-desc">За последние 30 дней</div>
+              <div class="stat-title">Всего бронирований</div>
+              <div class="stat-value text-primary"><%= @all_bookings.count %></div>
+              <div class="stat-desc">За все время</div>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Список заказов -->
-    <div class="space-y-6">
-      <% @orders.each do |order| %>
-        <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300">
-          <div class="card-body p-4 md:p-6">
-            <!-- Шапка заказа -->
-            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
-              <div class="flex items-center gap-4">
-                <div class="flex flex-col">
-                  <span class="text-sm text-base-content/60">Номер заказа</span>
-                  <span class="text-lg font-bold text-primary"><%= order[:order_number] %></span>
-                </div>
-                <div class="flex flex-col">
-                  <span class="text-sm text-base-content/60">Дата</span>
-                  <span class="font-semibold"><%= order[:date] %></span>
-                </div>
-              </div>
-              
-              <div class="flex items-center gap-4">
-                <div class="flex flex-col text-right">
-                  <span class="text-sm text-base-content/60">Сумма</span>
-                  <span class="text-xl font-bold text-primary">
-                    <%= number_to_currency(order[:total], unit: "BYN", format: "%n %u") %>
-                  </span>
-                </div>
-                <div class="badge badge-lg <%= order[:status] == 'completed' ? 'badge-success' : 'badge-error' %>">
-                  <%= order[:status_text] %>
-                </div>
-              </div>
-            </div>
-
-            <div class="divider my-2"></div>
-
-            <!-- Список товаров -->
-            <div class="space-y-3">
-              <% order[:items].each do |item| %>
-                <div class="flex items-center gap-4 p-3 bg-base-200 rounded-xl hover:bg-base-300 transition-colors duration-200">
-                  <!-- Изображение товара -->
-                  <figure class="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-base-300 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-base-content/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  </figure>
-
-                  <div class="flex-1 min-w-0">
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                      <h3 class="font-semibold text-base truncate"><%= item[:name] %></h3>
-                      <div class="flex items-center gap-4">
-                        <span class="text-base-content/70">
-                          <%= item[:quantity] %> × <%= number_to_currency(item[:price], unit: "BYN", format: "%n %u") %>
-                        </span>
-                        <span class="font-semibold text-primary">
-                          <%= number_to_currency(item[:quantity] * item[:price], unit: "BYN", format: "%n %u") %>
-                        </span>
-                      </div>
-                    </div>
+    <!-- ЕДИНЫЙ СПИСОК ВСЕХ БРОНИРОВАНИЙ -->
+    <% if @all_bookings.any? %>
+      <div class="space-y-6">
+        <% @all_bookings.each do |booking| %>
+          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300">
+            <div class="card-body p-4 md:p-6">
+              <!-- Шапка с информацией о бронировании -->
+              <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
+                <div class="flex items-center gap-4">
+                  <div class="flex flex-col">
+                    <span class="text-sm text-base-content/60">Номер брони</span>
+                    <span class="text-lg font-bold text-primary"><%= booking.booking_number %></span>
+                    <% if booking.order %>
+                      <span class="text-xs text-base-content/50">(Заказ №<%= booking.order.order_number %>)</span>
+                    <% end %>
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-sm text-base-content/60">Дата и время</span>
+                    <span class="font-semibold">
+                      <%= booking.starts_at.strftime('%d.%m.%Y') %> с 
+                      <%= booking.starts_at.strftime('%H:%M') %> до 
+                      <%= booking.ends_at.strftime('%H:%M') %>
+                    </span>
                   </div>
                 </div>
+                
+                <div class="flex items-center gap-4">
+                  <div class="flex flex-col text-right">
+                    <span class="text-sm text-base-content/60">Места</span>
+                    <span class="font-semibold">
+                      <%# Группируем места по столам для правильного отображения %>
+                      <% seats_by_table = booking.seats.group_by(&:table_id) %>
+                      
+                      <% seats_by_table.each_with_index do |(table_id, seats), index| %>
+                        <% if index > 0 %>, <% end %>
+                        
+                        <% if table_id.present? %>
+                          <%# Если это стол, показываем его название %>
+                          Стол <%= seats.first.table.name %>
+                          <span class="text-xs text-base-content/60">
+                            (<%= seats.map(&:number).join(', ') %>)
+                          </span>
+                        <% else %>
+                          <%# Если это отдельные места без стола %>
+                          <%= seats.map(&:number).join(', ') %>
+                        <% end %>
+                      <% end %>
+                    </span>
+                  </div>
+                  <div class="badge badge-lg <%= status_badge_class(booking.status) %>">
+                    <%= status_in_russian(booking.status) %>
+                  </div>
+                </div>
+              </div>
+
+              <div class="divider my-2"></div>
+
+              <!-- БЛОК С ТОВАРАМИ: ОСНОВНАЯ ЛОГИКА -->
+              <%# Если есть финальный заказ, берем товары оттуда %>
+              <% if booking.order && booking.order.order_items.any? %>
+                <h4 class="text-sm font-semibold text-base-content/70 mb-3">Состав заказа:</h4>
+                <div class="space-y-3">
+                  <% booking.order.order_items.includes(:dish).limit(3).each do |item| %>
+                    <div class="flex items-center gap-4 p-3 bg-base-200 rounded-xl">
+                      <figure class="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-base-300 flex items-center justify-center">
+                        <% if item.dish.photos.attached? %>
+                          <%= image_tag url_for(item.dish.photos.first), class: "w-full h-full object-cover" %>
+                        <% else %>
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-base-content/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                        <% end %>
+                      </figure>
+                      <div class="flex-1 min-w-0">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                          <div>
+                            <h3 class="font-semibold text-base truncate"><%= item.dish.title %></h3>
+                            <!-- Добавляем отображение добавок и удалений -->
+                            <% if item.special_instructions.present? %>
+                              <div class="text-xs text-base-content/60 mt-1">
+                                <%= item.special_instructions %>
+                              </div>
+                            <% end %>
+                          </div>
+                          <div class="flex items-center gap-4">
+                            <span class="text-base-content/70">
+                              <%= item.quantity %> × <%= number_to_currency(item.unit_price, unit: "BYN", format: "%n %u") %>
+                            </span>
+                            <span class="font-semibold text-primary">
+                              <%= number_to_currency(item.total_price, unit: "BYN", format: "%n %u") %>
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  <% end %>
+                  <% if booking.order.order_items.count > 3 %>
+                    <div class="text-center text-base-content/60">... и еще <%= booking.order.order_items.count - 3 %> товаров</div>
+                  <% end %>
+                </div>
+
+              <%# Иначе, если заказа еще нет, берем товары из корзины %>
+              <% elsif booking.cart && booking.cart.cart_items.any? %>
+                <h4 class="text-sm font-semibold text-base-content/70 mb-3">Товары в корзине:</h4>
+                <div class="space-y-3">
+                  <% booking.cart.cart_items.includes(:dish, :cart_item_ingredients).limit(3).each do |item| %>
+                    <div class="flex items-center gap-4 p-3 bg-base-200 rounded-xl">
+                      <figure class="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-base-300 flex items-center justify-center">
+                        <% if item.dish.photos.attached? %>
+                          <%= image_tag url_for(item.dish.photos.first), class: "w-full h-full object-cover" %>
+                        <% else %>
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-base-content/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                        <% end %>
+                      </figure>
+                      <div class="flex-1 min-w-0">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                          <div>
+                            <h3 class="font-semibold text-base truncate"><%= item.dish.title %></h3>
+                            <!-- Добавляем отображение добавок и удалений -->
+                            <% if generate_special_instructions(item).present? %>
+                              <div class="text-xs text-base-content/60 mt-1">
+                                <%= generate_special_instructions(item) %>
+                              </div>
+                            <% end %>
+                          </div>
+                          <div class="flex items-center gap-4">
+                            <span class="text-base-content/70">
+                              <%= item.quantity %> × <%= number_to_currency(item.dish.price, unit: "BYN", format: "%n %u") %>
+                            </span>
+                            <span class="font-semibold text-primary">
+                              <%= number_to_currency(item.quantity * item.dish.price, unit: "BYN", format: "%n %u") %>
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  <% end %>
+                  <% if booking.cart.cart_items.count > 3 %>
+                    <div class="text-center text-base-content/60">... и еще <%= booking.cart.cart_items.count - 3 %> товаров</div>
+                  <% end %>
+                </div>
+              <% else %>
+                <p class="text-center text-base-content/70 py-4">К этому бронированию не добавлено товаров.</p>
               <% end %>
-            </div>
 
-            <!-- Дополнительная информация -->
-            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div class="space-y-2">
-                <div class="flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-base-content/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <span class="text-base-content/60">Адрес доставки:</span>
-                </div>
-                <span class="font-medium block ml-6"><%= order[:delivery_address] %></span>
+              <!-- Действия -->
+              <div class="card-actions justify-end mt-4">
+                <%= link_to "Детали", order_path(booking.id), class: "btn btn-outline btn-sm" %>
+                <% if booking.status == 'confirmed' %>
+                  <%= link_to "Отменить", cancel_reservation_path(booking), 
+                      method: :delete, 
+                      data: { confirm: "Вы уверены, что хотите отменить бронирование?" },
+                      class: "btn btn-error btn-sm" %>
+                <% end %>
               </div>
-
-              <div class="space-y-2">
-                <div class="flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-base-content/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                  </svg>
-                  <span class="text-base-content/60">Способ оплаты:</span>
-                </div>
-                <span class="font-medium block ml-6"><%= order[:payment_method] %></span>
-              </div>
-            </div>
-
-            <!-- Причина отмены (если заказ отменен) -->
-            <% if order[:status] == 'cancelled' && order[:cancellation_reason] %>
-              <div class="mt-4 p-3 bg-error/10 rounded-xl border border-error/20">
-                <div class="flex items-center gap-2 text-error">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span class="font-medium">Причина отмены:</span>
-                </div>
-                <p class="text-error text-sm mt-1 ml-6"><%= order[:cancellation_reason] %></p>
-              </div>
-            <% end %>
-
-            <!-- Действия -->
-            <div class="card-actions justify-end mt-4">
-              <button class="btn btn-outline btn-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Детали
-              </button>
-              <% if order[:status] == 'completed' %>
-                <button class="btn btn-primary btn-sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                  Повторить заказ
-                </button>
-              <% end %>
             </div>
           </div>
-        </div>
-      <% end %>
-    </div>
-
-    <!-- Пагинация -->
-    <div class="flex justify-center mt-8">
-      <div class="join">
-        <button class="join-item btn btn-outline">«</button>
-        <button class="join-item btn btn-active">1</button>
-        <button class="join-item btn btn-outline">2</button>
-        <button class="join-item btn btn-outline">3</button>
-        <button class="join-item btn btn-outline">»</button>
+        <% end %>
       </div>
-    </div>
-
-    <!-- Пустая история (если нужно показать) -->
-    <% if @orders.empty? %>
+    <% else %>
+      <!-- Пустая история -->
       <div class="card bg-base-100 shadow-xl">
         <div class="card-body text-center py-12">
           <div class="flex justify-center mb-4">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-base-content/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </div>
-          <h3 class="text-xl font-bold text-base-content/70 mb-2">История заказов пуста</h3>
-          <p class="text-base-content/60 mb-6">Здесь будут отображаться все ваши завершенные заказы</p>
-          <button class="btn btn-primary">Сделать первый заказ</button>
+          <h3 class="text-xl font-bold text-base-content/70 mb-2">История пуста</h3>
+          <p class="text-base-content/60 mb-6">У вас пока нет ни одного бронирования</p>
+          <%= link_to "Сделать бронирование", reservation_path, class: "btn btn-primary" %>
         </div>
       </div>
     <% end %>

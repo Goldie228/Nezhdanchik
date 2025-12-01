@@ -63,8 +63,10 @@ Rails.application.routes.draw do
   delete "cart/remove/:id", to: "cart#remove", as: :remove_cart_item
   delete "cart/clear", to: "cart#clear", as: :clear_cart
 
-  # Форс мажорные пути
-  get "orders/history", to: "orders#history"
+  # История бронирований и заказов
+  get "orders/history", to: "orders#history", as: :orders_history
+  get "orders/:id", to: "orders#show", as: :order # Стандартный маршрут для показа заказа
+  post "orders/:id/repeat", to: "orders#repeat", as: :repeat_order
 
   get "manager/dashboard", to: "manager#dashboard"
   post "manager/update_status", to: "manager#update_status"

@@ -1,6 +1,5 @@
 class CartController < ApplicationController
   before_action :authenticate_user!
-  # Оставляем только установку @cart. Остальные данные будем готовить в методах.
   before_action :set_cart
   before_action :set_cart_item, only: [ :update, :remove ]
 
@@ -30,6 +29,13 @@ class CartController < ApplicationController
     end
 
     respond_to do |format|
+      format.json do
+        render json: {
+          quantity: get_cart_item_quantity(dish, selected, removed),
+          in_cart: true
+        }
+      end
+
       format.html { redirect_to cart_path }
       format.turbo_stream do
         # Готовим актуальные данные для Turbo Stream ответа

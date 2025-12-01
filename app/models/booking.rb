@@ -18,27 +18,37 @@
 #  order_id         :bigint
 #
 class Booking < ApplicationRecord
+  # ================ АССОЦИАЦИИ ================
   belongs_to :user
   belongs_to :cart, optional: true
   belongs_to :order, optional: true
+  
+  has_one :order
   has_many :booking_seats, dependent: :destroy
   has_many :seats, through: :booking_seats
 
+  # ================ НАСТРОЙКИ И ВАЛИДАЦИИ ================
   enum :booking_type, { individual_seats: 0, whole_table: 1 }
 
   validates :starts_at, :ends_at, :booking_number, presence: true
   validates :booking_number, uniqueness: true
+  
   validate :ends_after_starts
   validate :max_duration
   validate :no_overlapping_bookings
 
+  # ================ КОЛБЭКИ (CALLBACKS) ================
   before_validation :generate_booking_number, on: :create
   before_save :calculate_total_price
+  # Этот колбэк автоматически обновит статус просроченной брони при любом сохранении
+  after_find :check_and_update_status_if_expired
 
+  # ================ SCOPES (ОБЛАСТИ ВЫБОРКИ) ================
   scope :future, -> { where("starts_at > ?", Time.current) }
   scope :active, -> { where("starts_at <= ? AND ends_at >= ?", Time.current, Time.current) }
   scope :confirmed, -> { where(status: "confirmed") }
 
+  # ================ ПУБЛИЧНЫЕ МЕТОДЫ ================
   def duration_hours
     ((ends_at - starts_at) / 1.hour).round
   end
@@ -79,12 +89,32 @@ class Booking < ApplicationRecord
     status == "completed"
   end
 
+  # ================ PRIVATE МЕТОДЫ ================
   private
 
+  # --- Методы для колбэков ---
   def generate_booking_number
     self.booking_number ||= "BK#{Time.current.to_i}#{rand(100..999)}"
   end
 
+  def calculate_total_price
+    if whole_table?
+      booked_tables = seats.includes(:table).map(&:table).uniq
+      self.total_price = booked_tables.sum(&:booking_price)
+    else
+      independent_seats_count = seats.reject { |seat| seat.table.present? }.count
+      self.total_price = calculate_seats_price(independent_seats_count)
+    end
+  end
+
+  def check_and_update_status_if_expired
+    # Если время брони истекло, а статус все еще активный, меняем его на "завершено"
+    if ends_at < Time.current && (status == 'confirmed' || status == 'pending')
+      self.status = 'completed'
+    end
+  end
+
+  # --- Методы для валидации ---
   def ends_after_starts
     return if starts_at.blank? || ends_at.blank?
     errors.add(:ends_at, "должно быть после времени начала") if ends_at <= starts_at
@@ -112,16 +142,23 @@ class Booking < ApplicationRecord
     errors.add(:base, "Некоторые места уже забронированы на это время") if overlapping
   end
 
-  def calculate_total_price
-    if whole_table?
-      booked_tables = seats.includes(:table).map(&:table).uniq
-      self.total_price = booked_tables.sum(&:booking_price)
-    else
-      independent_seats_count = seats.reject { |seat| seat.table.present? }.count
-      self.total_price = calculate_seats_price(independent_seats_count)
+  # --- Вспомогательные методы для управления статусом ---
+  # Класс-метод для массового обновления всех просроченных бронирований
+  def self.expire_old_bookings
+    where(status: ['confirmed', 'pending'])
+      .where('ends_at < ?', Time.current)
+      .update_all(status: 'completed', updated_at: Time.current)
+  end
+
+  # Метод экземпляра для проверки и обновления статуса одной брони
+  def ensure_current_status!
+    if ends_at < Time.current && (status == 'confirmed' || status == 'pending')
+      update_column(:status, 'completed')
+      reload
     end
   end
 
+  # --- Прочие вспомогательные методы ---
   def calculate_seats_price(seat_count)
     case seat_count
     when 0 then 0

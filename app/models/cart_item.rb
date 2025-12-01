@@ -13,6 +13,7 @@
 require "digest"
 
 class CartItem < ApplicationRecord
+  belongs_to :cart
   belongs_to :dish
   has_many :ingredients, through: :cart_item_ingredients
   has_many :cart_item_ingredients, dependent: :destroy, inverse_of: :cart_item
@@ -23,7 +24,6 @@ class CartItem < ApplicationRecord
 
   scope :active, -> { where(active: true) }
 
-  # Заполнение ингредиентов при создании
   after_create :build_ingredients_from_dish, if: -> { dish.present? }
 
   # Сумма для этой строки в копейках: (dish price + доп. ингредиенты) * quantity

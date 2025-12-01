@@ -190,7 +190,7 @@ class ReservationsController < ApplicationController
   end
 
   def create
-    active_booking = Booking.where(user: current_user, status: [ "confirmed", "pending" ])
+    active_booking = Booking.where(user: current_user, status: ["confirmed", "pending"])
                            .where("ends_at > ?", Time.current)
                            .first
     if active_booking
@@ -210,28 +210,28 @@ class ReservationsController < ApplicationController
       return render json: { error: "Необходимо указать дату, время начала и окончания" }, status: :bad_request
     end
 
-    if seat_ids.blank? && table_ids.blank?
-      return render json: { error: "Необходимо выбрать хотя бы одно место или стол" }, status: :bad_request
-    end
-
     # --- ШАГ 1: ПРЕОБРАЗУЕМ И ОЧИЩАЕМ ДАННЫЕ ---
-    # Преобразуем строки в массивы ID
     selected_seat_ids = Array.wrap(seat_ids).map(&:to_i).compact
     selected_table_ids = Array.wrap(table_ids).map(&:to_i).compact
 
-    # --- ШАГ 2: ОПРЕДЕЛЯЕМ ИТОГОВЫЙ ВЫБОР ПОЛЬЗОВАТЕЛЯ ---
-    # Если выбраны столы, они имеют приоритет над отдельными местами
+    if selected_seat_ids.blank? && selected_table_ids.blank?
+      return render json: { error: "Необходимо выбрать хотя бы одно место или стол" }, status: :bad_request
+    end
+
+    # --- ИСПРАВЛЕНО: Определяем тип бронирования, не очищая массивы ID ---
     if selected_table_ids.present?
+      # Если выбран хотя бы один стол, считаем бронирование типа "whole_table"
+      # Логика расчета цены в модели все равно корректно обработает и отдельные места
       booking_type = "whole_table"
-      selected_seat_ids = []
     else
+      # Иначе это бронирование отдельных мест
       booking_type = "individual_seats"
     end
 
-    # --- ШАГ 3: ВАЛИДАЦИЯ ВРЕМЕНИ И ДЛИТЕЛЬНОСТИ (остается без изменений) ---
+    # --- ШАГ 2: ВАЛИДАЦИЯ ВРЕМЕНИ И ДЛИТЕЛЬНОСТИ ---
     begin
-      start_datetime = DateTime.parse("#{date} #{start_time}")
-      end_datetime = DateTime.parse("#{date} #{end_time}")
+      start_datetime = Time.zone.parse("#{date} #{start_time}")
+      end_datetime = Time.zone.parse("#{date} #{end_time}")
 
       if end_time == "00:00"
         end_datetime = end_datetime + 1.day
@@ -256,8 +256,9 @@ class ReservationsController < ApplicationController
       return render json: { error: "Выбранное время вне часов работы заведения" }, status: :bad_request
     end
 
-    # --- ШАГ 4: СОЗДАНИЕ БРОНИРОВАНИЯ ---
+    # --- ШАГ 3: СОЗДАНИЕ БРОНИРОВАНИЯ И ЗАКАЗА ---
     ActiveRecord::Base.transaction do
+      # Создаём бронирование
       booking = Booking.create!(
         user_id: current_user.id,
         starts_at: start_datetime,
@@ -269,28 +270,59 @@ class ReservationsController < ApplicationController
         total_price: 0
       )
 
-      # Создаем связи в зависимости от итогового типа бронирования
-      if booking_type == "whole_table"
+      # Собираем все ID мест в один массив
+      seat_ids_to_add = []
+
+      # Добавляем места из выбранных столов
+      if selected_table_ids.present?
         selected_table_ids.each do |table_id|
           table = Table.find(table_id)
-          table.seats.each do |seat|
-            BookingSeat.create!(
-              booking_id: booking.id,
-              seat_id: seat.id
-            )
-          end
-        end
-      else
-        selected_seat_ids.each do |seat_id|
-          BookingSeat.create!(
-            booking_id: booking.id,
-            seat_id: seat_id
-          )
+          seat_ids_to_add.concat(table.seats.pluck(:id))
         end
       end
 
-      # Пересчитываем итоговую цену
+      # Добавляем отдельно выбранные места
+      if selected_seat_ids.present?
+        seat_ids_to_add.concat(selected_seat_ids)
+      end
+
+      # Убираем дубликаты и создаём связи
+      seat_ids_to_add.uniq.each do |seat_id|
+        BookingSeat.create!(booking_id: booking.id, seat_id: seat_id)
+      end
+
+      # Пересчитываем цену
       booking.save!
+
+      # --- Часть 3: Создаем заказ из корзины ---
+      cart = Cart.for_user!(current_user)
+
+      if cart.cart_items.active.any?
+        # Создаем заказ через ассоциацию, чтобы установить двустороннюю связь
+        order = booking.create_order!(
+          user_id: current_user.id,
+          status: 'pending',
+          total_amount: 0
+        )
+
+        total_order_amount = 0
+
+        cart.cart_items.active.includes(:dish, cart_item_ingredients: :ingredient).find_each do |cart_item|
+          special_instructions = generate_special_instructions(cart_item)
+          unit_price = (cart_item.base_price_cents + cart_item.ingredients_extra_cents) / 100.0
+
+          order_item = order.order_items.create!(
+            dish: cart_item.dish,
+            quantity: cart_item.quantity,
+            unit_price: unit_price,
+            special_instructions: special_instructions
+          )
+          total_order_amount += order_item.total_price
+        end
+
+        order.update!(total_amount: total_order_amount)
+        cart.cart_items.destroy_all
+      end
 
       render json: {
         id: booking.id,
@@ -299,6 +331,8 @@ class ReservationsController < ApplicationController
       }, status: :created
     end
   rescue => e
+    Rails.logger.error "Booking creation failed: #{e.message}"
+    Rails.logger.error e.backtrace.join("\n")
     render json: { error: e.message }, status: :internal_server_error
   end
 
@@ -315,16 +349,51 @@ class ReservationsController < ApplicationController
       render :details
     end
   end
-
+  
   def cancel
-    if @booking.update(status: "cancelled")
-      redirect_to profile_path, notice: "Бронирование успешно отменено"
-    else
-      redirect_to profile_path, alert: "Не удалось отменить бронирование"
+    ActiveRecord::Base.transaction do
+      # Отменяем бронирование
+      @booking.update!(status: "cancelled")
+      
+      # Если у бронирования есть заказ, тоже отменяем его
+      if @booking.order
+        @booking.order.update!(status: "cancelled")
+      end
     end
+
+    redirect_to profile_path, notice: "Бронирование и заказ успешно отменены"
+  rescue => e
+    redirect_to profile_path, alert: "Не удалось отменить бронирование: #{e.message}"
   end
 
   private
+
+  def generate_special_instructions(cart_item)
+    # Так как мы вызываем этот метод внутри цикла с .includes(:cart_item_ingredients),
+    # все cart_item_ingredients уже загружены в память. Дополнительных запросов к БД не будет.
+    item_ingredients = cart_item.cart_item_ingredients
+
+    # Разделяем ингредиенты на добавленные и удаленные прямо в памяти
+    added_names = item_ingredients.select { |cii| !cii.default_in_dish && cii.included? }
+                                  .map { |cii| cii.ingredient.name }
+
+    removed_names = item_ingredients.select { |cii| cii.default_in_dish && !cii.included? }
+                                   .map { |cii| cii.ingredient.name }
+
+    instructions = []
+    if added_names.any?
+      # Формируем строку "Добавки: ..." с точным форматом
+      instructions << "Добавки: #{added_names.join(', ')}"
+    end
+
+    if removed_names.any?
+      # Формируем строку "Без: ..."
+      instructions << "Без: #{removed_names.join(', ')}"
+    end
+
+    # Соединяем части через '; ', как в вашем примере
+    instructions.any? ? instructions.join('; ') : nil
+  end
 
   def generate_time_slots_for_date(date, working_hours)
     slots = []
