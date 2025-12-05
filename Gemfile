@@ -69,4 +69,4 @@ group :test do
   gem "rails-controller-testing"
 end
 
-gem "connection_pool", "~> 2.5"
+gem "connection_pool", "~> 3.0"
