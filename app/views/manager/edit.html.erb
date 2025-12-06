@@ -1,0 +1,57 @@
+<div class="min-h-screen bg-base-200">
+  <!-- Навигация -->
+  <div class="navbar bg-base-100 shadow-lg">
+    <div class="flex-1">
+      <a class="btn btn-ghost normal-case text-xl">Панель менеджера</a>
+    </div>
+    <div class="flex-none">
+      <ul class="menu menu-horizontal p-0">
+        <li><%= link_to "Обзор", manager_dashboard_path %></li>
+        <li><%= link_to "Календарь", manager_calendar_path %></li>
+        <li><%= link_to "Столы", manager_tables_path %></li>
+        <li><%= link_to "Бронирования", manager_bookings_path %></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="container mx-auto px-4 py-6">
+    <div class="max-w-2xl mx-auto">
+      <h1 class="text-3xl font-bold mb-6">Редактирование бронирования №<%= @booking.booking_number %></h1>
+      
+      <%= form_with(model: [:manager, @booking], local: true, class: "bg-base-100 rounded-lg shadow-lg p-6") do |form| %>
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Дата и время начала</span>
+          </label>
+          <%= form.datetime_local_field :starts_at, class: "input input-bordered w-full", required: true %>
+        </div>
+        
+        <div class="form-control mt-4">
+          <label class="label">
+            <span class="label-text">Дата и время окончания</span>
+          </label>
+          <%= form.datetime_local_field :ends_at, class: "input input-bordered w-full", required: true %>
+        </div>
+        
+        <div class="form-control mt-4">
+          <label class="label">
+            <span class="label-text">Особые запросы</span>
+          </label>
+          <%= form.text_area :special_requests, class: "textarea textarea-bordered h-24 w-full" %>
+        </div>
+        
+        <div class="form-control mt-6">
+          <label class="label">
+            <span class="label-text">Статус</span>
+          </label>
+          <%= form.select :status, options_from_collection_for_select(get_statuses_list, :value, :text, @booking.status), {}, class: "select select-bordered w-full" %>
+        </div>
+        
+        <div class="flex justify-between mt-6">
+          <%= link_to "Отмена", manager_booking_path(@booking), class: "btn btn-ghost" %>
+          <%= form.submit "Сохранить изменения", class: "btn btn-primary" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

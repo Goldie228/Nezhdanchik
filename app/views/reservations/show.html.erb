@@ -1,4 +1,3 @@
-
 <div class="hero min-h-screen bg-base-200">
   <div class="hero-content flex-col lg:flex-row w-full p-0">
     <div class="w-full lg:w-2/3 p-4 lg:p-8 bg-base-100 rounded-l-2xl">
@@ -151,6 +150,23 @@
           </label>
         </div>
 
+        <!-- Добавляем поле для комментария к заказу -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text font-semibold">Особые пожелания</span>
+            <span class="label-text-alt text-base-content/60">Необязательно</span>
+          </label>
+          <%= form.text_area :special_requests, 
+              class: "textarea textarea-bordered h-24", 
+              placeholder: "Укажите ваши особые пожелания к заказу",
+              id: 'special-requests-textarea' %>
+          <label class="label">
+            <span class="label-text-alt text-base-content/60">
+              <span id="char-count">0</span>/500 символов
+            </span>
+          </label>
+        </div>
+
         <div class="form-control mt-6">
           <%= form.submit "Забронировать выбранное", class: "btn btn-primary w-full btn-lg font-semibold transition-all duration-300", disabled: true, id: 'submit-button' %>
         </div>
@@ -182,6 +198,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const submitButton = document.getElementById('submit-button');
     const selectTimeBtn = document.getElementById('select-time-btn');
     const selectedTimeDisplayText = document.getElementById('selected-time-display-text');
+    
+    // Добавляем элементы для работы с комментариями
+    const specialRequestsTextarea = document.getElementById('special-requests-textarea');
+    const charCount = document.getElementById('char-count');
     
     const timeModal = document.getElementById('time_modal');
     if (!timeModal) {
@@ -234,6 +254,32 @@ document.addEventListener('DOMContentLoaded', () => {
     let availabilityChecked = false;
     let currentAvailability = null;
 
+    // Обработчик для подсчета символов в поле комментария
+    if (specialRequestsTextarea && charCount) {
+        specialRequestsTextarea.addEventListener('input', () => {
+            const text = specialRequestsTextarea.value;
+            const length = text.length;
+            charCount.textContent = length;
+            
+            // Изменяем цвет счетчика, если приближаемся к лимиту
+            if (length > 450) {
+                charCount.classList.add('text-error');
+                charCount.classList.remove('text-warning');
+            } else if (length > 400) {
+                charCount.classList.add('text-warning');
+                charCount.classList.remove('text-error');
+            } else {
+                charCount.classList.remove('text-error', 'text-warning');
+            }
+            
+            // Ограничиваем максимальную длину
+            if (length > 500) {
+                specialRequestsTextarea.value = text.substring(0, 500);
+                charCount.textContent = 500;
+            }
+        });
+    }
+    
     function initializeQuickDateButtons() {
       const today = new Date();
       const options = { weekday: 'short', month: 'short', day: 'numeric' };
@@ -1220,7 +1266,8 @@ document.addEventListener('DOMContentLoaded', () => {
         date: formData.get('date'),
         start_time: formData.get('start_time'),
         end_time: formData.get('end_time'),
-        require_passport: formData.get('require_passport') === '1'
+        require_passport: formData.get('require_passport') === '1',
+        special_requests: formData.get('special_requests')
       };
 
       if (!csrfTokenElement) {

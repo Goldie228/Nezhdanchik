@@ -300,6 +300,9 @@ GEM
       redis-client (>= 0.22.0)
     redis-client (0.26.1)
       connection_pool
+    redis-session-store (0.11.6)
+      actionpack (>= 5.2.4.1, < 9)
+      redis (>= 3, < 6)
     regexp_parser (2.11.3)
     reline (0.6.3)
       io-console (~> 0.5)
@@ -446,6 +449,7 @@ DEPENDENCIES
   rails-controller-testing
   rails-erd
   redis (>= 4.0.1)
+  redis-session-store
   rspec-rails (~> 6.1.1)
   rubocop-rails-omakase
   selenium-webdriver

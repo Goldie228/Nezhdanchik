@@ -89,7 +89,7 @@
             <!-- Панель для менеджеров -->
             <% if current_user.manager? %>
               <li class="border-t border-base-300 mt-1 pt-1">
-                <%= link_to "Панель менеджера", "#", class: "flex items-center gap-3 p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors" %>
+                <%= link_to "Панель менеджера", manager_path, class: "flex items-center gap-3 p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors" %>
               </li>
             <% end %>
 

@@ -1,0 +1,21 @@
+attributes: content,foreign_keys,timestamps
+disconnected: false
+filename: erd
+filetype: svg        # SVG удобнее для постобработки и стилизации
+indirect: true
+inheritance: false
+markup: true
+notation: bachman    # более информативная нотация
+orientation: vertical
+polymorphism: true
+sort: true
+warn: true
+title: "Domain Model"
+exclude: "ActiveStorageBlob,ActiveStorageAttachment"
+prepend_primary: false
+cluster: true        # группировка связанных таблиц
+splines: ortho       # прямые линии вместо кривых
+fonts:
+  normal: "Helvetica"
+  bold: "Helvetica Bold"
+  italic: "Helvetica Italic"

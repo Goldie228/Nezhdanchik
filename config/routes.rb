@@ -65,11 +65,20 @@ Rails.application.routes.draw do
 
   # История бронирований и заказов
   get "orders/history", to: "orders#history", as: :orders_history
-  get "orders/:id", to: "orders#show", as: :order # Стандартный маршрут для показа заказа
+  get "orders/:id", to: "orders#show", as: :order
   post "orders/:id/repeat", to: "orders#repeat", as: :repeat_order
 
+  get "manager", to: "manager#dashboard", as: :manager
   get "manager/dashboard", to: "manager#dashboard"
+  get "manager/calendar", to: "manager#calendar", as: :manager_calendar
+  get "manager/tables", to: "manager#tables_view", as: :manager_tables
+  get "manager/bookings", to: "manager#bookings", as: :manager_bookings
+  get "manager/bookings/:id", to: "manager#show", as: :manager_booking
+  get "manager/bookings/:id/edit", to: "manager#edit", as: :edit_manager_booking
+  patch "manager/bookings/:id", to: "manager#update"
+  delete "manager/bookings/:id", to: "manager#destroy"
   post "manager/update_status", to: "manager#update_status"
+  get "manager/refresh_orders", to: "manager#refresh_orders", as: :manager_refresh_orders
 
   get "privacy_policy", to: "pages#privacy_policy"
   get "terms_of_use", to: "pages#terms_of_use"
