@@ -56,7 +56,7 @@ group :development, :test do
 
   gem "rails-erd"
 
-  gem "rspec-rails", "~> 6.1.1"
+  gem "rspec-rails", "~> 8.0.2"
   gem "factory_bot_rails", "~> 6.4.4"
   gem "faker", "~> 3.2.1"
   gem "shoulda-matchers", "~> 5.3.0"
