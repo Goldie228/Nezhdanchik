@@ -19,6 +19,8 @@ gem "jbuilder"
 
 gem "redis", ">= 4.0.1"
 
+gem "redis-session-store"
+
 gem "bcrypt", "~> 3.1.7"
 
 gem "tzinfo-data", platforms: %i[ windows jruby ]
@@ -30,6 +32,8 @@ gem "image_processing", "~> 1.2"
 gem "tailwindcss-rails", "~> 4.4"
 
 gem "avo", ">= 3.2"
+
+gem 'kaminari'
 
 gem "active_storage_validations"
 

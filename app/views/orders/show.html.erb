@@ -77,7 +77,7 @@
                 <p class="font-semibold"><%= @booking.special_requests %></p>
               </div>
             <% end %>
-            
+
             <!-- ИСПРАВЛЕНИЕ: Показываем каждое место отдельным бейджем -->
             <div class="bg-base-200 rounded-xl p-4">
               <p class="text-sm text-base-content/70 mb-2">Выбранные места</p>
@@ -89,16 +89,16 @@
                 <% seats_by_table.each do |table_id, seats| %>
                   <% if table_id.present? %>
                     <%# Если это стол, показываем его название и все места %>
-                    <div class="badge badge-primary badge-lg">
-                      Стол <%= seats.first.table.name %>
-                      <span class="badge badge-info badge-sm ml-1">
-                        <%= seats.map(&:number).join(', ') %>
-                      </span>
+                    <div class="badge badge-neutral badge-lg">
+                      <div class="flex items-center gap-1">
+                        <span>Стол <%= seats.first.table.name %></span>
+                        <span class="text-base-content/60">(<%= seats.map(&:number).join(', ') %>)</span>
+                      </div>
                     </div>
                   <% else %>
                     <%# Если это отдельные места без стола %>
                     <% seats.each do |seat| %>
-                      <div class="badge badge-outline">
+                      <div class="badge badge-neutral badge-outline">
                         Место <%= seat.number %>
                       </div>
                     <% end %>

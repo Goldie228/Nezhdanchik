@@ -47,4 +47,17 @@ module ApplicationHelper
   def cart_items_count
     current_cart&.total_items_count || 0
   end
+
+  def sort_link(column, title = nil)
+    title ||= column.titleize
+    direction = column == params[:sort] && params[:direction] == 'asc' ? 'desc' : 'asc'
+    icon = params[:sort] == column ? (direction == 'asc' ? '▲' : '▼') : ''
+    
+    link_to manager_bookings_path(request.query_parameters.merge(sort: column, direction: direction, page: nil)), class: 'flex items-center gap-1' do
+      concat(title)
+      if icon.present?
+        content_tag(:span, icon, class: 'text-xs')
+      end
+    end
+  end
 end

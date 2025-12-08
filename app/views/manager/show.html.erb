@@ -1,0 +1,488 @@
+<div class="min-h-screen bg-base-200">
+  <!-- Навигация -->
+  <div class="navbar bg-base-100 shadow-lg no-print">
+    <div class="flex-1">
+      <a class="btn btn-ghost normal-case text-xl">Панель менеджера</a>
+    </div>
+    <div class="flex-none">
+      <ul class="menu menu-horizontal p-0">
+        <li><%= link_to "Обзор", manager_dashboard_path %></li>
+        <li><%= link_to "Календарь", manager_calendar_path %></li>
+        <li><%= link_to "Столы", manager_tables_path %></li>
+        <li><%= link_to "Бронирования", manager_bookings_path %></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="container mx-auto px-4 py-6">
+    <!-- Заголовок -->
+    <div class="flex justify-between items-center mb-6">
+      <div>
+        <h1 class="text-3xl font-bold">Бронирование №<%= @booking.booking_number %></h1>
+        <p class="text-base-content/70">Детали бронирования</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Основная информация -->
+      <div class="lg:col-span-2">
+        <div class="bg-base-100 rounded-lg shadow-lg p-6 mb-6">
+          <h2 class="text-xl font-bold mb-4">Информация о бронировании</h2>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <div class="text-sm text-base-content/70">Клиент</div>
+              <div class="font-semibold"><%= @booking.user&.last_name %> <%= @booking.user&.first_name %> <%= @booking.user&.middle_name %></div>
+            </div>
+            
+            <div>
+              <div class="text-sm text-base-content/70">Статус</div>
+              <div class="mt-1">
+                <% status_info = get_status_info(@booking.status) %>
+                <div class="badge <%= status_info[:color] %>">
+                  <%= status_info[:text] %>
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <div class="text-sm text-base-content/70">Дата и время</div>
+              <div class="font-semibold">
+                <%= @booking.starts_at.strftime('%d %B %Y') %><br>
+                с <%= @booking.starts_at.strftime('%H:%M') %> до <%= @booking.ends_at.strftime('%H:%M') %>
+              </div>
+            </div>
+            
+            <div>
+              <div class="text-sm text-base-content/70">Длительность</div>
+              <div class="font-semibold">
+                <% duration_in_minutes = ((@booking.ends_at - @booking.starts_at) / 1.minute).round %>
+                <% if duration_in_minutes < 60 %>
+                  <%= duration_in_minutes %> мин
+                <% else %>
+                  <% hours = duration_in_minutes / 60 %>
+                  <% minutes = duration_in_minutes % 60 %>
+                  <%= hours %> ч <%= minutes > 0 ? "#{minutes} мин" : "" %>
+                <% end %>
+              </div>
+            </div>
+            
+            <div>
+              <div class="text-sm text-base-content/70">Стол</div>
+              <div class="font-semibold">
+                <% if @booking.seats.any? %>
+                  <% seats_by_table = @booking.seats.includes(:table).group_by(&:table) %>
+                  <% seats_by_table.each do |table, seats| %>
+                    <% if table %>
+                      <%# Если забронированы все места за столом %>
+                      <% if seats.count == table.seats.count %>
+                        <span class="badge badge-outline badge-lg">Стол <%= table.name %></span>
+                      <%# Если забронирована часть мест %>
+                      <% else %>
+                        <span class="badge badge-outline badge-lg">Стол <%= table.name %> (места: <%= seats.map(&:number).join(', ') %>)</span>
+                      <% end %>
+                    <% else %>
+                      <%# Если места не привязаны к столу %>
+                      <% seats.each do |seat| %>
+                        <span class="badge badge-outline">М<%= seat.number %></span>
+                      <% end %>
+                    <% end %>
+                  <% end %>
+                <% else %>
+                  <span class="badge badge-outline">Нет данных</span>
+                <% end %>
+              </div>
+            </div>
+            
+            <div>
+              <div class="text-sm text-base-content/70">Сумма бронирования</div>
+              <div class="font-semibold">
+                <%= number_to_currency(@booking.total_price, unit: "BYN", format: "%n %u") %>
+              </div>
+            </div>
+          </div>
+          
+          <% if @booking.special_requests.present? %>
+            <div class="mt-4">
+              <div class="text-sm text-base-content/70">Особые запросы</div>
+              <div class="mt-1 p-3 bg-warning/10 rounded-lg border border-warning/20">
+                <p class="text-warning"><%= @booking.special_requests %></p>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <!-- Заказанные блюда -->
+        <% if @order_items.any? %>
+          <div class="bg-base-100 rounded-lg shadow-lg p-6" id="order-items-section">
+            <h2 class="text-xl font-bold mb-4">Заказанные блюда</h2>
+            <div class="overflow-x-auto">
+              <table class="table table-compact w-full">
+                <thead>
+                  <tr>
+                    <th>Блюдо</th>
+                    <th>Цена</th>
+                    <th>Кол-во</th>
+                    <th>Сумма</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% @order_items.each do |item| %>
+                    <tr>
+                      <td>
+                        <div class="flex items-center gap-3">
+                          <div class="avatar print-hidden">
+                            <div class="w-12 h-12 rounded">
+                              <% if item.dish.photos.attached? %>
+                                <%= image_tag url_for(item.dish.photos.first), class: "w-full h-full object-cover" %>
+                              <% else %>
+                                <div class="w-full h-full bg-base-300 flex items-center justify-center">
+                                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-base-content/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                  </svg>
+                                </div>
+                              <% end %>
+                            </div>
+                          </div>
+                          <div>
+                            <div class="font-bold"><%= item.dish.title %></div>
+                            <% if item.special_instructions.present? %>
+                              <div class="text-xs text-base-content/60"><%= item.special_instructions %></div>
+                            <% end %>
+                          </div>
+                        </div>
+                      </td>
+                      <td><%= number_to_currency(item.unit_price, unit: "BYN", format: "%n %u") %></td>
+                      <td><%= item.quantity %></td>
+                      <td><%= number_to_currency(item.total_price, unit: "BYN", format: "%n %u") %></td>
+                    </tr>
+                  <% end %>
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <th colspan="3">Итого по заказу:</th>
+                    <th><%= number_to_currency(@order_items.sum(&:total_price), unit: "BYN", format: "%n %u") %></th>
+                  </tr>
+                  <tr>
+                    <th colspan="3">Общая сумма (бронирование + заказ):</th>
+                    <th><%= number_to_currency(@booking.total_price + @order_items.sum(&:total_price), unit: "BYN", format: "%n %u") %></th>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        <% else %>
+          <div class="bg-base-100 rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-bold mb-4">Заказанные блюда</h2>
+            <div class="text-center py-8">
+              <p class="text-base-content/70">К этому бронированию не добавлено товаров.</p>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Боковая панель с информацией о клиенте -->
+      <div class="lg:col-span-1">
+        <div class="bg-base-100 rounded-lg shadow-lg p-6 mb-6">
+          <h2 class="text-xl font-bold mb-4">Информация о клиенте</h2>
+          <div class="space-y-4">
+            <div>
+              <div class="text-sm text-base-content/70">Фамилия Имя</div>
+              <div class="font-semibold"><%= @booking.user&.last_name %> <%= @booking.user&.first_name %></div>
+            </div>
+            
+            <% if @booking.user&.phone %>
+              <div>
+                <div class="text-sm text-base-content/70">Телефон</div>
+                <div class="font-semibold"><%= format_phone_number(@booking.user.phone) %></div>
+              </div>
+            <% end %>
+            
+            <% if @booking.user&.email %>
+              <div>
+                <div class="text-sm text-base-content/70">Email</div>
+                <div class="font-semibold"><%= @booking.user.email %></div>
+              </div>
+            <% end %>
+            
+            <div>
+              <div class="text-sm text-base-content/70">Всего бронирований</div>
+              <div class="font-semibold"><%= @booking.user.bookings.count %></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Действия -->
+        <div class="bg-base-100 rounded-lg shadow-lg p-6 no-print">
+          <h2 class="text-xl font-bold mb-4">Действия</h2>
+          <div class="space-y-2">
+            <button class="btn btn-primary btn-block w-full" onclick="printReceipt()">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              Распечатать чек
+            </button>
+            
+            <% if @booking.user&.phone %>
+              <a href="tel:<%= @booking.user.phone %>" class="btn btn-outline btn-block w-full">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+                Позвонить клиенту
+              </a>
+            <% end %>
+            
+            <%= link_to "Редактировать", edit_manager_booking_path(@booking), class: "btn btn-outline btn-block w-full" %>
+            
+            <% if @booking.status.in?(['pending', 'confirmed']) %>
+              <%= link_to "Отменить бронирование", cancel_reservation_path(@booking), 
+                  method: :delete, 
+                  data: { confirm: "Вы уверены, что хотите отменить это бронирование?" },
+                  class: "btn btn-error btn-block w-full" %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Стили для печати -->
+<style media="print">
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-only {
+    display: block !important;
+  }
+  
+  body {
+    font-size: 12pt;
+    line-height: 1.4;
+  }
+  
+  .bg-base-200, .navbar, .btn, .no-print-section {
+    display: none !important;
+  }
+  
+  .bg-base-100 {
+    background: white !important;
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+    margin-bottom: 20px !important;
+    page-break-inside: avoid;
+  }
+  
+  .grid {
+    display: block !important;
+  }
+  
+  .lg\\:col-span-2, .lg\\:col-span-1 {
+    width: 100% !important;
+  }
+  
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin-bottom: 20px !important;
+  }
+  
+  th, td {
+    border: 1px solid #ddd !important;
+    padding: 8px !important;
+    text-align: left !important;
+  }
+  
+  th {
+    background-color: #f2f2f2 !important;
+    font-weight: bold !important;
+  }
+  
+  .text-3xl {
+    font-size: 24pt !important;
+    margin-bottom: 10px !important;
+  }
+  
+  .text-xl {
+    font-size: 18pt !important;
+    margin-bottom: 8px !important;
+  }
+  
+  .text-sm {
+    font-size: 10pt !important;
+  }
+  
+  .font-bold, .font-semibold {
+    font-weight: bold !important;
+  }
+  
+  .badge {
+    border: 1px solid #ddd !important;
+    padding: 2px 6px !important;
+    background: white !important;
+    color: black !important;
+  }
+  
+  .avatar {
+    display: none !important;
+  }
+  
+  /* Добавляем заголовок для печати */
+  .print-header {
+    display: block !important;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 18pt;
+    font-weight: bold;
+  }
+</style>
+
+<!-- Шаблон для чека (скрыт на экране) -->
+<div id="receipt-template" class="print-only" style="display: none;">
+  <div style="text-align: center; margin-bottom: 20px;">
+    <h2 style="font-size: 18pt; font-weight: bold;">ЧЕК</h2>
+    <p style="font-size: 14pt;">Бронирование №<%= @booking.booking_number %></p>
+    <p style="font-size: 12pt;">Дата: <%= @booking.starts_at.strftime('%d.%m.%Y') %></p>
+    <p style="font-size: 12pt;">Время: с <%= @booking.starts_at.strftime('%H:%M') %> до <%= @booking.ends_at.strftime('%H:%M') %></p>
+  </div>
+  
+  <div style="margin-bottom: 20px;">
+    <h3 style="font-size: 14pt; font-weight: bold; margin-bottom: 10px;">Клиент</h3>
+    <p style="font-size: 12pt;"><%= @booking.user&.last_name %> <%= @booking.user&.first_name %></p>
+    <% if @booking.user&.phone %>
+      <p style="font-size: 12pt;">Телефон: <%= format_phone_number(@booking.user.phone) %></p>
+    <% end %>
+  </div>
+  
+  <div style="margin-bottom: 20px;">
+    <h3 style="font-size: 14pt; font-weight: bold; margin-bottom: 10px;">Стол</h3>
+    <p style="font-size: 12pt;">
+      <% if @booking.seats.any? %>
+        <% seats_by_table = @booking.seats.includes(:table).group_by(&:table) %>
+        <% seats_by_table.each do |table, seats| %>
+          <% if table %>
+            <%# Если забронированы все места за столом %>
+            <% if seats.count == table.seats.count %>
+              Стол <%= table.name %>
+            <%# Если забронирована часть мест %>
+            <% else %>
+              Стол <%= table.name %> (места: <%= seats.map(&:number).join(', ') %>)
+            <% end %>
+          <% else %>
+            <%# Если места не привязаны к столу %>
+            <% seats.each do |seat| %>
+              М<%= seat.number %>
+            <% end %>
+          <% end %>
+        <% end %>
+      <% else %>
+        Нет данных
+      <% end %>
+    </p>
+  </div>
+  
+  <% if @order_items.any? %>
+    <div style="margin-bottom: 20px;">
+      <h3 style="font-size: 14pt; font-weight: bold; margin-bottom: 10px;">Заказанные блюда</h3>
+      <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr>
+            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Блюдо</th>
+            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Цена</th>
+            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Кол-во</th>
+            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Сумма</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @order_items.each do |item| %>
+            <tr>
+              <td style="border: 1px solid #ddd; padding: 8px;"><%= item.dish.title %></td>
+              <td style="border: 1px solid #ddd; padding: 8px;"><%= number_to_currency(item.unit_price, unit: "BYN", format: "%n %u") %></td>
+              <td style="border: 1px solid #ddd; padding: 8px;"><%= item.quantity %></td>
+              <td style="border: 1px solid #ddd; padding: 8px;"><%= number_to_currency(item.total_price, unit: "BYN", format: "%n %u") %></td>
+            </tr>
+          <% end %>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3" style="border: 1px solid #ddd; padding: 8px; text-align: left; font-weight: bold;">Итого по заказу:</td>
+            <td style="border: 1px solid #ddd; padding: 8px; text-align: left; font-weight: bold;"><%= number_to_currency(@order_items.sum(&:total_price), unit: "BYN", format: "%n %u") %></td>
+          </tr>
+          <tr>
+            <td colspan="3" style="border: 1px solid #ddd; padding: 8px; text-align: left; font-weight: bold;">Общая сумма (бронирование + заказ):</td>
+            <td style="border: 1px solid #ddd; padding: 8px; text-align: left; font-weight: bold;"><%= number_to_currency(@booking.total_price + @order_items.sum(&:total_price), unit: "BYN", format: "%n %u") %></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  <% end %>
+  
+  <div style="margin-top: 30px; text-align: center;">
+    <p style="font-size: 10pt;">Спасибо за посещение нашего ресторана!</p>
+  </div>
+</div>
+
+<script>
+  // Функция печати чека
+  function printReceipt() {
+    // Создаем новое окно для печати
+    const printWindow = window.open('', '_blank');
+    
+    // Копируем содержимое шаблона чека в новое окно
+    const receiptContent = document.getElementById('receipt-template').innerHTML;
+    
+    // Формируем HTML для нового окна
+    const printHTML = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Чек - Бронирование №<%= @booking.booking_number %></title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            font-size: 12pt;
+            line-height: 1.4;
+            margin: 20px;
+          }
+          h2, h3 {
+            margin-bottom: 10px;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+          }
+          th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+          }
+          th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+          }
+          .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 10pt;
+          }
+        </style>
+      </head>
+      <body>
+        ${receiptContent}
+      </body>
+      </html>
+    `;
+    
+    // Записываем HTML в новое окно
+    printWindow.document.write(printHTML);
+    printWindow.document.close();
+    
+    // Ждем загрузки содержимого и вызываем печать
+    printWindow.onload = function() {
+      printWindow.print();
+      printWindow.close();
+    };
+  }
+</script>

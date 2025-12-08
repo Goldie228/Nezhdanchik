@@ -1,0 +1,67 @@
+<% if bookings.total_pages > 1 %>
+  <div class="join">
+    <%# Кнопка "Предыдущая" %>
+    <% if bookings.prev_page %>
+      <%= link_to "←", 
+                  request.params.merge(page: bookings.prev_page), 
+                  class: "join-item btn btn-sm" %>
+    <% else %>
+      <button class="join-item btn btn-sm" disabled>←</button>
+    <% end %>
+    
+    <%# Показываем номера страниц %>
+    <% 
+      # Определяем диапазон страниц для отображения
+      current_page = bookings.current_page
+      total_pages = bookings.total_pages
+      window = 2
+      
+      start_page = [current_page - window, 1].max
+      end_page = [current_page + window, total_pages].min
+      
+      # Всегда показываем первую страницу
+      if start_page > 1
+        %>
+        <%= link_to "1", 
+                    request.params.merge(page: 1), 
+                    class: "join-item btn btn-sm #{'btn-active' if current_page == 1}" %>
+        <% if start_page > 2 %>
+          <button class="join-item btn btn-sm btn-disabled">...</button>
+        <% end %>
+      <%
+      end
+      
+      # Показываем страницы в диапазоне
+      (start_page..end_page).each do |page|
+        %>
+        <%= link_to page, 
+                    request.params.merge(page: page), 
+                    class: "join-item btn btn-sm #{'btn-active' if page == current_page}" %>
+      <%
+      end
+      
+      # Всегда показываем последнюю страницу
+      if end_page < total_pages
+        if end_page < total_pages - 1
+          %>
+          <button class="join-item btn btn-sm btn-disabled">...</button>
+          <%
+        end
+        %>
+        <%= link_to total_pages, 
+                    request.params.merge(page: total_pages), 
+                    class: "join-item btn btn-sm #{'btn-active' if current_page == total_pages}" %>
+      <%
+      end
+    %>
+    
+    <%# Кнопка "Следующая" %>
+    <% if bookings.next_page %>
+      <%= link_to "→", 
+                  request.params.merge(page: bookings.next_page), 
+                  class: "join-item btn btn-sm" %>
+    <% else %>
+      <button class="join-item btn btn-sm" disabled>→</button>
+    <% end %>
+  </div>
+<% end %>

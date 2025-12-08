@@ -1,0 +1,821 @@
+<div class="min-h-screen bg-base-200">
+  <!-- Навигация -->
+  <div class="navbar bg-base-100 shadow-lg">
+    <div class="flex-1">
+      <a class="btn btn-ghost normal-case text-xl">Панель менеджера</a>
+    </div>
+    <div class="flex-none">
+      <ul class="menu menu-horizontal p-0">
+        <li><%= link_to "Обзор", manager_dashboard_path %></li>
+        <li><%= link_to "Календарь", manager_calendar_path %></li>
+        <li><%= link_to "Столы", manager_tables_path %></li>
+        <li><%= link_to "Бронирования", manager_bookings_path %></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="container mx-auto px-4 py-6">
+    <div class="max-w-6xl mx-auto">
+      <h1 class="text-3xl font-bold mb-6">Редактирование бронирования №<%= @booking.booking_number %></h1>
+      
+      <% if flash[:alert] %>
+        <div class="alert alert-error">
+          <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span><%= flash[:alert] %></span>
+        </div>
+      <% end %>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Левая колонка - информация о бронировании -->
+        <div class="lg:col-span-1">
+          <%= form_with(model: [:manager, @booking], local: true, class: "bg-base-100 rounded-lg shadow-lg p-6", id: "booking-form") do |form| %>
+            <!-- Поле статуса -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Статус</span>
+              </label>
+              <%= form.select :status, options_for_select(get_statuses_list.map { |s| [s[:text], s[:value]] }, @booking.status), {}, class: "select select-bordered w-full" %>
+            </div>
+            
+            <div class="flex justify-between mt-6">
+              <%= link_to "Отмена", manager_booking_path(@booking), class: "btn btn-ghost" %>
+              <%= form.submit "Сохранить изменения", class: "btn btn-primary" %>
+            </div>
+          <% end %>
+        </div>
+        
+        <!-- Правая колонка - управление заказом -->
+        <div class="lg:col-span-2">
+          <div class="bg-base-100 rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4">Заказ</h2>
+            
+            <!-- Текущие блюда в заказе -->
+            <div class="mb-6">
+              <h3 class="text-lg font-semibold mb-3">Текущие блюда в заказе</h3>
+              
+              <% if @order_items && @order_items.any? %>
+                <div class="overflow-x-auto">
+                  <table class="table table-compact w-full">
+                    <thead>
+                      <tr>
+                        <th>Блюдо</th>
+                        <th>Кол-во</th>
+                        <th>Цена</th>
+                        <th>Сумма</th>
+                        <th>Действия</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% @order_items.each do |item| %>
+                        <tr id="order-item-<%= item.id %>">
+                          <td>
+                            <div class="font-bold"><%= item.dish.title %></div>
+                            <% if item.special_instructions.present? %>
+                              <div class="text-xs opacity-70"><%= item.special_instructions %></div>
+                            <% end %>
+                          </td>
+                          <td><%= item.quantity %></td>
+                          <td><%= number_to_currency(item.unit_price, unit: "BYN", format: "%n %u") %></td>
+                          <td><%= number_to_currency(item.total_price, unit: "BYN", format: "%n %u") %></td>
+                          <td>
+                            <div class="flex gap-1">
+                              <button class="btn btn-ghost btn-xs" onclick="editOrderItem(<%= item.id %>)">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                              </button>
+                              <button class="btn btn-ghost btn-xs text-error" onclick="removeOrderItem(<%= item.id %>)">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      <% end %>
+                    </tbody>
+                    <tfoot>
+                      <tr>
+                        <th colspan="3">Итого:</th>
+                        <th><%= number_to_currency(@order.total_amount, unit: "BYN", format: "%n %u") %></th>
+                        <th></th>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              <% else %>
+                <div class="text-center py-8">
+                  <p class="text-base-content/70">В заказе нет блюд.</p>
+                </div>
+              <% end %>
+            </div>
+            
+            <!-- Добавление нового блюда -->
+            <div>
+              <h3 class="text-lg font-semibold mb-3">Добавить блюдо</h3>
+              
+              <% if @categories && @categories.any? %>
+                <div class="form-control">
+                  <label class="label">
+                    <span class="label-text">Категория</span>
+                  </label>
+                  <select id="category-select" class="select select-bordered w-full">
+                    <option value="">Выберите категорию</option>
+                    <% @categories.each do |category| %>
+                      <option value="<%= category.id %>"><%= category.name %></option>
+                    <% end %>
+                  </select>
+                </div>
+              <% else %>
+                <div class="alert alert-warning">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <span>Нет доступных категорий блюд</span>
+                </div>
+              <% end %>
+              
+              <div class="form-control mt-4">
+                <label class="label">
+                  <span class="label-text">Блюдо</span>
+                </label>
+                <select id="dish-select" class="select select-bordered w-full" disabled>
+                  <option value="">Выберите блюдо</option>
+                </select>
+              </div>
+              
+              <div id="dish-details" class="hidden mt-6 p-4 bg-base-200 rounded-lg">
+                <div class="card-body p-0">
+                  <h4 id="dish-title" class="card-title text-lg mb-2"></h4>
+                  <p id="dish-description" class="mb-4 text-sm opacity-80"></p>
+                  
+                  <!-- Детали цены -->
+                  <div class="bg-base-100 p-3 rounded-lg mb-4">
+                    <div class="text-sm font-semibold">Расчет цены:</div>
+                    <div class="flex justify-between items-center">
+                      <span>Базовая цена:</span>
+                      <span id="base-price" class="font-mono">0.00 BYN</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                      <span>Добавки:</span>
+                      <span id="add-ons-price" class="font-mono text-success">+ 0.00 BYN</span>
+                    </div>
+                    <div class="divider my-1"></div>
+                    <div class="flex justify-between items-center text-lg font-bold">
+                      <span>Итого за блюдо:</span>
+                      <span id="dish-price" class="font-mono">0.00 BYN</span>
+                    </div>
+                  </div>
+                  
+                  <!-- Ингредиенты -->
+                  <div id="ingredients-container" class="mb-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <h5 class="font-semibold mb-2 text-info">Основные ингредиенты</h5>
+                        <div id="base-ingredients-list" class="space-y-2"></div>
+                      </div>
+                      <div>
+                        <h5 class="font-semibold mb-2 text-success">Дополнительные ингредиенты</h5>
+                        <div id="add-on-ingredients-list" class="space-y-2"></div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="form-control">
+                    <label class="label">
+                      <span class="label-text">Количество</span>
+                    </label>
+                    <input type="number" id="dish-quantity" class="input input-bordered" value="1" min="1">
+                  </div>
+                  
+                  <div class="card-actions justify-end mt-4">
+                    <button id="add-dish-btn" class="btn btn-primary">Добавить в заказ</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно для редактирования блюда -->
+<div id="edit-dish-modal" class="modal">
+  <div class="modal-box w-11/12 max-w-3xl">
+    <h3 class="font-bold text-lg mb-4">Редактировать блюдо</h3>
+    
+    <div class="form-control mb-4">
+      <label class="label">
+        <span class="label-text">Количество</span>
+      </label>
+      <input type="number" id="edit-dish-quantity" class="input input-bordered" value="1" min="1">
+    </div>
+    
+    <div id="edit-ingredients-container" class="mb-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <h5 class="font-semibold mb-2 text-info">Основные ингредиенты</h5>
+          <div id="edit-base-ingredients-list" class="space-y-2"></div>
+        </div>
+        <div>
+          <h5 class="font-semibold mb-2 text-success">Дополнительные ингредиенты</h5>
+          <div id="edit-add-on-ingredients-list" class="space-y-2"></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-action">
+      <button id="save-dish-btn" class="btn btn-primary">Сохранить</button>
+      <button id="cancel-edit-btn" class="btn">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<!-- Скрытое поле с CSRF токеном -->
+<div id="csrf-token-container" class="hidden">
+  <%= form_authenticity_token %>
+</div>
+
+<script>
+  // Глобальные переменные
+  let dishes = {};
+  let currentEditingItemId = null;
+  let selectedIngredients = [];
+  let removedIngredients = [];
+  
+  // Вспомогательная функция для получения CSRF-токена
+  function getCsrfToken() {
+    // Сначала пытаемся получить из скрытого div
+    const tokenContainer = document.getElementById('csrf-token-container');
+    if (tokenContainer && tokenContainer.textContent.trim()) {
+      return tokenContainer.textContent.trim();
+    }
+    
+    // Если не нашли, пробуем найти в мета-тегах
+    const token = document.querySelector('meta[name="csrf-token"]');
+    if (token) {
+      return token.getAttribute('content');
+    }
+    
+    console.error("CSRF token not found. Please ensure either meta tag or hidden field is present.");
+    return null;
+  }
+
+  // Инициализация при загрузке страницы
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log("Initializing edit booking page...");
+    
+    // Проверяем наличие необходимых элементов
+    const categorySelect = document.getElementById('category-select');
+    const dishSelect = document.getElementById('dish-select');
+    const addDishBtn = document.getElementById('add-dish-btn');
+    const saveDishBtn = document.getElementById('save-dish-btn');
+    const cancelEditBtn = document.getElementById('cancel-edit-btn');
+    
+    if (!categorySelect || !dishSelect || !addDishBtn || !saveDishBtn) {
+      console.error("One or more required elements not found");
+      return;
+    }
+    
+    // Загрузка блюд при выборе категории
+    categorySelect.addEventListener('change', function() {
+      const categoryId = this.value;
+      
+      if (categoryId) {
+        fetch(`/manager/dishes_by_category?category_id=${categoryId}`)
+          .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+          })
+          .then(data => {
+            dishes = {};
+            // Преобразуем массив блюд в объект с ключами по ID
+            if (data.dishes && Array.isArray(data.dishes)) {
+              data.dishes.forEach(dish => {
+                dishes[dish.id] = dish;
+              });
+            }
+            populateDishSelect();
+          })
+          .catch(error => {
+            console.error('Error loading dishes:', error);
+            showToast('Ошибка при загрузке блюд: ' + error.message, 'error');
+          });
+      } else {
+        dishSelect.innerHTML = '<option value="">Выберите блюдо</option>';
+        dishSelect.disabled = true;
+        document.getElementById('dish-details').classList.add('hidden');
+      }
+    });
+    
+    // Отображение деталей блюда при выборе
+    dishSelect.addEventListener('change', function() {
+      const dishId = this.value;
+      
+      if (dishId && dishes[dishId]) {
+        displayDishDetails(dishes[dishId]);
+      } else {
+        document.getElementById('dish-details').classList.add('hidden');
+      }
+    });
+    
+    // Добавление блюда в заказ
+    addDishBtn.addEventListener('click', addDishToOrder);
+    saveDishBtn.addEventListener('click', saveEditedDish);
+    
+    // Добавляем обработчик для кнопки отмены в модальном окне
+    if (cancelEditBtn) {
+      cancelEditBtn.addEventListener('click', closeEditModal);
+    }
+    
+    // Добавляем обработчик для закрытия модального окна при клике вне его
+    document.getElementById('edit-dish-modal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeEditModal();
+      }
+    });
+    
+    console.log("Edit booking page initialized successfully");
+  });
+  
+  // Функция для отображения уведомлений
+  function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-top toast-end`;
+    
+    const alertClass = type === 'error' ? 'alert-error' : 
+                       type === 'success' ? 'alert-success' : 'alert-info';
+    
+    toast.innerHTML = `
+      <div class="${alertClass} alert">
+        <div>
+          <span>${message}</span>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Автоматически закрываем уведомление через 3 секунды
+    setTimeout(() => {
+      toast.remove();
+    }, 3000);
+  }
+  
+  function addDishToOrder() {
+    const dishId = document.getElementById('dish-select').value;
+    const quantity = document.getElementById('dish-quantity').value;
+    const token = getCsrfToken();
+
+    if (!token || !dishId) {
+      showToast('Пожалуйста, выберите блюдо', 'error');
+      return;
+    }
+    
+    const formData = new FormData();
+    formData.append('dish_id', dishId);
+    formData.append('quantity', quantity);
+    
+    // Добавляем выбранные и удаленные ингредиенты
+    selectedIngredients.forEach(id => formData.append('selected_ingredient_ids[]', id));
+    removedIngredients.forEach(id => formData.append('removed_ingredient_ids[]', id));
+    
+    // Показываем индикатор загрузки
+    const addBtn = document.getElementById('add-dish-btn');
+    const originalText = addBtn.textContent;
+    addBtn.disabled = true;
+    addBtn.innerHTML = '<span class="loading loading-spinner"></span> Добавление...';
+    
+    fetch(`/manager/bookings/${<%= @booking.id %>}/add_dish_to_order`, {
+      method: 'POST',
+      headers: { 'X-CSRF-Token': token },
+      body: formData
+    })
+    .then(response => {
+      if (!response.ok) {
+        // Возвращаем кнопку в исходное состояние
+        addBtn.disabled = false;
+        addBtn.textContent = originalText;
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      // Возвращаем кнопку в исходное состояние
+      addBtn.disabled = false;
+      addBtn.textContent = originalText;
+      
+      if (data.success) {
+        showToast('Блюдо успешно добавлено в заказ', 'success');
+        // Обновляем сумму заказа, если она есть в ответе
+        if (data.order_total) {
+          // Обновляем сумму заказа на странице без перезагрузки
+          const totalElement = document.querySelector('tfoot th:nth-child(4)');
+          if (totalElement) {
+            totalElement.textContent = data.order_total;
+          }
+        }
+        // Сбрасываем форму добавления блюда
+        resetDishForm();
+        // Перезагружаем страницу через короткую задержку, чтобы показать изменения
+        setTimeout(() => {
+          location.reload();
+        }, 1000);
+      } else {
+        showToast(data.message || 'Ошибка при добавлении блюда', 'error');
+      }
+    })
+    .catch(error => {
+      console.error('Error adding dish to order:', error);
+      showToast('Ошибка при добавлении блюда: ' + error.message, 'error');
+      // Возвращаем кнопку в исходное состояние
+      addBtn.disabled = false;
+      addBtn.textContent = originalText;
+    });
+  }
+
+  function saveEditedDish() {
+    if (!currentEditingItemId) return;
+    
+    const quantity = document.getElementById('edit-dish-quantity').value;
+    const token = getCsrfToken();
+    if (!token) return;
+
+    const formData = new FormData();
+    formData.append('quantity', quantity);
+    
+    // Добавляем выбранные и удаленные ингредиенты
+    selectedIngredients.forEach(id => formData.append('selected_ingredient_ids[]', id));
+    removedIngredients.forEach(id => formData.append('removed_ingredient_ids[]', id));
+    
+    // Показываем индикатор загрузки
+    const saveBtn = document.getElementById('save-dish-btn');
+    const originalText = saveBtn.textContent;
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<span class="loading loading-spinner"></span> Сохранение...';
+    
+    fetch(`/manager/bookings/${<%= @booking.id %>}/update_order_item/${currentEditingItemId}`, {
+      method: 'PATCH',
+      headers: { 'X-CSRF-Token': token },
+      body: formData
+    })
+    .then(response => {
+      if (!response.ok) {
+        // Возвращаем кнопку в исходное состояние
+        saveBtn.disabled = false;
+        saveBtn.textContent = originalText;
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      // Возвращаем кнопку в исходное состояние
+      saveBtn.disabled = false;
+      saveBtn.textContent = originalText;
+      
+      if (data.success) {
+        showToast('Блюдо успешно обновлено', 'success');
+        closeEditModal();
+        // Обновляем сумму заказа, если она есть в ответе
+        if (data.order_total) {
+          // Обновляем сумму заказа на странице без перезагрузки
+          const totalElement = document.querySelector('tfoot th:nth-child(4)');
+          if (totalElement) {
+            totalElement.textContent = data.order_total;
+          }
+        }
+        // Перезагружаем страницу через короткую задержку, чтобы показать изменения
+        setTimeout(() => {
+          location.reload();
+        }, 1000);
+      } else {
+        showToast(data.message || 'Ошибка при обновлении блюда', 'error');
+      }
+    })
+    .catch(error => {
+      console.error('Error updating order item:', error);
+      showToast('Ошибка при обновлении блюда: ' + error.message, 'error');
+      // Возвращаем кнопку в исходное состояние
+      saveBtn.disabled = false;
+      saveBtn.textContent = originalText;
+    });
+  }
+  
+  function closeEditModal() {
+    const modal = document.getElementById('edit-dish-modal');
+    modal.classList.remove('modal-open');
+    currentEditingItemId = null;
+  }
+  
+  function resetDishForm() {
+    // Сбрасываем форму добавления блюда
+    document.getElementById('dish-select').value = '';
+    document.getElementById('dish-select').disabled = true;
+    document.getElementById('category-select').value = '';
+    document.getElementById('dish-details').classList.add('hidden');
+    document.getElementById('dish-quantity').value = '1';
+    selectedIngredients = [];
+    removedIngredients = [];
+  }
+  
+  function populateDishSelect() {
+    const dishSelect = document.getElementById('dish-select');
+    dishSelect.innerHTML = '<option value="">Выберите блюдо</option>';
+    
+    Object.values(dishes).forEach(dish => {
+      const option = document.createElement('option');
+      option.value = dish.id;
+      option.textContent = `${dish.title} - ${dish.price} BYN`;
+      dishSelect.appendChild(option);
+    });
+    
+    dishSelect.disabled = false;
+  }
+  
+  function displayDishDetails(dish) {
+    selectedIngredients = [];
+    removedIngredients = [];
+
+    document.getElementById('dish-title').textContent = dish.title;
+    document.getElementById('dish-description').textContent = dish.description || '';
+    const basePrice = parseFloat(dish.price);
+    document.getElementById('base-price').textContent = `${basePrice.toFixed(2)} BYN`;
+    
+    // Проверяем, что dish.ingredients существует и является массивом
+    const baseIngredients = [];
+    const addOnIngredients = [];
+    
+    if (dish.ingredients && Array.isArray(dish.ingredients)) {
+      dish.ingredients.forEach(ing => {
+        if (ing.default) baseIngredients.push(ing);
+        else addOnIngredients.push(ing);
+      });
+    }
+
+    const baseList = document.getElementById('base-ingredients-list');
+    baseList.innerHTML = '';
+    if (baseIngredients.length > 0) {
+      baseIngredients.forEach(ing => createIngredientCheckbox(baseList, ing, true));
+    } else {
+      baseList.innerHTML = '<p class="text-sm opacity-70">Нет основных ингредиентов</p>';
+    }
+    
+    const addOnList = document.getElementById('add-on-ingredients-list');
+    addOnList.innerHTML = '';
+    if (addOnIngredients.length > 0) {
+      addOnIngredients.forEach(ing => createIngredientCheckbox(addOnList, ing, false));
+    } else {
+      addOnList.innerHTML = '<p class="text-sm opacity-70">Нет дополнительных ингредиентов</p>';
+    }
+
+    updateDishPrice();
+    document.getElementById('dish-details').classList.remove('hidden');
+  }
+
+  function createIngredientCheckbox(container, ingredient, isDefault) {
+    const div = document.createElement('div');
+    div.className = 'form-control';
+    
+    const label = document.createElement('label');
+    label.className = 'label cursor-pointer justify-start gap-2';
+    
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.className = 'checkbox checkbox-sm';
+    input.checked = isDefault;
+    input.dataset.ingredientId = ingredient.id;
+    input.dataset.default = isDefault;
+    input.dataset.price = ingredient.price;
+    
+    const span = document.createElement('span');
+    span.className = 'label-text';
+    span.textContent = ingredient.name;
+    if (!isDefault) {
+      span.innerHTML += ` <small class="text-success opacity-70">(+${ingredient.price} BYN)</small>`;
+    }
+
+    input.addEventListener('change', handleIngredientChange);
+    
+    label.appendChild(input);
+    label.appendChild(span);
+    div.appendChild(label);
+    container.appendChild(div);
+  }
+
+  function handleIngredientChange(event) {
+    const ingredientId = parseInt(event.target.dataset.ingredientId);
+    const isDefault = event.target.dataset.default === 'true';
+    const isChecked = event.target.checked;
+    
+    if (isDefault && !isChecked) {
+      if (!removedIngredients.includes(ingredientId)) removedIngredients.push(ingredientId);
+      selectedIngredients = selectedIngredients.filter(id => id !== ingredientId);
+    } else if (!isDefault && isChecked) {
+      if (!selectedIngredients.includes(ingredientId)) selectedIngredients.push(ingredientId);
+      removedIngredients = removedIngredients.filter(id => id !== ingredientId);
+    } else if (isDefault && isChecked) {
+      removedIngredients = removedIngredients.filter(id => id !== ingredientId);
+    } else if (!isDefault && !isChecked) {
+      selectedIngredients = selectedIngredients.filter(id => id !== ingredientId);
+    }
+    
+    updateDishPrice();
+  }
+  
+  function updateDishPrice() {
+    const dishId = document.getElementById('dish-select').value;
+    if (!dishId || !dishes[dishId]) return;
+    
+    const dish = dishes[dishId];
+    const basePrice = parseFloat(dish.price);
+    let addOnsPrice = 0;
+    
+    // Проверяем, что dish.ingredients существует
+    if (dish.ingredients && Array.isArray(dish.ingredients)) {
+      selectedIngredients.forEach(id => {
+        const ingredient = dish.ingredients.find(ing => ing.id == id);
+        if (ingredient) addOnsPrice += parseFloat(ingredient.price);
+      });
+    }
+    
+    const totalPrice = basePrice + addOnsPrice;
+    
+    document.getElementById('add-ons-price').textContent = `+ ${addOnsPrice.toFixed(2)} BYN`;
+    document.getElementById('dish-price').textContent = `${totalPrice.toFixed(2)} BYN`;
+  }
+  
+  function editOrderItem(itemId) {
+    currentEditingItemId = itemId;
+    selectedIngredients = [];
+    removedIngredients = [];
+    
+    // Показываем модальное окно
+    const modal = document.getElementById('edit-dish-modal');
+    modal.classList.add('modal-open');
+    
+    // Показываем индикатор загрузки
+    const modalBody = modal.querySelector('.modal-box');
+    const originalContent = modalBody.innerHTML;
+    modalBody.innerHTML = '<div class="flex justify-center items-center h-64"><span class="loading loading-spinner loading-lg"></span></div>';
+    
+    fetch(`/manager/order_item/${itemId}`)
+      .then(response => {
+        if (!response.ok) {
+          modalBody.innerHTML = originalContent;
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        modalBody.innerHTML = originalContent; // Восстанавливаем содержимое
+        
+        if (!data.success) throw new Error(data.message);
+        
+        const item = data.order_item;
+        document.getElementById('edit-dish-quantity').value = item.quantity;
+        
+        // Проверяем, что item.dish.ingredients существует
+        const baseIngredients = [];
+        const addOnIngredients = [];
+        if (item.dish.ingredients && Array.isArray(item.dish.ingredients)) {
+          item.dish.ingredients.forEach(ing => {
+            if (ing.default) baseIngredients.push(ing);
+            else addOnIngredients.push(ing);
+          });
+        }
+
+        const baseList = document.getElementById('edit-base-ingredients-list');
+        const addOnList = document.getElementById('edit-add-on-ingredients-list');
+        baseList.innerHTML = ''; 
+        addOnList.innerHTML = '';
+        
+        if (baseIngredients.length > 0) {
+          baseIngredients.forEach(ing => {
+            let isChecked = ing.default;
+            if (item.removed_ingredients && item.removed_ingredients.includes(ing.id)) isChecked = false;
+            if (isChecked) removedIngredients = removedIngredients.filter(id => id !== ing.id);
+            else if (!removedIngredients.includes(ing.id)) removedIngredients.push(ing.id);
+            
+            const elem = createIngredientCheckboxForEdit(baseList, ing, true, isChecked);
+            elem.addEventListener('change', handleIngredientChange);
+          });
+        } else {
+          baseList.innerHTML = '<p class="text-sm opacity-70">Нет основных ингредиентов</p>';
+        }
+
+        if (addOnIngredients.length > 0) {
+          addOnIngredients.forEach(ing => {
+            let isChecked = false;
+            if (item.selected_ingredients && item.selected_ingredients.includes(ing.id)) isChecked = true;
+            if (isChecked) selectedIngredients.push(ing.id);
+            
+            const elem = createIngredientCheckboxForEdit(addOnList, ing, false, isChecked);
+            elem.addEventListener('change', handleIngredientChange);
+          });
+        } else {
+          addOnList.innerHTML = '<p class="text-sm opacity-70">Нет дополнительных ингредиентов</p>';
+        }
+        
+        // Повторно привязываем обработчики событий к кнопкам
+        document.getElementById('save-dish-btn').addEventListener('click', saveEditedDish);
+        document.getElementById('cancel-edit-btn').addEventListener('click', closeEditModal);
+        
+        // Добавляем обработчик для закрытия модального окна при клике вне его
+        document.getElementById('edit-dish-modal').addEventListener('click', function(e) {
+          if (e.target === this) {
+            closeEditModal();
+          }
+        });
+      })
+      .catch(error => {
+        modalBody.innerHTML = originalContent; // Восстанавливаем содержимое
+        console.error('Error loading order item:', error);
+        showToast('Ошибка при загрузке данных о блюде: ' + error.message, 'error');
+      });
+  }
+
+  function createIngredientCheckboxForEdit(container, ingredient, isDefault, isChecked) {
+    const div = document.createElement('div');
+    div.className = 'form-control';
+    
+    const label = document.createElement('label');
+    label.className = 'label cursor-pointer justify-start gap-2';
+    
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.className = 'checkbox checkbox-sm';
+    input.checked = isChecked;
+    input.dataset.ingredientId = ingredient.id;
+    input.dataset.default = isDefault;
+    input.dataset.price = ingredient.price;
+    
+    const span = document.createElement('span');
+    span.className = 'label-text';
+    span.textContent = ingredient.name;
+    if (!isDefault) {
+      span.innerHTML += ` <small class="text-success opacity-70">(+${ingredient.price} BYN)</small>`;
+    }
+
+    label.appendChild(input);
+    label.appendChild(span);
+    div.appendChild(label);
+    container.appendChild(div);
+    
+    return input;
+  }
+  
+  function removeOrderItem(itemId) {
+    if (!confirm('Вы уверены, что хотите удалить это блюдо из заказа?')) return;
+    
+    const token = getCsrfToken();
+    if (!token) return;
+
+    const row = document.getElementById(`order-item-${itemId}`);
+    const originalContent = row.innerHTML;
+    row.innerHTML = '<td colspan="5" class="text-center"><span class="loading loading-spinner"></span> Удаление...</td>';
+
+    fetch(`/manager/bookings/${<%= @booking.id %>}/remove_order_item/${itemId}`, {
+      method: 'DELETE',
+      headers: { 'X-CSRF-Token': token }
+    })
+    .then(response => {
+      if (!response.ok) {
+        row.innerHTML = originalContent; // Восстанавливаем
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      if (data.success) {
+        showToast('Блюдо успешно удалено из заказа', 'success');
+        // Обновляем сумму заказа, если она есть в ответе
+        if (data.order_total) {
+          // Обновляем сумму заказа на странице без перезагрузки
+          const totalElement = document.querySelector('tfoot th:nth-child(4)');
+          if (totalElement) {
+            totalElement.textContent = data.order_total;
+          }
+        }
+        // Удаляем строку из таблицы
+        row.remove();
+        // Проверяем, есть ли еще блюда в заказе
+        const tbody = document.querySelector('tbody');
+        if (!tbody.querySelector('tr')) {
+          tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8"><p class="text-base-content/70">В заказе нет блюд.</p></td></tr>';
+        }
+      } else {
+        row.innerHTML = originalContent; // Восстанавливаем
+        showToast(data.message || 'Ошибка при удалении блюда', 'error');
+      }
+    })
+    .catch(error => {
+      row.innerHTML = originalContent; // Восстанавливаем
+      console.error('Error removing order item:', error);
+      showToast('Ошибка при удалении блюда: ' + error.message, 'error');
+    });
+  }
+</script>
