@@ -43,7 +43,7 @@ gem "devise", "~> 4.9"
 
 gem "leaflet-rails", "~> 1.9"
 
-gem "connection_pool", "~> 2.5"
+gem "connection_pool", "~> 3.0"
 
 gem "dotenv-rails"
 
