@@ -1,6 +1,5 @@
 <header class="bg-neutral text-neutral-content shadow-sm m-0 p-0">
   <div class="navbar max-w-7xl mx-auto">
-    <!-- Мобильная версия -->
     <div class="navbar-start lg:hidden">
       <div class="dropdown">
         <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
@@ -16,7 +15,6 @@
       </div>
     </div>
 
-    <!-- Логотип -->
     <div class="navbar-start">
       <%= link_to root_path, class: "btn btn-ghost text-xl normal-case" do %>
         <%= image_tag "logo.png", alt: "НЕЖДАНЧИК", class: "h-8 w-8 mr-2" %>
@@ -24,7 +22,6 @@
       <% end %>
     </div>
 
-    <!-- Десктопное меню -->
     <div class="navbar-center hidden lg:flex mx-auto">
       <ul class="menu menu-horizontal px-1">
         <li><%= link_to "Главная", root_path %></li>
@@ -34,9 +31,9 @@
     </div>
 
     <% if current_user %>
-      <!-- Иконки действий -->
       <div class="navbar-end gap-2">
-        <!-- Корзина -->
+        <%= render "shared/theme_picker" %>
+
         <div class="indicator">
           <%= link_to cart_path, class: "btn btn-ghost btn-circle tooltip tooltip-bottom", data: { tip: "Корзина" } do %>
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -49,7 +46,6 @@
           <% end %>
         </div>
 
-        <!-- Профиль -->
         <div class="dropdown dropdown-end">
           <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar tooltip tooltip-bottom" data-tip="Профиль">
             <div class="w-8 rounded-full bg-neutral-focus text-neutral-content flex items-center justify-center">
@@ -69,8 +65,7 @@
                 <%= current_user.email %>
               </div>
             </div>
-            
-            <!-- Основные ссылки -->
+
             <li>
               <%= link_to "Мой профиль", profile_path, class: "flex items-center gap-3 p-2 hover:bg-base-200 rounded-lg transition-colors" %>
             </li>
@@ -79,21 +74,18 @@
               <%= link_to "История заказов", orders_history_path, class: "flex items-center gap-3 p-2 hover:bg-base-200 rounded-lg transition-colors" %>
             </li>
 
-            <!-- Админка для администраторов -->
             <% if current_user.admin? %>
               <li class="border-t border-base-300 mt-1 pt-1">
                 <%= link_to "Админ панель", "/admin", class: "flex items-center gap-3 p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors" %>
               </li>
             <% end %>
 
-            <!-- Панель для менеджеров -->
             <% if current_user.manager? %>
               <li class="border-t border-base-300 mt-1 pt-1">
                 <%= link_to "Панель менеджера", manager_path, class: "flex items-center gap-3 p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors" %>
               </li>
             <% end %>
 
-            <!-- Выход -->
             <li class="border-t border-base-300 mt-1 pt-1">
               <%= button_to "Выйти", logout_path,
                 method: :delete,
@@ -103,8 +95,9 @@
         </div>
       </div>
     <% else %>
-      <!-- Кнопки входа и регистрации -->
       <div class="navbar-end gap-2">
+        <%= render "shared/theme_picker" %>
+
         <%= link_to "Вход", login_path, class: "btn btn-sm btn-ghost" %>
         <%= link_to "Регистрация", signup_path, class: "btn btn-sm btn-primary" %>
       </div>

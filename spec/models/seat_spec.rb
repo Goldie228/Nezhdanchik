@@ -11,6 +11,7 @@
 #
 require 'rails_helper'
 
+
 RSpec.describe Seat, type: :model do
   describe 'validations' do
     let(:table) { create(:table) }

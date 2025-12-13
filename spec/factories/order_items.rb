@@ -14,10 +14,9 @@
 #
 FactoryBot.define do
   factory :order_item do
-    order
-    dish
+    association :order
+    association :dish
     quantity { 1 }
-    unit_price { 10.0 }
-    total_price { 10.0 } # Явно устанавливаем total_price
+    unit_price { 10.50 }
   end
 end

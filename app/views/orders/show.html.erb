@@ -1,6 +1,5 @@
 <div class="min-h-screen bg-base-200">
   <div class="container mx-auto px-4 py-4 md:py-8">
-    <!-- Хлебные крошки -->
     <div class="text-sm breadcrumbs mb-4 md:mb-6">
       <ul>
         <li><a href="/" class="text-primary hover:text-primary-focus">Главная</a></li>
@@ -17,10 +16,8 @@
       </ul>
     </div>
 
-    <!-- Основная карточка -->
     <div class="card bg-base-100 shadow-xl mb-6">
       <div class="card-body">
-        <!-- Динамический заголовок -->
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
           <div>
             <h1 class="card-title text-2xl md:text-3xl font-bold text-primary mb-2">
@@ -32,14 +29,12 @@
             </h1>
           </div>
           <div class="flex items-center gap-4">
-            <!-- Динамический значок статуса -->
             <div class="badge badge-lg <%= status_badge_class((@order || @booking).status) %>">
               <%= status_in_russian((@order || @booking).status) %>
             </div>
           </div>
         </div>
 
-        <!-- Блок с информацией о БРОНИРОВАНИИ -->
         <% if @booking %>
           <div class="mb-8">
             <h2 class="text-lg font-bold text-primary mb-4 flex items-center">
@@ -74,21 +69,20 @@
             <% if @booking.special_requests.present? %>
               <div class="bg-base-200 rounded-xl p-4 mb-6">
                 <p class="text-sm text-base-content/70 mb-1">Особые пожелания</p>
-                <p class="font-semibold"><%= @booking.special_requests %></p>
+                <p class="text-sm text-base-content/80 mt-1 break-all whitespace-normal">
+                  <%= @booking.special_requests %>
+                </p>
               </div>
             <% end %>
 
-            <!-- ИСПРАВЛЕНИЕ: Показываем каждое место отдельным бейджем -->
             <div class="bg-base-200 rounded-xl p-4">
               <p class="text-sm text-base-content/70 mb-2">Выбранные места</p>
-              
-              <%# Группируем места по столам %>
+
               <% seats_by_table = @booking.seats.group_by(&:table_id) %>
               
               <div class="flex flex-wrap gap-2">
                 <% seats_by_table.each do |table_id, seats| %>
                   <% if table_id.present? %>
-                    <%# Если это стол, показываем его название и все места %>
                     <div class="badge badge-neutral badge-lg">
                       <div class="flex items-center gap-1">
                         <span>Стол <%= seats.first.table.name %></span>
@@ -96,7 +90,6 @@
                       </div>
                     </div>
                   <% else %>
-                    <%# Если это отдельные места без стола %>
                     <% seats.each do |seat| %>
                       <div class="badge badge-neutral badge-outline">
                         Место <%= seat.number %>
@@ -148,7 +141,6 @@
                             <div>
                               <div class="font-bold"><%= item.dish.title %></div>
                               <div class="text-sm opacity-50"><%= item.dish.description %></div>
-                              <%# ИСПРАВЛЕНИЕ: Отображаем сохраненные особые инструкции (добавки/удаления) %>
                               <% if item.special_instructions.present? %>
                                 <div class="text-xs text-base-content/60 mt-1">
                                   <%= item.special_instructions %>
@@ -176,7 +168,6 @@
                 </table>
               </div>
 
-            <%# Иначе показываем товары из корзины, если заказ еще не создан %>
             <% elsif @booking.cart && @booking.cart.cart_items.active.any? %>
               <div class="overflow-x-auto">
                 <table class="table table-compact w-full">
@@ -209,7 +200,6 @@
                             <div>
                               <div class="font-bold"><%= item.dish.title %></div>
                               <div class="text-sm opacity-50"><%= item.dish.description %></div>
-                              <%# ИСПРАВЛЕНИЕ: Используем helper-метод для отображения добавок из корзины %>
                               <% if generate_special_instructions(item).present? %>
                                 <div class="text-xs text-base-content/60 mt-1">
                                   <%= generate_special_instructions(item) %>
@@ -242,7 +232,6 @@
           </div>
         <% end %>
 
-        <!-- Кнопки действий -->
         <div class="card-actions justify-between mt-8">
           <%= link_to "Вернуться к истории", orders_history_path, class: "btn btn-outline" %>
           

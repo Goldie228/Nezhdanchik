@@ -1,5 +1,4 @@
 <div class="min-h-screen bg-base-200">
-  <!-- Навигация -->
   <div class="navbar bg-base-100 shadow-lg">
     <div class="flex-1">
       <a class="btn btn-ghost normal-case text-xl">Панель менеджера</a>
@@ -15,7 +14,6 @@
   </div>
 
   <div class="container mx-auto px-4 py-6">
-    <!-- Заголовок и фильтры -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
       <div>
         <h1 class="text-3xl font-bold">План зала</h1>
@@ -39,7 +37,6 @@
       </div>
     </div>
 
-    <!-- Статистика -->
     <div class="stats shadow mb-6">
       <div class="stat">
         <div class="stat-title">Всего столов</div>
@@ -62,7 +59,6 @@
       </div>
     </div>
 
-    <!-- План зала -->
     <div class="bg-base-100 rounded-lg shadow-lg p-6 mb-6">
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-bold">План зала</h2>
@@ -71,11 +67,9 @@
       
       <div class="mockup-window border bg-base-300">
         <div class="flex justify-center px-4 py-16 bg-base-200">
-          <!-- Используем изображение плана зала как фон -->
           <div id="seat-map-container" class="relative w-full bg-white overflow-hidden rounded-xl shadow-2xl">
             <%= image_tag 'map.png', alt: 'План зала', class: 'w-full h-auto block' %>
 
-            <!-- Отображение столов с использованием предопределенных координат -->
             <% table_coords = [
               { id: 1, x_percent: 38.5, y_percent: 38.5, width_percent: 10, height_percent: 5 },
               { id: 2, x_percent: 54.5, y_percent: 7.5, width_percent: 21, height_percent: 5 },
@@ -87,8 +81,7 @@
               <%
                 table = @tables.find { |t| t.id == table_coord[:id] }
                 next unless table
-                
-                # Определяем статус стола на основе текущих бронирований
+
                 current_booking = @current_bookings.find { |b| b.seats.any? { |s| s.table_id == table.id } }
                 status = current_booking ? 'occupied' : 'available'
               %>
@@ -121,7 +114,6 @@
               </div>
             <% end %>
 
-            <!-- Отображение отдельных мест с использованием предопределенных координат -->
             <% seat_coords = [
               { id: 1,  x_percent: 37,   y_percent: 29   },
               { id: 2,  x_percent: 46.4, y_percent: 29   },
@@ -149,12 +141,10 @@
               <%
                 seat = @seats.find { |s| s.id == seat_coord[:id] }
                 next unless seat
-                
-                # Определяем статус места на основе текущих бронирований
+
                 current_booking = @current_bookings.find { |b| b.seats.include?(seat) }
                 status = current_booking ? 'occupied' : 'available'
-                
-                # Формируем подсказку с информацией о бронировании
+
                 tooltip_title = "Место #{seat.id} - #{status == 'occupied' ? 'Занято' : 'Свободно'}"
                 if current_booking
                   tooltip_title += "\nКлиент: #{current_booking.user&.full_name}"
@@ -179,8 +169,7 @@
           </div>
         </div>
       </div>
-      
-      <!-- Легенда -->
+
       <div class="flex justify-center gap-6 mt-4">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-full bg-success"></div>
@@ -197,7 +186,6 @@
       </div>
     </div>
 
-    <!-- Детальная информация о столах -->
     <div class="bg-base-100 rounded-lg shadow-lg p-6">
       <h2 class="text-xl font-bold mb-4">Информация о столах</h2>
       <div class="overflow-x-auto">
@@ -265,12 +253,10 @@
   </div>
 </div>
 
-<!-- Модальное окно для деталей стола -->
 <dialog id="table-details-modal" class="modal">
   <div class="modal-box w-11/12 max-w-5xl">
     <h3 class="font-bold text-lg" id="modal-title">Детали стола</h3>
     <div class="py-4" id="modal-content">
-      <!-- Содержимое будет загружено динамически -->
     </div>
     <div class="modal-action">
       <form method="dialog">
@@ -294,8 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentFilter = 'now';
     let tablesData = [];
     let bookingsData = [];
-    
-    // Инициализация данных о столах
+
     <% @tables.each do |table| %>
       tablesData.push({
         id: <%= table.id %>,
@@ -304,8 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
         bookingPrice: <%= table.booking_price %>
       });
     <% end %>
-    
-    // Инициализация данных о бронированиях
+
     <% @current_bookings.each do |booking| %>
       bookingsData.push({
         id: <%= booking.id %>,
@@ -317,20 +301,16 @@ document.addEventListener('DOMContentLoaded', () => {
         tableIds: [<%= booking.seats.map(&:table_id).compact.uniq.join(', ') %>]
       });
     <% end %>
-    
-    // Функция обновления времени
+
     function updateCurrentTime() {
       const now = new Date();
       currentTimeDisplay.textContent = `Текущее время: ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
     }
     
-    // Обновление время каждую минуту
     setInterval(updateCurrentTime, 60000);
-    
-    // ИСПРАВЛЕНИЕ: Вызываем функцию немедленно, чтобы не ждать первую минуту
+
     updateCurrentTime();
-    
-    // Функция применения стилей к столам
+
     function applyTableStyles(tableElement, status) {
       tableElement.classList.remove('bg-success', 'bg-warning', 'bg-info', 'bg-primary', 'ring-4', 'ring-primary', 'ring-offset-2', 'bg-white', 'cursor-not-allowed', 'opacity-90');
 
@@ -348,8 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
           tableElement.classList.add('bg-white', 'bg-opacity-30');
       }
     }
-    
-    // Функция применения стилей к местам
+
     function applySeatStyles(seatElement, status) {
       seatElement.classList.remove('bg-success', 'bg-warning', 'bg-info', 'bg-primary', 'ring-4', 'ring-primary', 'ring-offset-2', 'bg-white', 'cursor-not-allowed', 'opacity-90');
 
@@ -367,8 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
           seatElement.classList.add('bg-white');
       }
     }
-    
-    // Функция проверки доступности на основе фильтра времени
+
     function checkAvailability(filter) {
       let filterStartTime, filterEndTime;
       const now = new Date();
@@ -376,7 +354,7 @@ document.addEventListener('DOMContentLoaded', () => {
       switch (filter) {
         case 'now':
           filterStartTime = now;
-          filterEndTime = new Date(now.getTime() + 5 * 60000); // 5 минут от текущего времени
+          filterEndTime = new Date(now.getTime() + 5 * 60000);
           break;
         case 'today':
           filterStartTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
@@ -397,8 +375,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       let freeTablesCount = 0;
       let busyTablesCount = 0;
-      
-      // Обновляем статусы столов
+
       document.querySelectorAll('.table-rect').forEach(tableElement => {
         const tableId = parseInt(tableElement.dataset.tableId);
         const tableBookings = bookingsData.filter(booking => 
@@ -416,8 +393,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
           busyTablesCount++;
         }
-        
-        // Обновляем информацию в подсказке
+
         const table = tablesData.find(t => t.id === tableId);
         const booking = tableBookings[0];
         const title = booking 
@@ -425,8 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
           : `Стол ${table.name} - Свободен`;
         tableElement.title = title;
       });
-      
-      // Обновляем статусы мест
+
       document.querySelectorAll('.seat-circle').forEach(seatElement => {
         const seatId = parseInt(seatElement.dataset.seatId);
         const seatBookings = bookingsData.filter(booking => 
@@ -438,21 +413,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const status = seatBookings.length > 0 ? 'occupied' : 'available';
         seatElement.dataset.status = status;
         applySeatStyles(seatElement, status);
-        
-        // Обновляем информацию в подсказке
+
         const booking = seatBookings[0];
         const title = booking 
           ? `Место ${seatId} - Занято (${booking.userName})\nБронь №${booking.id}\nВремя: ${new Date(booking.startsAt).toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'})} - ${new Date(booking.endsAt).toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'})}`
           : `Место ${seatId} - Свободно`;
         seatElement.title = title;
       });
-      
-      // Обновляем счетчики
+
       freeCount.textContent = freeTablesCount;
       busyCount.textContent = busyTablesCount;
     }
-    
-    // Функция отображения деталей стола
+
     function showTableDetails(tableId) {
       const table = tablesData.find(t => t.id === tableId);
       if (!table) return;
@@ -514,15 +486,13 @@ document.addEventListener('DOMContentLoaded', () => {
           ${bookingsHtml}
         </div>
       `;
-      
-      // Обновляем статус в модальном окне
+
       const tableElement = document.querySelector(`[data-table-id="${tableId}"]`);
       const status = tableElement.dataset.status;
       const statusText = status === 'available' ? 'Свободен' : 'Занят';
       const statusClass = status === 'available' ? 'text-success' : 'text-warning';
       document.getElementById('modal-table-status').innerHTML = `<span class="${statusClass}">${statusText}</span>`;
-      
-      // Показываем модальное окно
+
       if (typeof tableDetailsModal.showModal === 'function') {
         tableDetailsModal.showModal();
       } else {
@@ -530,34 +500,28 @@ document.addEventListener('DOMContentLoaded', () => {
         tableDetailsModal.classList.add('modal-open');
       }
     }
-    
-    // Обработчик изменения фильтра времени
+
     timeFilter.addEventListener('change', (e) => {
       currentFilter = e.target.value;
       checkAvailability(currentFilter);
     });
-    
-    // Обработчики кликов по столам
+
     document.querySelectorAll('.table-rect').forEach(tableElement => {
       tableElement.addEventListener('click', () => {
         const tableId = parseInt(tableElement.dataset.tableId);
         showTableDetails(tableId);
       });
     });
-    
-        // Функция обновления данных
+
     function refreshData() {
-      // Здесь можно добавить AJAX-запрос для обновления данных
       location.reload();
     }
-    
-    // ИСПРАВЛЕНИЕ: Добавляем обработчик события для кнопки
+
     const refreshButton = document.getElementById('refresh-button');
     if (refreshButton) {
       refreshButton.addEventListener('click', refreshData);
     }
-    
-    // Инициализация
+
     checkAvailability(currentFilter);
   });
 </script>
@@ -589,7 +553,6 @@ document.addEventListener('DOMContentLoaded', () => {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
   }
 
-  /* Улучшаем отображение подсказок */
   .seat-circle[title]:hover::after {
     content: attr(title);
     position: absolute;

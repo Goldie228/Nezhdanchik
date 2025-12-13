@@ -11,6 +11,7 @@
 #
 require "rails_helper"
 
+
 RSpec.describe DishIngredient, type: :model do
   let!(:dish) { Dish.create!(title: "Pizza", slug: "pizza", price: 10, category: Category.create!(name: "Main", slug: "main")) }
   let!(:ingredient) { Ingredient.create!(name: "Cheese", price: 1.5) }

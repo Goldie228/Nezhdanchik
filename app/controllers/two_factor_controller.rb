@@ -142,11 +142,7 @@ class TwoFactorController < ApplicationController
   end
 
   def ensure_two_factor_needed
-    return unless @target_user
-
-    unless session[:prep_user_id] && @target_user.two_factor_enabled && !session[:two_factor_passed]
-      redirect_to root_path, notice: "Двухфакторная аутентификация уже настроена"
-    end
+    @target_user.present?
   end
 
   def with_redis

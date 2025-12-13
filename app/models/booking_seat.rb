@@ -20,7 +20,6 @@ class BookingSeat < ApplicationRecord
   def seat_available_for_booking_time
     return if booking.blank? || seat.blank?
 
-    # Проверяем, что место не забронировано на пересекающееся время
     overlapping_bookings = Booking.joins(:booking_seats)
                                     .where(booking_seats: { seat_id: seat_id })
                                     .where(status: [ "confirmed", "active" ])

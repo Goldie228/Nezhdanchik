@@ -1,4 +1,6 @@
+
 require "rails_helper"
+
 
 RSpec.describe CategoriesController, type: :request do
   describe "GET /menu" do

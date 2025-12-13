@@ -15,16 +15,12 @@ class CartController < ApplicationController
 
     if existing_cart_item
       existing_cart_item.increment!(:quantity)
-      @cart_item = existing_cart_item
     else
       CartItem.transaction do
         cart_item = @cart.cart_items.create!(dish: dish)
         cart_item.reload
-
         apply_removed_ingredients!(cart_item, removed) if removed.any?
         apply_selected_ingredients!(cart_item, selected) if selected.any?
-
-        @cart_item = cart_item
       end
     end
 
@@ -35,14 +31,7 @@ class CartController < ApplicationController
           in_cart: true
         }
       end
-
       format.html { redirect_to cart_path }
-      format.turbo_stream do
-        # Готовим актуальные данные для Turbo Stream ответа
-        @cart_item = @cart_item.reload if @cart_item&.persisted?
-        prepare_cart_data
-        render "update_cart"
-      end
     end
   end
 
@@ -52,7 +41,10 @@ class CartController < ApplicationController
 
     quantity = get_cart_item_quantity(dish, selected, removed)
 
-    render json: { quantity: quantity, in_cart: quantity > 0 }
+    render json: {
+      quantity: quantity,
+      in_cart: quantity > 0
+    }
   end
 
   def increase
@@ -63,16 +55,12 @@ class CartController < ApplicationController
 
     if existing_cart_item
       existing_cart_item.increment!(:quantity)
-      @cart_item = existing_cart_item
     else
       CartItem.transaction do
         cart_item = @cart.cart_items.create!(dish: dish)
         cart_item.reload
-
         apply_removed_ingredients!(cart_item, removed) if removed.any?
         apply_selected_ingredients!(cart_item, selected) if selected.any?
-
-        @cart_item = cart_item
       end
     end
 
@@ -82,10 +70,6 @@ class CartController < ApplicationController
           quantity: get_cart_item_quantity(dish, selected, removed),
           in_cart: true
         }
-      end
-      format.turbo_stream do
-        @cart_item = @cart_item.reload if @cart_item&.persisted?
-        prepare_cart_data
       end
     end
   end
@@ -111,14 +95,12 @@ class CartController < ApplicationController
           in_cart: get_cart_item_quantity(dish, selected, removed) > 0
         }
       end
-      format.turbo_stream do
-        prepare_cart_data
-        render "update_cart"
-      end
     end
   end
 
   def update
+    @cart_item = @cart.cart_items.find(params[:id])
+
     if params[:quantity_action] == "increase"
       @cart_item.increment!(:quantity)
     elsif params[:quantity_action] == "decrease"
@@ -133,28 +115,42 @@ class CartController < ApplicationController
 
     respond_to do |format|
       format.html { redirect_to cart_path, notice: "Корзина обновлена" }
-      format.json { render json: { success: true } }
-      format.turbo_stream do
-        # Перезагружаем объект, чтобы получить актуальное состояние (quantity, persisted?)
-        @cart_item = @cart.cart_items.find_by(id: params[:id]) if @cart_item.destroyed?
-        @cart_item.reload if @cart_item&.persisted?
-
-        # Готовим актуальные данные для всего ответа
+      format.json do
         prepare_cart_data
+
+        item_html = nil
+        unless @cart_item.destroyed?
+          item_html = render_to_string(partial: "cart_items/cart_item", locals: { cart_item: @cart_item.reload }, formats: [ :html ])
+        end
+
+        render json: {
+          item_removed_id: @cart_item.destroyed? ? @cart_item.id : nil,
+          item_html: item_html,
+          total_items: @total_items,
+          total_price: @total_price,
+          cart_summary_html: render_to_string(partial: "cart_summary", formats: [ :html ]),
+          cart_empty: @cart_items.empty?
+        }
       end
     end
   end
 
   def remove
+    @cart_item = @cart.cart_items.find(params[:id])
+    item_id = @cart_item.id
     @cart_item.destroy
 
     respond_to do |format|
       format.html { redirect_to cart_path, notice: "Товар удален из корзины" }
-      format.json { render json: { success: true } }
-      format.turbo_stream do
-        # Готовим данные для обновления итогов после удаления
+      format.json do
         prepare_cart_data
-        render "update_cart"
+        render json: {
+          item_removed_id: item_id,
+          total_items: @total_items,
+          total_price: @total_price,
+          cart_summary_html: render_to_string(partial: "cart_summary", formats: [ :html ]),
+          cart_empty: @cart_items.empty?
+        }
       end
     end
   end
@@ -163,13 +159,12 @@ class CartController < ApplicationController
     @cart.cart_items.destroy_all
     respond_to do |format|
       format.html { redirect_to cart_path, notice: "Корзина очищена" }
-      format.turbo_stream { redirect_to cart_path }
+      format.json { render json: { success: true, cart_empty: true } }
     end
   end
 
   private
 
-  # Этот метод теперь только устанавливает корзину.
   def set_cart
     @cart = Cart.for_user!(current_user)
   end
@@ -178,8 +173,6 @@ class CartController < ApplicationController
     @cart_item = @cart.cart_items.find(params[:id])
   end
 
-  # Централизованный метод для подготовки данных о корзине.
-  # Вызывается из всех действий, которые рендерят данные.
   def prepare_cart_data
     @cart_items = @cart.cart_items.includes(:dish, cart_item_ingredients: :ingredient).active
     @total_price = @cart.total_cents / 100.0

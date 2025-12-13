@@ -3,6 +3,70 @@
     <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-center">Меню</h1>
   </header>
 
+  <div class="sticky top-0 z-40 bg-base-100 shadow-md" data-controller="category-navigation">
+    <div class="max-w-7xl mx-auto">
+      <div class="hidden lg:flex overflow-x-auto scrollbar-hide justify-center">
+        <div class="flex space-x-2 px-4 py-3">
+          <%= link_to @category.slug, 
+              class: "category-tab px-4 py-2 rounded-lg font-medium transition-colors #{'bg-primary text-primary-content' if @category.id == @category.id}",
+              data: { 
+                category_id: @category.id,
+                action: "click->category-navigation#navigateToCategory" 
+              } do %>
+            <%= @category.name.squish %>
+          <% end %>
+          
+          <% @other_categories.each do |category| %>
+            <%= link_to category.slug, 
+                class: "category-tab px-4 py-2 rounded-lg font-medium transition-colors hover:bg-base-200",
+                data: { 
+                  category_id: category.id,
+                  action: "click->category-navigation#navigateToCategory" 
+                } do %>
+              <%= category.name.squish %>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+      
+      <div class="lg:hidden px-4 py-3">
+        <div class="dropdown">
+          <div tabindex="0" role="button" class="btn btn-outline w-full">
+            <span class="flex-grow text-center" id="current-category-name"><%= @category.name.squish %></span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+          <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full max-h-60 overflow-y-auto z-50">
+            <li>
+              <%= link_to @category.slug, 
+                  class: "category-tab #{'bg-primary text-primary-content' if @category.id == @category.id}",
+                  data: { 
+                    category_id: @category.id,
+                    action: "click->category-navigation#navigateToCategory" 
+                  } do %>
+                <%= @category.name.squish %>
+              <% end %>
+            </li>
+            
+            <% @other_categories.each do |category| %>
+              <li>
+                <%= link_to category.slug, 
+                    class: "category-tab",
+                    data: { 
+                      category_id: category.id,
+                      action: "click->category-navigation#navigateToCategory" 
+                    } do %>
+                  <%= category.name.squish %>
+                <% end %>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <section class="mb-6 sm:mb-8">
     <h2 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-center py-4 sm:py-6 lg:py-8 border-b">
       <%= @category.name.squish %>
@@ -15,11 +79,12 @@
   <main>
     <div id="dishes-list"
          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
-         data-controller="infinite-scroll"
+         data-controller="infinite-scroll category-navigation"
          data-infinite-scroll-url-value="<%= load_more_dishes_path(@category.slug) %>"
          data-infinite-scroll-loaded-categories-value="<%= @loaded_categories.join(',') %>"
          data-infinite-scroll-category-offsets-value="<%= @category_offsets.map { |k, v| "#{k}:#{v}" }.join(',') %>"
-         data-infinite-scroll-current-category-id-value="<%= @category.id %>">
+         data-infinite-scroll-current-category-id-value="<%= @category.id %>"
+         data-category-navigation-current-category-value="<%= @category.id %>">
       
       <%= render partial: "dishes/dish", collection: @dishes, locals: { 
         category: @category, 

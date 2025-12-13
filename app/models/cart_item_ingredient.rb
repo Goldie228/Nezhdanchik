@@ -21,7 +21,6 @@ class CartItemIngredient < ApplicationRecord
 
   validates :ingredient_id, uniqueness: { scope: :cart_item_id }
 
-  # Удобные булевые методы
   def added_by_user?
     !default_in_dish && included
   end

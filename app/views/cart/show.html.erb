@@ -1,7 +1,6 @@
 <div class="min-h-screen bg-base-200">
   <div class="container mx-auto px-4 py-4 md:py-8">
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 md:gap-8">
-      <!-- Левая колонка: товары в корзине -->
       <div class="xl:col-span-2">
         <div class="card bg-base-100 shadow-xl md:shadow-2xl">
           <div class="card-body p-4 md:p-6">
@@ -26,7 +25,7 @@
                 <%= render @cart_items %>
               </div>
             <% else %>
-              <div class="flex flex-col items-center justify-center py-12 md:py-16">
+              <div class="flex flex-col items-center justify-center py-12 md:py-16" id="cart-items-container">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 text-primary mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
@@ -39,10 +38,8 @@
         </div>
       </div>
 
-      <!-- Правая колонка: итоговая информация -->
       <div class="xl:col-span-1">
         <div class="sticky top-4 md:top-6 space-y-4 md:space-y-6">
-          <!-- Итоговая информация -->
           <div class="card from-primary/10 via-primary/5 to-secondary/10 shadow-xl md:shadow-2xl border border-primary/20">
             <div class="card-body p-4 md:p-6">
               <h2 class="card-title text-xl md:text-2xl text-primary mb-4 flex items-center gap-2">
@@ -72,119 +69,229 @@ document.addEventListener('DOMContentLoaded', function() {
 
   const csrfToken = getCsrfToken();
 
-  // Функция для обработки Turbo Stream ответов
-  function processTurboStream(turboStreamHTML) {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(turboStreamHTML, 'text/html');
-    const turboStreams = doc.querySelectorAll('turbo-stream');
-    
-    turboStreams.forEach(stream => {
-      const action = stream.getAttribute('action');
-      const target = stream.getAttribute('target');
-      const targetElement = document.getElementById(target);
-      
-      if (targetElement) {
-        const template = stream.querySelector('template');
-        if (template) {
-          switch (action) {
-            case 'replace':
-              targetElement.innerHTML = template.innerHTML;
-              break;
-            case 'remove':
-              targetElement.remove();
-              break;
-            case 'update':
-              targetElement.textContent = template.innerHTML.trim();
-              break;
-          }
-        }
-      }
-    });
+  function updateCartBadges(totalItems) {
+    const headerBadge = document.getElementById('cart-count');
+    if (headerBadge) {
+      headerBadge.textContent = totalItems;
+    }
+
+    const pageBadge = document.getElementById('cart-items-badge');
+    if (pageBadge) {
+      const wordForm = getRussianPluralize(totalItems, 'позиция', 'позиции', 'позиций');
+      pageBadge.innerHTML = `${totalItems} ${wordForm}`;
+    }
   }
 
-  // Обработка кликов
-  document.addEventListener('click', function(e) {
-    if (e.target.closest('.quantity-decrease')) {
-      e.preventDefault();
-      const button = e.target.closest('.quantity-decrease');
-      const cartItemId = button.dataset.cartItemId;
-      updateCartItemQuantity(cartItemId, 'decrease');
-    } else if (e.target.closest('.quantity-increase')) {
-      e.preventDefault();
-      const button = e.target.closest('.quantity-increase');
-      const cartItemId = button.dataset.cartItemId;
-      updateCartItemQuantity(cartItemId, 'increase');
-    } else if (e.target.closest('.remove-item')) {
-      e.preventDefault();
-      const button = e.target.closest('.remove-item');
-      const cartItemId = button.dataset.cartItemId;
-      if (confirm('Вы уверены, что хотите удалить этот товар из корзины?')) {
-        removeCartItem(cartItemId);
-      }
-    } else if (e.target.closest('.edit-item')) {
-      e.preventDefault();
-      const button = e.target.closest('.edit-item');
-      window.location.href = `/menu/${button.dataset.categorySlug}/order`;
-    }
-  });
+  function getRussianPluralize(number, one, few, many) {
+    const lastDigit = number % 10;
+    const lastTwoDigits = number % 100;
 
-  function updateCartItemQuantity(cartItemId, action) {
-    const headers = {
-      'Content-Type': 'application/json',
-      'Accept': 'text/vnd.turbo-stream.html',
-      'X-CSRF-Token': csrfToken
-    };
+    if (lastDigit === 1 && lastTwoDigits !== 11) {
+      return one;
+    } else if ([2, 3, 4].includes(lastDigit) && ![12, 13, 14].includes(lastTwoDigits)) {
+      return few;
+    } else {
+      return many;
+    }
+  }
+
+  function updateCartItem(itemId, action) {
+    const url = `/cart/update/${itemId}`;
+    const data = { quantity_action: action };
     
-    fetch(`/cart/update/${cartItemId}`, {
+    fetch(url, {
       method: 'PATCH',
-      headers: headers,
-      body: JSON.stringify({
-        quantity_action: action
-      })
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': csrfToken,
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(data)
     })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
+    .then(response => response.json())
+    .then(data => {
+      if (data.item_removed_id) {
+        const itemElement = document.getElementById(`cart-item-${data.item_removed_id}`);
+        if (itemElement) {
+          itemElement.remove();
+        }
+      } else if (data.item_html) {
+        const itemElement = document.getElementById(`cart-item-${itemId}`);
+        if (itemElement) {
+          const tempDiv = document.createElement('div');
+          tempDiv.innerHTML = data.item_html;
+          const newItemElement = tempDiv.firstElementChild;
+          itemElement.parentNode.replaceChild(newItemElement, itemElement);
+        }
       }
-      return response.text();
-    })
-    .then(html => {
-      processTurboStream(html);
+
+      if (data.cart_summary_html) {
+        const summaryElement = document.getElementById('cart-summary');
+        if (summaryElement) {
+          summaryElement.innerHTML = data.cart_summary_html;
+        }
+      }
+
+      if (data.total_items !== undefined) {
+        updateCartBadges(data.total_items);
+      }
+
+      if (data.cart_empty) {
+        const container = document.getElementById('cart-items-container');
+        if (container) {
+          container.innerHTML = `
+            <div class="flex flex-col items-center justify-center py-12 md:py-16">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 text-primary mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
+              <h3 class="text-xl font-semibold text-base-content/70 mb-2">Ваша корзина пуста</h3>
+              <p class="text-base-content/50 mb-6">Добавьте что-нибудь из нашего меню</p>
+              <a href="/menu" class="btn btn-primary">Перейти в меню</a>
+            </div>
+          `;
+        }
+      }
     })
     .catch(error => {
       console.error('Error updating cart item:', error);
-      // В случае ошибки показываем уведомление и перезагружаем страницу
       alert('Произошла ошибка при обновлении корзины');
       location.reload();
     });
   }
 
-  function removeCartItem(cartItemId) {
-    const headers = {
-      'Content-Type': 'application/json',
-      'Accept': 'text/vnd.turbo-stream.html',
-      'X-CSRF-Token': csrfToken
-    };
+  function removeCartItem(itemId) {
+    if (!confirm('Вы уверены, что хотите удалить этот товар из корзины?')) {
+      return;
+    }
+
+    const url = `/cart/remove/${itemId}`;
     
-    fetch(`/cart/remove/${cartItemId}`, {
+    fetch(url, {
       method: 'DELETE',
-      headers: headers
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': csrfToken,
+        'Accept': 'application/json'
       }
-      return response.text();
     })
-    .then(html => {
-      processTurboStream(html);
+    .then(response => response.json())
+    .then(data => {
+      const itemElement = document.getElementById(`cart-item-${itemId}`);
+      if (itemElement) {
+        itemElement.remove();
+      }
+
+      if (data.cart_summary_html) {
+        const summaryElement = document.getElementById('cart-summary');
+        if (summaryElement) {
+          summaryElement.innerHTML = data.cart_summary_html;
+        }
+      }
+
+      if (data.total_items !== undefined) {
+        updateCartBadges(data.total_items);
+      }
+
+      if (data.cart_empty) {
+        const container = document.getElementById('cart-items-container');
+        if (container) {
+          container.innerHTML = `
+            <div class="flex flex-col items-center justify-center py-12 md:py-16">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 text-primary mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
+              <h3 class="text-xl font-semibold text-base-content/70 mb-2">Ваша корзина пуста</h3>
+              <p class="text-base-content/50 mb-6">Добавьте что-нибудь из нашего меню</p>
+              <a href="/menu" class="btn btn-primary">Перейти в меню</a>
+            </div>
+          `;
+        }
+      }
     })
     .catch(error => {
       console.error('Error removing cart item:', error);
-      // В случае ошибки показываем уведомление и перезагружаем страницу
       alert('Произошла ошибка при удалении товара');
       location.reload();
     });
   }
+
+  const clearCartButton = document.getElementById('clear-cart-button');
+  if (clearCartButton) {
+    clearCartButton.addEventListener('click', function(e) {
+      e.preventDefault();
+      if (!confirm('Вы уверены, что хотите очистить всю корзину?')) {
+        return;
+      }
+
+      const url = '/cart/clear';
+      
+      fetch(url, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
+          'Accept': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          updateCartBadges(0);
+
+          const container = document.getElementById('cart-items-container');
+          if (container) {
+            container.innerHTML = `
+              <div class="flex flex-col items-center justify-center py-12 md:py-16">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 text-primary mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+                <h3 class="text-xl font-semibold text-base-content/70 mb-2">Ваша корзина пуста</h3>
+                <p class="text-base-content/50 mb-6">Добавьте что-нибудь из нашего меню</p>
+                <a href="/menu" class="btn btn-primary">Перейти в меню</a>
+              </div>
+            `;
+          }
+
+          const summaryElement = document.getElementById('cart-summary');
+          if (summaryElement) {
+            summaryElement.innerHTML = `
+              <div class="flex flex-col items-center justify-center py-12 md:py-16">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 text-primary mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+                <h3 class="text-xl font-semibold text-base-content/70 mb-2">Ваша корзина пуста</h3>
+                <p class="text-base-content/50 mb-6">Добавьте что-нибудь из нашего меню</p>
+                <a href="/menu" class="btn btn-primary">Перейти в меню</a>
+              </div>
+            `;
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Error clearing cart:', error);
+        alert('Произошла ошибка при очистке корзины');
+        location.reload();
+      });
+    });
+  }
+
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.quantity-decrease')) {
+      e.preventDefault();
+      const button = e.target.closest('.quantity-decrease');
+      const cartItemId = button.dataset.cartItemId;
+      updateCartItem(cartItemId, 'decrease');
+    } else if (e.target.closest('.quantity-increase')) {
+      e.preventDefault();
+      const button = e.target.closest('.quantity-increase');
+      const cartItemId = button.dataset.cartItemId;
+      updateCartItem(cartItemId, 'increase');
+    } else if (e.target.closest('.remove-item')) {
+      e.preventDefault();
+      const button = e.target.closest('.remove-item');
+      const cartItemId = button.dataset.cartItemId;
+      removeCartItem(cartItemId);
+    }
+  });
 });
 </script>

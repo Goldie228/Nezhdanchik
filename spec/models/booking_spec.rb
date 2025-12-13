@@ -19,6 +19,7 @@
 #
 require 'rails_helper'
 
+
 RSpec.describe Booking, type: :model do
   let(:user) { create(:user) }
   let(:booking) { create(:booking, user: user) }
@@ -31,7 +32,7 @@ RSpec.describe Booking, type: :model do
   describe 'associations' do
     it { should belong_to(:user) }
     it { should belong_to(:cart).optional }
-    it { should belong_to(:order).optional }
+    it { should have_one(:order) }
     it { should have_many(:booking_seats).dependent(:destroy) }
     it { should have_many(:seats).through(:booking_seats) }
   end

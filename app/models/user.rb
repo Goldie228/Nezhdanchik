@@ -66,22 +66,32 @@ class User < ApplicationRecord
   def email_otp_valid?(code)
     return false if email_otp_sent_at.nil?
     return false if Time.current > (email_otp_sent_at + OTP_TTL)
+    errors.add(:base, I18n.t("users.otp.expired")) if Time.current > (email_otp_sent_at + OTP_TTL)
     return false if email_otp_attempts >= MAX_OTP_ATTEMPTS
+    errors.add(:base, I18n.t("users.otp.max_attempts")) if email_otp_attempts >= MAX_OTP_ATTEMPTS
+
     if ActiveSupport::SecurityUtils.secure_compare(code.to_s, email_otp_code.to_s)
       clear_email_otp!
       true
     else
       increment!(:email_otp_attempts)
+      errors.add(:base, I18n.t("users.otp.invalid"))
       false
     end
   end
 
   def email_change_pending?
     tokens = REDIS_CLIENT.keys("email_change:*")
-    tokens.any? do |token|
+    result = tokens.any? do |token|
       data = JSON.parse(REDIS_CLIENT.get(token))
       data["user_id"] == id
     end
+
+    if result
+      errors.add(:base, I18n.t("users.otp.email_change_pending"))
+    end
+
+    result
   rescue
     false
   end

@@ -1,10 +1,10 @@
 class ManagerController < ApplicationController
   include ActionView::Helpers::NumberHelper
-  
+
   before_action :authenticate_user!
   before_action :require_manager_role
-  before_action :set_date_range, only: [:calendar, :tables_view]
-  before_action :set_booking, only: [:show, :edit, :update, :destroy, :add_dish_to_order, :update_order_item, :remove_order_item]
+  before_action :set_date_range, only: [ :calendar, :tables_view ]
+  before_action :set_booking, only: [ :show, :edit, :update, :destroy, :add_dish_to_order, :update_order_item, :remove_order_item ]
 
   TABLE_COORDS = [
     { id: 1, x_percent: 38.5, y_percent: 38.5, width_percent: 10, height_percent: 5 },
@@ -36,59 +36,63 @@ class ManagerController < ApplicationController
     { id: 20, x_percent: 46.3, y_percent: 69.0 }
   ].freeze
 
-  # Часы работы заведения
+  STATUSES = [
+    { value: "pending", color: "badge-warning" },
+    { value: "confirmed", color: "badge-info" },
+    { value: "completed", color: "badge-success" },
+    { value: "cancelled", color: "badge-neutral" }
+  ].freeze
+
   WORKING_HOURS = {
-    1..4 => { open: "09:00", close: "23:00" },  # Понедельник-Четверг
-    5..6 => { open: "09:00", close: "00:00" },  # Пятница-Суббота
-    0..0 => { open: "09:00", close: "23:00" }   # Воскресенье
+    1..4 => { open: "09:00", close: "23:00" },
+    5..6 => { open: "09:00", close: "00:00" },
+    0..0 => { open: "09:00", close: "23:00" }
   }.freeze
 
   def dashboard
     @active_bookings = get_active_bookings
     @today_bookings = Booking.includes(:user, :seats, :order)
-                             .where(status: ['pending', 'confirmed'])
-                             .where('starts_at >= ? AND starts_at <= ?', Date.current.beginning_of_day, Date.current.end_of_day)
+                             .where(status: [ "pending", "confirmed" ])
+                             .where("starts_at >= ? AND starts_at <= ?", Date.current.beginning_of_day, Date.current.end_of_day)
                              .order(starts_at: :asc)
-    
+
     @tables = Table.includes(:seats).active
     @individual_seats = Seat.where(table_id: nil)
     @current_bookings = Booking.includes(:user, :seats, :order)
-                               .where(status: ['pending', 'confirmed'])
-                               .where('starts_at <= ? AND ends_at >= ?', Time.current, Time.current)
+                               .where(status: [ "pending", "confirmed" ])
+                               .where("starts_at <= ? AND ends_at >= ?", Time.current, Time.current)
     @upcoming_bookings = Booking.includes(:user, :seats, :order)
-                               .where(status: ['pending', 'confirmed'])
-                               .where('starts_at > ? AND starts_at <= ?', Time.current, Time.current + 7.days)
+                               .where(status: [ "pending", "confirmed" ])
+                               .where("starts_at > ? AND starts_at <= ?", Time.current, Time.current + 7.days)
                                .order(starts_at: :asc)
                                .limit(10)
 
-    # Добавьте эту строку для оптимизации и корректной работы
-    @table_seat_counts = Table.active.includes(:seats).group(:id).count('seats.id')
+    @table_seat_counts = Table.active.includes(:seats).group(:id).count("seats.id")
   end
 
   def calendar
     @bookings = Booking.includes(:user, :seats, :order)
-                      .where(status: ['pending', 'confirmed'])
-                      .where('starts_at >= ? AND starts_at <= ?', @start_date, @end_date)
+                      .where(status: [ "pending", "confirmed" ])
+                      .where("starts_at >= ? AND starts_at <= ?", @start_date, @end_date)
                       .order(starts_at: :asc)
-    
+
     @tables = Table.includes(:seats).active
     @individual_seats = Seat.where(table_id: nil)
 
-    # Добавьте эту строку для оптимизации и корректной работы
-    @table_seat_counts = Table.active.includes(:seats).group(:id).count('seats.id')
+    @table_seat_counts = Table.active.includes(:seats).group(:id).count("seats.id")
   end
 
   def tables_view
     @tables = Table.includes(:seats).active
     @current_bookings = Booking.includes(:user, :seats, :order)
-                               .where(status: ['pending', 'confirmed'])
-                               .where('starts_at <= ? AND ends_at >= ?', Time.current, Time.current)
-    
+                               .where(status: [ "pending", "confirmed" ])
+                               .where("starts_at <= ? AND ends_at >= ?", Time.current, Time.current)
+
     @today_bookings = Booking.includes(:user, :seats, :order)
-                             .where(status: ['pending', 'confirmed'])
-                             .where('starts_at >= ? AND starts_at <= ?', Date.current.beginning_of_day, Date.current.end_of_day)
+                             .where(status: [ "pending", "confirmed" ])
+                             .where("starts_at >= ? AND starts_at <= ?", Date.current.beginning_of_day, Date.current.end_of_day)
                              .order(starts_at: :asc)
-    
+
     @seats = Seat.includes(:table).all
   end
 
@@ -99,60 +103,53 @@ class ManagerController < ApplicationController
 
   def edit
     @categories = Category.where(active: true).order(:name)
-    # Используем метод build вместо find_or_initialize_by для правильной инициализации ассоциации
     @order = @booking.order || @booking.build_order(user: @booking.user)
     @order_items = @order.order_items.includes(:dish) || []
   end
 
   def update
     Rails.logger.info "Updating booking #{@booking.id} with params: #{booking_params.inspect}"
-    
-    # Обновляем только статус, используя update_column, чтобы избежать сохранения связанных объектов
+
     if @booking.update_column(:status, booking_params[:status])
-      # Обновляем updated_at вручную, так как update_column не делает этого автоматически
       @booking.touch(:updated_at)
       redirect_to manager_booking_path(@booking), notice: "Бронирование успешно обновлено"
     else
       Rails.logger.error "Failed to update booking: #{@booking.errors.full_messages.join(', ')}"
-      
-      # Загружаем данные снова для корректного рендеринга
+
       @categories = Category.where(active: true).order(:name)
-      # Используем метод build вместо find_or_initialize_by для правильной инициализации ассоциации
       @order = @booking.order || @booking.build_order(user: @booking.user)
       @order_items = @order.order_items.includes(:dish) || []
-      
+
       render :edit, status: :unprocessable_entity
     end
   rescue => e
     Rails.logger.error "Exception in update: #{e.message}"
     Rails.logger.error e.backtrace.join("\n")
     flash[:alert] = "Произошла непредвиденная ошибка: #{e.message}"
-    
-    # Загружаем данные снова для корректного рендеринга
+
     @categories = Category.where(active: true).order(:name)
-    # Используем метод build вместо find_or_initialize_by для правильной инициализации ассоциации
     @order = @booking.order || @booking.build_order(user: @booking.user)
     @order_items = @order.order_items.includes(:dish) || []
-    
+
     render :edit, status: :unprocessable_entity
   end
 
   def destroy
-    @booking.update(status: 'cancelled')
+    @booking.update(status: "cancelled")
     redirect_to manager_bookings_path, notice: "Бронирование отменено"
   end
 
   def dishes_by_category
     category_id = params[:category_id]
-    
+
     if category_id.blank?
       render json: { success: false, message: "ID категории обязателен" }, status: :bad_request
       return
     end
-    
+
     category = Category.find(category_id)
     dishes = category.dishes.includes(:ingredients).active
-    
+
     render json: {
       success: true,
       dishes: dishes.map do |dish|
@@ -161,7 +158,6 @@ class ManagerController < ApplicationController
           title: dish.title,
           description: dish.description,
           price: dish.price,
-          # Гарантируем, что ingredients всегда массив
           ingredients: dish.dish_ingredients.includes(:ingredient).map do |di|
             {
               id: di.ingredient.id,
@@ -179,32 +175,31 @@ class ManagerController < ApplicationController
 
   def order_item
     order_item_id = params[:id]
-    
+
     if order_item_id.blank?
       render json: { success: false, message: "ID элемента заказа обязателен" }, status: :bad_request
       return
     end
-    
+
     order_item = OrderItem.includes(:dish).find(order_item_id)
-    
-    # Разбираем специальные инструкции для получения информации об ингредиентах
+
     selected_ingredients = []
     removed_ingredients = []
-    
+
     if order_item.special_instructions.present?
-      instructions = order_item.special_instructions.split(';')
-      
+      instructions = order_item.special_instructions.split(";")
+
       instructions.each do |instruction|
-        if instruction.include?('Добавки:')
-          added_names = instruction.sub('Добавки:', '').strip.split(',').map(&:strip)
+        if instruction.include?("Добавки:")
+          added_names = instruction.sub("Добавки:", "").strip.split(",").map(&:strip)
           selected_ingredients = Ingredient.where(name: added_names).pluck(:id)
-        elsif instruction.include?('Без:')
-          removed_names = instruction.sub('Без:', '').strip.split(',').map(&:strip)
+        elsif instruction.include?("Без:")
+          removed_names = instruction.sub("Без:", "").strip.split(",").map(&:strip)
           removed_ingredients = Ingredient.where(name: removed_names).pluck(:id)
         end
       end
     end
-    
+
     render json: {
       success: true,
       order_item: {
@@ -219,7 +214,6 @@ class ManagerController < ApplicationController
           title: order_item.dish.title,
           description: order_item.dish.description,
           price: order_item.dish.price,
-          # Гарантируем, что ingredients всегда массив
           ingredients: order_item.dish.dish_ingredients.includes(:ingredient).map do |di|
             {
               id: di.ingredient.id,
@@ -235,32 +229,23 @@ class ManagerController < ApplicationController
     render json: { success: false, message: "Ошибка при загрузке элемента заказа: #{e.message}" }, status: :internal_server_error
   end
 
-  # Добавление блюда в заказ
   def add_dish_to_order
     dish = Dish.find(params[:dish_id])
     selected, removed = normalize_ingredient_params(params)
     quantity = params[:quantity].to_i > 0 ? params[:quantity].to_i : 1
 
     ActiveRecord::Base.transaction do
-      # Создаем заказ, если его нет
       order = @booking.order || @booking.build_order(user: @booking.user)
       order.save! if order.new_record?
 
-      # Генерируем специальные инструкции на основе выбранных и удаленных ингредиентов
       special_instructions = generate_special_instructions_from_params(selected, removed)
-      
-      # Рассчитываем цену с учетом дополнительных ингредиентов
       unit_price = calculate_unit_price(dish, selected)
-      
-      # Проверяем, есть ли уже такой товар в заказе
       existing_item = find_existing_order_item(order, dish, special_instructions)
 
       if existing_item
-        # Если товар уже есть, увеличиваем количество
         existing_item.increment!(:quantity, quantity)
         order_item = existing_item
       else
-        # Иначе создаем новый товар
         order_item = order.order_items.create!(
           dish: dish,
           quantity: quantity,
@@ -269,7 +254,6 @@ class ManagerController < ApplicationController
         )
       end
 
-      # Пересчитываем общую сумму заказа
       update_order_total(order)
     end
 
@@ -286,7 +270,7 @@ class ManagerController < ApplicationController
   rescue => e
     Rails.logger.error "Error in add_dish_to_order: #{e.message}"
     Rails.logger.error e.backtrace.join("\n")
-    
+
     respond_to do |format|
       format.json do
         render json: {
@@ -298,33 +282,26 @@ class ManagerController < ApplicationController
     end
   end
 
-  # Обновление элемента заказа
   def update_order_item
-    # Проверяем, что заказ существует
     unless @booking.order
       render json: { success: false, message: "У этого бронирования нет заказа" }, status: :unprocessable_entity
       return
     end
-    
+
     order_item = @booking.order.order_items.find(params[:order_item_id])
     selected, removed = normalize_ingredient_params(params)
     quantity = params[:quantity].to_i > 0 ? params[:quantity].to_i : 1
 
     ActiveRecord::Base.transaction do
-      # Генерируем специальные инструкции на основе выбранных и удаленных ингредиентов
       special_instructions = generate_special_instructions_from_params(selected, removed)
-      
-      # Рассчитываем цену с учетом дополнительных ингредиентов
       unit_price = calculate_unit_price(order_item.dish, selected)
-      
-      # Обновляем элемент заказа
+
       order_item.update!(
         quantity: quantity,
         unit_price: unit_price,
         special_instructions: special_instructions
       )
 
-      # Пересчитываем общую сумму заказа
       update_order_total(@booking.order)
     end
 
@@ -341,7 +318,7 @@ class ManagerController < ApplicationController
   rescue => e
     Rails.logger.error "Error in update_order_item: #{e.message}"
     Rails.logger.error e.backtrace.join("\n")
-    
+
     respond_to do |format|
       format.json do
         render json: {
@@ -353,14 +330,12 @@ class ManagerController < ApplicationController
     end
   end
 
-  # Удаление элемента заказа
   def remove_order_item
-    # Проверяем, что заказ существует
     unless @booking.order
       render json: { success: false, message: "У этого бронирования нет заказа" }, status: :unprocessable_entity
       return
     end
-    
+
     order_item = @booking.order.order_items.find(params[:order_item_id])
 
     ActiveRecord::Base.transaction do
@@ -387,7 +362,7 @@ class ManagerController < ApplicationController
   rescue => e
     Rails.logger.error "Error in remove_order_item: #{e.message}"
     Rails.logger.error e.backtrace.join("\n")
-    
+
     respond_to do |format|
       format.json do
         render json: {
@@ -400,10 +375,8 @@ class ManagerController < ApplicationController
   end
 
   def bookings
-    # Базовый запрос с предзагрузкой всех необходимых данных
     @bookings = Booking.includes(:user, { seats: :table }, :order)
 
-    # --- Поиск ---
     if params[:search].present?
       search_term = "%#{params[:search]}%"
       @bookings = @bookings.joins(:user).where(
@@ -412,20 +385,23 @@ class ManagerController < ApplicationController
       )
     end
 
-    # --- Сортировка ---
-    # Белый список допустимых колонок для сортировки (безопасность)
+    if params[:status].present?
+      if [ "pending", "confirmed" ].include?(params[:status])
+        @bookings = @bookings.where(status: params[:status]).where("ends_at > ?", Time.current)
+      else
+        @bookings = @bookings.where(status: params[:status])
+      end
+    end
+
     allowed_columns = %w[booking_number starts_at total_price status created_at users.first_name users.last_name]
-    sort_column = (params[:sort] && allowed_columns.include?(params[:sort])) ? params[:sort] : 'starts_at'
-    sort_direction = (params[:direction] == 'asc') ? 'asc' : 'desc'
-    
-    # Применяем сортировку
+    sort_column = (params[:sort] && allowed_columns.include?(params[:sort])) ? params[:sort] : "starts_at"
+    sort_direction = (params[:direction] == "asc") ? "asc" : "desc"
+
     @bookings = @bookings.order("#{sort_column} #{sort_direction}")
 
-    # --- Пагинация ---
     per_page = params[:per_page].to_i > 0 ? params[:per_page].to_i : 20
-    per_page = [[per_page, 10].max, 100].min # Ограничиваем от 10 до 100
+    per_page = [ [ per_page, 10 ].max, 100 ].min
 
-    # Всегда применяем пагинацию, даже если есть поиск
     @bookings = @bookings.page(params[:page]).per(per_page)
   end
 
@@ -443,8 +419,8 @@ class ManagerController < ApplicationController
 
   def refresh_orders
     @active_bookings = get_active_bookings
-    
-    render partial: 'bookings_list', locals: { active_bookings: @active_bookings }, layout: false
+
+    render partial: "bookings_list", locals: { active_bookings: @active_bookings }, layout: false
   rescue => e
     Rails.logger.error "Error in refresh_bookings: #{e.message}"
     Rails.logger.error e.backtrace.join("\n")
@@ -452,6 +428,15 @@ class ManagerController < ApplicationController
   end
 
   private
+
+  def status_in_russian(status)
+    {
+      "pending"   => "В ожидании",
+      "confirmed" => "Подтверждено",
+      "cancelled" => "Отменено",
+      "completed" => "Завершено"
+    }[status] || status.capitalize
+  end
 
   def set_booking
     @booking = Booking.includes(:user, :seats, :order, :booking_seats).find(params[:id])
@@ -463,7 +448,7 @@ class ManagerController < ApplicationController
     else
       @selected_date = Date.current
     end
-    
+
     @start_date = @selected_date.beginning_of_day
     @end_date = @selected_date.end_of_day
   end
@@ -475,22 +460,23 @@ class ManagerController < ApplicationController
 
   def get_active_bookings
     Booking.includes(:order, :booking_seats, :seats, :user)
-        .where(status: ['pending', 'confirmed'])
-        .where('ends_at > ?', Time.current)
+        .where(status: [ "pending", "confirmed" ])
+        .where("ends_at > ?", Time.current)
         .order(created_at: :desc)
   end
 
   def get_status_info(status)
-    get_statuses_list.find { |s| s[:value] == status } || { text: status, color: 'badge-neutral' }
+    get_statuses_list.find { |s| s[:value] == status } || { text: status, color: "badge-neutral" }
   end
 
   def get_statuses_list
-    [
-      { value: "pending", text: "Ожидает", color: "badge-warning" },
-      { value: "confirmed", text: "Подтверждено", color: "badge-info" },
-      { value: "completed", text: "Завершено", color: "badge-success" },
-      { value: "cancelled", text: "Отменено", color: "badge-neutral" }
-    ]
+    STATUSES.map do |s|
+      {
+        value: s[:value],
+        text: status_in_russian(s[:value]),
+        color: s[:color]
+      }
+    end
   end
 
   def generate_special_instructions(cart_item)
@@ -511,7 +497,7 @@ class ManagerController < ApplicationController
       instructions << "Без: #{removed_names.join(', ')}"
     end
 
-    instructions.any? ? instructions.join('; ') : nil
+    instructions.any? ? instructions.join("; ") : nil
   end
 
   def generate_special_instructions_from_params(selected_ids, removed_ids)
@@ -527,15 +513,13 @@ class ManagerController < ApplicationController
       instructions << "Без: #{removed_names.join(', ')}"
     end
 
-    instructions.any? ? instructions.join('; ') : nil
+    instructions.any? ? instructions.join("; ") : nil
   end
 
   def calculate_unit_price(dish, selected_ids)
     base_price = dish.price
-    
-    # Добавляем цену выбранных ингредиентов
     additional_price = Ingredient.where(id: selected_ids).sum(:price)
-    
+
     base_price + additional_price
   end
 
@@ -546,10 +530,8 @@ class ManagerController < ApplicationController
   def format_phone_number(phone)
     return "Номер не указан" if phone.blank?
 
-    # Удаляем все нецифровые символы
-    cleaned = phone.gsub(/\D/, '')
+    cleaned = phone.gsub(/\D/, "")
 
-    # Обрабатываем 9-значный белорусский номер (без +375)
     if cleaned.length == 9
       country_code = "+375"
       operator_code = cleaned[0..1]
@@ -559,9 +541,8 @@ class ManagerController < ApplicationController
 
       return "#{country_code} (#{operator_code}) #{first_part}-#{second_part}-#{third_part}"
     end
-    
-    # Обрабатываем 12-значный номер с кодом страны (375...)
-    if cleaned.length == 12 && cleaned.start_with?('375')
+
+    if cleaned.length == 12 && cleaned.start_with?("375")
       country_code = "+375"
       operator_code = cleaned[3..4]
       first_part = cleaned[5..7]
@@ -570,8 +551,7 @@ class ManagerController < ApplicationController
 
       return "#{country_code} (#{operator_code}) #{first_part}-#{second_part}-#{third_part}"
     end
-    
-    # Если формат не распознан, возвращаем как есть
+
     phone
   end
 
@@ -603,37 +583,62 @@ class ManagerController < ApplicationController
 
   def booking_status_in_russian(status)
     case status
-    when 'pending'
-      'Ожидает'
-    when 'confirmed'
-      'Подтверждено'
-    when 'completed'
-      'Завершено'
-    when 'cancelled'
-      'Отменено'
+    when "pending"
+      "Ожидает"
+    when "confirmed"
+      "Подтверждено"
+    when "completed"
+      "Завершено"
+    when "cancelled"
+      "Отменено"
     else
       status.capitalize
     end
   end
 
+  def get_status_info(status)
+    status_data = STATUSES.find { |s| s[:value] == status }
+    return { text: status_in_russian(status), color: "badge-neutral" } unless status_data
+
+    {
+      text: status_in_russian(status),
+      color: status_data[:color]
+    }
+  end
+
   def russian_date(date)
     months = {
-      1 => 'января', 2 => 'февраля', 3 => 'марта', 4 => 'апреля',
-      5 => 'мая', 6 => 'июня', 7 => 'июля', 8 => 'августа',
-      9 => 'сентября', 10 => 'октября', 11 => 'ноября', 12 => 'декабря'
+      1 => "января", 2 => "февраля", 3 => "марта", 4 => "апреля",
+      5 => "мая", 6 => "июня", 7 => "июля", 8 => "августа",
+      9 => "сентября", 10 => "октября", 11 => "ноября", 12 => "декабря"
     }
     "#{date.day} #{months[date.month]}"
+  end
+
+  def sort_link(column, title = nil)
+    title ||= column.titleize
+    direction = column == params[:sort] && params[:direction] == "asc" ? "desc" : "asc"
+    icon = direction == "asc" ? "↑" : "↓"
+
+    link_to manager_bookings_path(sort: column, direction: direction, search: params[:search], status: params[:status], per_page: params[:per_page]),
+            class: "flex items-center gap-1" do
+      concat title
+      if column == params[:sort]
+        concat content_tag(:span, icon, class: "text-xs")
+      end
+    end
   end
 
   helper_method :booking_status_in_russian
   helper_method :russian_date
   helper_method :generate_special_instructions
+  helper_method :status_in_russian
   helper_method :get_statuses_list
   helper_method :get_status_info
   helper_method :format_phone_number
 
   def require_manager_role
-    if current_user&.role&.to_s.in?(["2", "3"])
+    if current_user&.role&.to_s.in?([ "2", "3" ])
       redirect_to root_path, alert: "Доступ запрещен"
     end
   end

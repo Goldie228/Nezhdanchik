@@ -15,78 +15,68 @@ ru:
       short: "%d %b %H:%M"
 
   activerecord:
-    models:
-      user: "Пользователь"
-      nutrition: "Пищевая ценность"
-      ingredient: "Ингредиент"
-      dish_ingredient: "Связь блюда и ингредиента"
-      dish: "Блюдо"
-      category: "Категория"
-    enums:
-      user:
-        role:
-          customer: Клиент
-          manager: Менеджер
-          admin: Администратор
-    attributes:
-      user:
-        role: Роль
-        email: "Email"
-        phone: "Телефон"
-        first_name: "Имя"
-        last_name: "Фамилия"
-        middle_name: "Отчество"
-        password: "Пароль"
-        password_confirmation: "Подтверждение пароля"
-      nutrition:
-        proteins: "Белки"
-        fats: "Жиры"
-        carbohydrates: "Углеводы"
-        dish: "Блюдо"
-        ingredient: "Ингредиент"
-      ingredient:
-        name: "Название"
-        price: "Цена"
-        available: "Доступен"
-        allergen: "Аллерген"
-        weight: "Вес"
-        photo: "Фото"
-      dish_ingredient:
-        dish: "Блюдо"
-        ingredient: "Ингредиент"
-        default: "По умолчанию"
-      dish:
-        title: "Название"
-        description: "Описание"
-        price: "Цена"
-        slug: "Слаг"
-        active: "Активно"
-        cooking_time_minutes: "Время приготовления (мин)"
-        category: "Категория"
-        weight: "Вес"
-        photos: "Фотографии"
-      category:
-        name: "Название"
-        description: "Описание"
-        slug: "Слаг"
-        active: "Активна"
-        photo: "Фото"
-  errors:
-    messages:
-      blank: "не может быть пустым"
-      taken: "уже используется"
-      too_short: "слишком короткий (минимум %{count} символов)"
-      too_long: "слишком длинный (максимум %{count} символов)"
-      invalid: "имеет неверный формат"
-      invalid_phone: "должен содержать ровно 9 цифр без кода страны"
-      must_have_parent: "должна быть привязана либо к блюду, либо к ингредиенту"
-      cannot_have_both: "не может одновременно принадлежать и блюду, и ингредиенту"
-      not_a_number: "должен быть числом"
-      not_an_integer: "должен быть целым числом"
-      greater_than: "должен быть больше %{count}"
-      greater_than_or_equal_to: "должен быть больше или равен %{count}"
-      less_than: "должен быть меньше %{count}"
-      less_than_or_equal_to: "должен быть меньше или равен %{count}"
-      wrong_content_type: "имеет недопустимый формат файла"
-      file_size_out_of_range: "слишком большой файл (максимум %{file_size})"
-      inclusion: "имеет недопустимое значение"
+    errors:
+      models:
+        user:
+          attributes:
+            email:
+              blank: "Email не может быть пустым"
+              taken: "Такой email уже зарегистрирован в системе"
+              too_long: "Email слишком длинный (максимум %{count} символов)"
+              invalid: "Неверный формат email"
+            phone:
+              blank: "Номер телефона не может быть пустым"
+              taken: "Такой номер телефона уже зарегистрирован в системе"
+              invalid_phone: "Неверный формат номера телефона (требуется 9 цифр)"
+            first_name:
+              blank: "Имя не может быть пустым"
+              too_long: "Имя слишком длинное (максимум %{count} символов)"
+            last_name:
+              blank: "Фамилия не может быть пустой"
+              too_long: "Фамилия слишком длинная (максимум %{count} символов)"
+            middle_name:
+              too_long: "Отчество слишком длинное (максимум %{count} символов)"
+            password:
+              too_short: "Пароль слишком короткий (минимум %{count} символов)"
+              invalid: "Неверный пароль"
+            password_digest:
+              blank: "Пароль не может быть пустым"
+            role:
+              blank: "Роль не может быть пустой"
+            two_factor_enabled:
+              inclusion: "Значение двухфакторной аутентификации должно быть включено или выключено"
+            email_otp_attempts:
+              not_a_number: "Количество попыток ввода OTP должно быть числом"
+              greater_than_or_equal_to: "Количество попыток не может быть отрицательным"
+        cart:
+          attributes:
+            user:
+              required: "Необходимо указать пользователя"
+        booking:
+          attributes:
+            user:
+              required: "Необходимо указать пользователя"
+        order:
+          attributes:
+            user:
+              required: "Необходимо указать пользователя"
+      messages:
+        blank: "не может быть пустым"
+        taken: "уже используется"
+        too_long: "слишком длинный (максимум %{count} символов)"
+        too_short: "слишком короткий (минимум %{count} символов)"
+        invalid: "имеет неверный формат"
+        inclusion: "не входит в список разрешенных значений"
+        confirmation: "не совпадает с подтверждением"
+        required: "должно быть указано"
+        not_a_number: "не является числом"
+        greater_than_or_equal_to: "должно быть больше или равно %{count}"
+        record_invalid: "Ошибка валидации: %{errors}"
+
+  users:
+    otp:
+      expired: "Срок действия кода подтверждения истек"
+      max_attempts: "Превышено максимальное количество попыток ввода кода"
+      invalid: "Неверный код подтверждения"
+      email_change_pending: "У вас есть незавершенная смена email. Пожалуйста, завершите ее или отмените"
+

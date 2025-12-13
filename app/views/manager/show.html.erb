@@ -1,5 +1,4 @@
 <div class="min-h-screen bg-base-200">
-  <!-- Навигация -->
   <div class="navbar bg-base-100 shadow-lg no-print">
     <div class="flex-1">
       <a class="btn btn-ghost normal-case text-xl">Панель менеджера</a>
@@ -15,7 +14,6 @@
   </div>
 
   <div class="container mx-auto px-4 py-6">
-    <!-- Заголовок -->
     <div class="flex justify-between items-center mb-6">
       <div>
         <h1 class="text-3xl font-bold">Бронирование №<%= @booking.booking_number %></h1>
@@ -24,7 +22,6 @@
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <!-- Основная информация -->
       <div class="lg:col-span-2">
         <div class="bg-base-100 rounded-lg shadow-lg p-6 mb-6">
           <h2 class="text-xl font-bold mb-4">Информация о бронировании</h2>
@@ -42,6 +39,17 @@
                 <div class="badge <%= status_info[:color] %>">
                   <%= status_info[:text] %>
                 </div>
+              </div>
+            </div>
+
+            <div>
+              <div class="text-sm text-base-content/70">Требуется паспорт</div>
+              <div class="mt-1">
+                <% if @booking.require_passport? %>
+                  <div class="badge badge-warning">Да, требуется</div>
+                <% else %>
+                  <div class="badge badge-success">Нет, не требуется</div>
+                <% end %>
               </div>
             </div>
             
@@ -74,15 +82,12 @@
                   <% seats_by_table = @booking.seats.includes(:table).group_by(&:table) %>
                   <% seats_by_table.each do |table, seats| %>
                     <% if table %>
-                      <%# Если забронированы все места за столом %>
                       <% if seats.count == table.seats.count %>
                         <span class="badge badge-outline badge-lg">Стол <%= table.name %></span>
-                      <%# Если забронирована часть мест %>
                       <% else %>
                         <span class="badge badge-outline badge-lg">Стол <%= table.name %> (места: <%= seats.map(&:number).join(', ') %>)</span>
                       <% end %>
                     <% else %>
-                      <%# Если места не привязаны к столу %>
                       <% seats.each do |seat| %>
                         <span class="badge badge-outline">М<%= seat.number %></span>
                       <% end %>
@@ -106,13 +111,14 @@
             <div class="mt-4">
               <div class="text-sm text-base-content/70">Особые запросы</div>
               <div class="mt-1 p-3 bg-warning/10 rounded-lg border border-warning/20">
-                <p class="text-warning"><%= @booking.special_requests %></p>
+                <p class="text-warning break-words whitespace-normal overflow-hidden">
+                  <%= @booking.special_requests %>
+                </p>
               </div>
             </div>
           <% end %>
         </div>
 
-        <!-- Заказанные блюда -->
         <% if @order_items.any? %>
           <div class="bg-base-100 rounded-lg shadow-lg p-6" id="order-items-section">
             <h2 class="text-xl font-bold mb-4">Заказанные блюда</h2>
@@ -181,7 +187,6 @@
         <% end %>
       </div>
 
-      <!-- Боковая панель с информацией о клиенте -->
       <div class="lg:col-span-1">
         <div class="bg-base-100 rounded-lg shadow-lg p-6 mb-6">
           <h2 class="text-xl font-bold mb-4">Информация о клиенте</h2>
@@ -212,7 +217,6 @@
           </div>
         </div>
 
-        <!-- Действия -->
         <div class="bg-base-100 rounded-lg shadow-lg p-6 no-print">
           <h2 class="text-xl font-bold mb-4">Действия</h2>
           <div class="space-y-2">
@@ -247,7 +251,6 @@
   </div>
 </div>
 
-<!-- Стили для печати -->
 <style media="print">
   .no-print {
     display: none !important;
@@ -327,8 +330,7 @@
   .avatar {
     display: none !important;
   }
-  
-  /* Добавляем заголовок для печати */
+
   .print-header {
     display: block !important;
     text-align: center;
@@ -338,7 +340,6 @@
   }
 </style>
 
-<!-- Шаблон для чека (скрыт на экране) -->
 <div id="receipt-template" class="print-only" style="display: none;">
   <div style="text-align: center; margin-bottom: 20px;">
     <h2 style="font-size: 18pt; font-weight: bold;">ЧЕК</h2>
@@ -354,6 +355,17 @@
       <p style="font-size: 12pt;">Телефон: <%= format_phone_number(@booking.user.phone) %></p>
     <% end %>
   </div>
+
+  <div style="margin-bottom: 20px;">
+    <h3 style="font-size: 14pt; font-weight: bold; margin-bottom: 10px;">Паспорт</h3>
+    <p style="font-size: 12pt;">
+      <% if @booking.require_passport? %>
+        Требуется
+      <% else %>
+        Не требуется
+      <% end %>
+    </p>
+  </div>
   
   <div style="margin-bottom: 20px;">
     <h3 style="font-size: 14pt; font-weight: bold; margin-bottom: 10px;">Стол</h3>
@@ -362,15 +374,12 @@
         <% seats_by_table = @booking.seats.includes(:table).group_by(&:table) %>
         <% seats_by_table.each do |table, seats| %>
           <% if table %>
-            <%# Если забронированы все места за столом %>
             <% if seats.count == table.seats.count %>
               Стол <%= table.name %>
-            <%# Если забронирована часть мест %>
             <% else %>
               Стол <%= table.name %> (места: <%= seats.map(&:number).join(', ') %>)
             <% end %>
           <% else %>
-            <%# Если места не привязаны к столу %>
             <% seats.each do |seat| %>
               М<%= seat.number %>
             <% end %>
@@ -424,15 +433,10 @@
 </div>
 
 <script>
-  // Функция печати чека
   function printReceipt() {
-    // Создаем новое окно для печати
     const printWindow = window.open('', '_blank');
-    
-    // Копируем содержимое шаблона чека в новое окно
     const receiptContent = document.getElementById('receipt-template').innerHTML;
-    
-    // Формируем HTML для нового окна
+
     const printHTML = `
       <!DOCTYPE html>
       <html>
@@ -474,12 +478,10 @@
       </body>
       </html>
     `;
-    
-    // Записываем HTML в новое окно
+
     printWindow.document.write(printHTML);
     printWindow.document.close();
-    
-    // Ждем загрузки содержимого и вызываем печать
+
     printWindow.onload = function() {
       printWindow.print();
       printWindow.close();

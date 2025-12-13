@@ -1,6 +1,5 @@
 <% if bookings.total_pages > 1 %>
   <div class="join">
-    <%# Кнопка "Предыдущая" %>
     <% if bookings.prev_page %>
       <%= link_to "←", 
                   request.params.merge(page: bookings.prev_page), 
@@ -8,18 +7,15 @@
     <% else %>
       <button class="join-item btn btn-sm" disabled>←</button>
     <% end %>
-    
-    <%# Показываем номера страниц %>
-    <% 
-      # Определяем диапазон страниц для отображения
+
+    <%
       current_page = bookings.current_page
       total_pages = bookings.total_pages
       window = 2
       
       start_page = [current_page - window, 1].max
       end_page = [current_page + window, total_pages].min
-      
-      # Всегда показываем первую страницу
+
       if start_page > 1
         %>
         <%= link_to "1", 
@@ -30,8 +26,7 @@
         <% end %>
       <%
       end
-      
-      # Показываем страницы в диапазоне
+
       (start_page..end_page).each do |page|
         %>
         <%= link_to page, 
@@ -39,8 +34,7 @@
                     class: "join-item btn btn-sm #{'btn-active' if page == current_page}" %>
       <%
       end
-      
-      # Всегда показываем последнюю страницу
+
       if end_page < total_pages
         if end_page < total_pages - 1
           %>
@@ -54,8 +48,7 @@
       <%
       end
     %>
-    
-    <%# Кнопка "Следующая" %>
+
     <% if bookings.next_page %>
       <%= link_to "→", 
                   request.params.merge(page: bookings.next_page), 

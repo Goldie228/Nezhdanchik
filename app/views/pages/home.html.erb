@@ -1,10 +1,57 @@
-<div class="min-h-screen bg-base-100">
-  <!-- Hero Section -->
-  <div class="hero min-h-200 relative overflow-hidden" style="background-image: url('<%= asset_path('restaurant-outside.png') %>');">
+<div class="min-h-screen bg-base-100 pb-20">
+  <nav id="bottom-nav" class="fixed bottom-0 left-0 right-0 z-50 bg-base-300/80 backdrop-blur-md border-t border-base-300 transition-transform duration-300">
+    <ul class="menu menu-horizontal w-full justify-center gap-2 p-2">
+      <li>
+        <a href="#hero" class="tooltip tooltip-top" data-tip="Главная">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+        </a>
+      </li>
+      <li>
+        <a href="#features" class="tooltip tooltip-top" data-tip="Особенности">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </a>
+      </li>
+      <li>
+        <a href="#about" class="tooltip tooltip-top" data-tip="О нас">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </a>
+      </li>
+      <li>
+        <a href="#booking" class="tooltip tooltip-top" data-tip="Бронирование">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </a>
+      </li>
+      <li>
+        <a href="#testimonials" class="tooltip tooltip-top" data-tip="Отзывы">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          </svg>
+        </a>
+      </li>
+      <li>
+        <a href="#contact" class="tooltip tooltip-top" data-tip="Контакты">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <div id="hero" class="hero min-h-[80vh] relative overflow-hidden" style="background-image: url('<%= asset_path('restaurant-outside.png') %>');">
     <div class="hero-overlay bg-black/70 to-transparent"></div>
     <div class="hero-content text-center text-neutral-content relative z-10">
       <div class="max-w-2xl animate-fade-in-up">
-        <div class="badge badge-warning badge-lg mb-4">★ Ресторан 2025 года</div>
+        <div class="badge badge-warning badge-lg mb-4">Ресторан | ★★★★★ | 2025 года</div>
         <h1 class="mb-5 text-6xl md:text-7xl font-bold tracking-tight">
           Нежданчик
         </h1>
@@ -12,12 +59,12 @@
           Ресторан восточной кухни
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
-          <button class="btn btn-primary btn-lg" onclick="document.getElementById('booking_modal').showModal()">
+          <%= link_to reservation_path, class: "btn btn-primary btn-lg" do %>
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             Забронировать столик
-          </button>
+          <% end %>
           <%= link_to menu_path, class: "btn btn-outline btn-lg text-white border-white hover:bg-white hover:text-base-100" do %>
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
@@ -28,14 +75,15 @@
       </div>
     </div>
     <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-      </svg>
+      <a href="#features" title="Далее">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+        </svg>
+      </a>
     </div>
   </div>
 
-  <!-- Features Section -->
-  <div class="py-16 bg-base-100">
+  <div id="features" class="py-16 bg-base-100">
     <div class="container mx-auto px-4">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
         <div class="stat bg-base-200 rounded-lg shadow-lg">
@@ -74,8 +122,7 @@
     </div>
   </div>
 
-  <!-- About Section -->
-  <div class="container mx-auto px-4 py-16">
+  <div id="about" class="container mx-auto px-4 py-16">
     <div class="max-w-6xl mx-auto">
       <div class="text-center mb-12">
         <h2 class="text-4xl font-bold mb-4">О нашем ресторане</h2>
@@ -124,8 +171,7 @@
     </div>
   </div>
 
-  <!-- Booking Section -->
-  <div class="bg-base-200 py-16">
+  <div id="booking" class="bg-base-200 py-16">
     <div class="container mx-auto px-4">
       <div class="text-center mb-12">
         <h2 class="text-4xl font-bold mb-4 text-white">Бронирование столика</h2>
@@ -188,15 +234,12 @@
       </div>
       
       <div class="text-center mt-12">
-        <button class="btn btn-accent btn-lg" onclick="document.getElementById('booking_modal').showModal()">
-          Забронировать сейчас
-        </button>
+        <%= link_to "Забронировать сейчас", reservation_path, class: "btn btn-accent btn-lg" %>
       </div>
     </div>
   </div>
 
-  <!-- Testimonials Section -->
-  <div class="py-16 bg-base-200">
+  <div id="testimonials" class="py-16 bg-base-200">
     <div class="container mx-auto px-4">
       <div class="text-center mb-12">
         <h2 class="text-4xl font-bold mb-4">Отзывы наших гостей</h2>
@@ -315,8 +358,7 @@
     </div>
   </div>
 
-  <!-- Contact Info -->
-  <div class="container mx-auto px-4 py-16">
+  <div id="contact" class="container mx-auto px-4 py-16">
     <div class="max-w-6xl mx-auto">
       <div class="text-center mb-12">
         <h2 class="text-4xl font-bold mb-4">Контакты</h2>
@@ -381,7 +423,7 @@
 
         <div>
           <h3 class="text-2xl font-bold mb-6">Мы на карте</h3>
-          <div class="h-96 bg-base-200 rounded-lg shadow-xl overflow-hidden">
+          <div class="h-96 bg-base-200 z-10 rounded-lg shadow-xl overflow-hidden relative">
             <%= render 'shared/map' %>
           </div>
         </div>
@@ -389,7 +431,6 @@
     </div>
   </div>
 
-  <!-- CTA Section -->
   <div class="bg-base-100 text-primary py-16">
     <div class="container mx-auto px-4 text-center">
       <h2 class="text-4xl font-bold mb-4">Готовы попробовать?</h2>
@@ -397,15 +438,12 @@
         Забронируйте свой первый столик прямо сейчас!
       </p>
       <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <button class="btn btn-accent btn-lg">
-          Забронировать столик
-        </button>
+        <%= link_to "Забронировать столик", reservation_path, class: "btn btn-accent btn-lg" %>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Add custom styles for animations -->
 <style>
   @keyframes fade-in-up {
     from {
@@ -421,4 +459,64 @@
   .animate-fade-in-up {
     animation: fade-in-up 1s ease-out;
   }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  #bottom-nav .menu li a.active {
+    background-color: hsl(var(--p) / 0.2);
+    color: hsl(var(--p));
+  }
 </style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const sections = document.querySelectorAll('div[id]');
+    const navLinks = document.querySelectorAll('#bottom-nav a');
+    const bottomNav = document.getElementById('bottom-nav');
+    const footer = document.querySelector('footer') || document.querySelector('#contact').parentElement;
+
+    function updateActiveLink() {
+      let current = '';
+      const scrollY = window.pageYOffset;
+
+      sections.forEach(section => {
+        const sectionHeight = section.offsetHeight;
+        const sectionTop = section.offsetTop - 100;
+        const sectionId = section.getAttribute('id');
+
+        if (scrollY > sectionTop && scrollY <= sectionTop + sectionHeight) {
+          current = sectionId;
+        }
+      });
+
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === `#${current}`) {
+          link.classList.add('active');
+        }
+      });
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          bottomNav.style.transform = 'translateY(100%)';
+        } else {
+          bottomNav.style.transform = 'translateY(0)';
+        }
+      });
+    }, {
+      threshold: 0.1
+    });
+
+    if (footer) {
+      observer.observe(footer);
+    }
+
+    window.addEventListener('scroll', updateActiveLink);
+
+    updateActiveLink();
+  });
+</script>

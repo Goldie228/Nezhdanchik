@@ -1,7 +1,6 @@
 <div class="min-h-screen flex items-center justify-center from-base-200 to-base-300 p-4">
   <div class="card w-full max-w-md bg-base-100 shadow-2xl rounded-2xl overflow-hidden">
     <div class="card-body p-8">
-      <!-- Кнопка возврата на главную -->
       <div class="absolute top-4 left-4">
         <%= link_to "/", class: "btn btn-circle btn-ghost text-base-content/70 hover:text-base-content" do %>
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -20,7 +19,6 @@
         <p class="text-base-content/70 mt-2">Заполните форму, чтобы создать аккаунт</p>
       </div>
 
-      <!-- Flash сообщения -->
       <div id="flash-alert" class="alert alert-error mb-6 shadow-lg hidden">
         <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -29,7 +27,6 @@
       </div>
 
       <%= form_with model: @user, url: signup_path, local: true, class: "space-y-4" do |f| %>
-        <!-- Email -->
         <div class="form-control">
           <label class="label">
             <span class="label-text font-medium">Email</span>
@@ -44,7 +41,6 @@
           </div>
         </div>
 
-        <!-- Телефон -->
         <div class="form-control">
           <label class="label">
             <span class="label-text font-medium">Телефон</span>
@@ -65,7 +61,6 @@
           </div>
         </div>
 
-        <!-- Имя, Фамилия, Отчество -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div class="form-control">
             <label class="label">
@@ -87,7 +82,6 @@
           <%= f.text_field :middle_name, class: "input input-bordered w-full", placeholder: "Иванович", autocomplete: "additional-name" %>
         </div>
 
-        <!-- Пароль -->
         <div class="form-control relative">
           <label class="label">
             <span class="label-text font-medium">Пароль</span>
@@ -104,7 +98,6 @@
           <%= f.password_field :password, class: "input input-bordered w-full", placeholder: "Введите пароль", required: true, autocomplete: "new-password" %>
         </div>
 
-        <!-- Подтверждение пароля -->
         <div class="form-control relative">
           <label class="label">
             <span class="label-text font-medium">Подтверждение пароля</span>
@@ -121,13 +114,11 @@
           <%= f.password_field :password_confirmation, class: "input input-bordered w-full", placeholder: "Введите пароль еще раз", required: true, autocomplete: "new-password" %>
         </div>
 
-        <!-- Кнопка регистрации -->
         <div class="form-control mt-6">
           <%= f.submit "Зарегистрироваться", class: "btn btn-primary w-full text-lg font-medium shadow-lg" %>
         </div>
       <% end %>
 
-      <!-- Вход -->
       <div class="text-center mt-6">
         <p class="text-base-content/70">
           Уже есть аккаунт? 
@@ -164,21 +155,13 @@
     });
   }, 5000);
 
-  // --- УЛУЧШЕННАЯ МАСКА ДЛЯ ТЕЛЕФОНА (ВЕРСИЯ 2.0) ---
-
   const phoneInput = document.getElementById('phone');
   const mask = '+375 (__) ___-__-__';
 
-  // Инициализация значения при загрузке страницы
   if (!phoneInput.value) {
     phoneInput.value = mask;
   }
 
-  /**
-   * Применяет маску к строке цифр.
-   * @param {string} value - Строка с цифрами.
-   * @returns {string} - Отформатированная строка.
-   */
   function applyMask(value) {
     let digits = value.replace(/\D/g, '');
     if (!digits.startsWith('375')) {
@@ -195,12 +178,8 @@
     return `+375 (${operator}) ${firstPart}-${secondPart}-${thirdPart}`;
   }
 
-  // Карта позиций: [индекс_цифры] => позиция_в_строке
   const digitToIndexMap = [7, 8, 11, 12, 13, 15, 16, 18, 19];
 
-  /**
-   * Вычисляет новую позицию курсора после ВВОДА символа.
-   */
   function getCursorPositionAfterInsertion(oldValue, newValue, oldPos) {
     if (oldValue === newValue) return oldPos;
     const digitsBeforeCursor = oldValue.substring(0, oldPos).replace(/\D/g, '').length;
@@ -210,13 +189,9 @@
     return newPos || newValue.length;
   }
 
-  /**
-   * Вычисляет новую позицию курсора после УДАЛЕНИЯ символа.
-   */
   function getCursorPositionAfterDeletion(oldPos) {
     if (oldPos <= 6) return 6;
-    
-    // Находим индекс цифры, которая была до курсора
+
     let digitIndexToDelete = -1;
     let currentDigitPos = 0;
     for (let i = 0; i < phoneInput.value.length; i++) {
@@ -229,20 +204,15 @@
       }
     }
 
-    if (digitIndexToDelete > 3) { // Удаляем цифру из самого номера
+    if (digitIndexToDelete > 3) {
       const newCursorIndex = digitToIndexMap[digitIndexToDelete - 4];
       return newCursorIndex;
     }
-    
-    // Если не нашли цифру (например, курсор на скобке), просто сдвигаем курсор влево
+
     return oldPos - 1;
   }
 
-  // --- ОБРАБОТЧИКИ СОБЫТИЙ ---
-
-  // Основной обработчик ввода (только для ВСТАВКИ символов)
   phoneInput.addEventListener('input', function(e) {
-    // Игнорируем события удаления, так как мы обрабатываем их в keydown
     if (e.inputType && e.inputType.startsWith('delete')) {
       return;
     }
@@ -256,35 +226,27 @@
     phoneInput.setSelectionRange(newPos, newPos);
   });
 
-  // Обработчик нажатий клавиш (для НАВИГАЦИИ и УДАЛЕНИЯ)
   phoneInput.addEventListener('keydown', function(e) {
     const cursorPos = phoneInput.selectionStart;
     const endPos = phoneInput.selectionEnd;
     const key = e.key;
 
-    // Разрешаем стандартные действия: навигация, выделение, таб
     if (['ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End', 'Enter'].includes(key)) {
       return;
     }
 
-    // --- Умное удаление ---
     if (key === 'Backspace' || key === 'Delete') {
-      // Если есть выделение, позволяем браузеру удалить, а 'input' обработает
       if (cursorPos !== endPos) return;
 
-      // Запрещаем удаление кода страны
       if (cursorPos <= 6) {
         e.preventDefault();
         return;
       }
 
-      // Берем управление на себя для плавности
       e.preventDefault();
 
-      // Получаем все цифры из поля
       const allDigits = phoneInput.value.replace(/\D/g, '');
-      
-      // Находим индекс цифры для удаления
+
       let digitIndexToDelete = -1;
       let currentDigitPos = 0;
       for (let i = 0; i < phoneInput.value.length; i++) {
@@ -299,13 +261,11 @@
       }
       
       if (digitIndexToDelete > -1) {
-        // Удаляем найденную цифру
         const newDigits = allDigits.slice(0, digitIndexToDelete) + allDigits.slice(digitIndexToDelete + 1);
         phoneInput.value = applyMask(newDigits);
-        
-        // Вычисляем и устанавливаем новую позицию курсора
+
         let newCursorPos;
-        if (digitIndexToDelete <= 3) { // Удалили цифру из кода страны (не должно произойти, но на всякий случай)
+        if (digitIndexToDelete <= 3) {
           newCursorPos = 6;
         } else {
           const indexInNumber = digitIndexToDelete - 4;
@@ -313,14 +273,12 @@
         }
         phoneInput.setSelectionRange(newCursorPos, newCursorPos);
       } else {
-        // Если курсор не на цифре, просто двигаем его
         const newPos = key === 'Backspace' ? cursorPos - 1 : cursorPos + 1;
         phoneInput.setSelectionRange(newPos, newPos);
       }
     }
   });
 
-  // Обработка вставки из буфера обмена
   phoneInput.addEventListener('paste', function(e) {
     e.preventDefault();
     const pastedData = (e.clipboardData || window.clipboardData).getData('text');
@@ -329,7 +287,6 @@
     phoneInput.setSelectionRange(phoneInput.value.length, phoneInput.value.length);
   });
 
-  // Обработка клика и фокуса
   function handleCursorFocus(e) {
     const cursorPos = phoneInput.selectionStart;
     if (cursorPos < 6) {

@@ -23,7 +23,6 @@ class Avo::Resources::User < Avo::BaseResource
     field :middle_name, as: :text, translation_key: "avo.field_translations.middle_name"
     field :role, as: :select, enum: ::User.roles, display_with_value: true, translation_key: "avo.field_translations.role"
 
-    # Виртуальные поля для пароля
     field :password, as: :password, required: true, only_on: :forms, translation_key: "avo.field_translations.password"
     field :password_confirmation, as: :password, required: true, only_on: :forms, translation_key: "avo.field_translations.password_confirmation"
 

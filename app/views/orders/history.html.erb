@@ -1,6 +1,5 @@
 <div class="min-h-screen bg-base-200">
   <div class="container mx-auto px-4 py-4 md:py-8">
-    <!-- Хлебные крошки -->
     <div class="text-sm breadcrumbs mb-4 md:mb-6">
       <ul>
         <li><a href="/" class="text-primary hover:text-primary-focus">Главная</a></li>
@@ -8,7 +7,6 @@
       </ul>
     </div>
 
-    <!-- Заголовок страницы -->
     <div class="card bg-base-100 shadow-xl mb-6 md:mb-8">
       <div class="card-body">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -31,13 +29,11 @@
       </div>
     </div>
 
-    <!-- ЕДИНЫЙ СПИСОК ВСЕХ БРОНИРОВАНИЙ -->
     <% if @all_bookings.any? %>
       <div class="space-y-6">
         <% @all_bookings.each do |booking| %>
           <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300">
             <div class="card-body p-4 md:p-6">
-              <!-- Шапка с информацией о бронировании -->
               <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
                 <div class="flex items-center gap-4">
                   <div class="flex flex-col">
@@ -61,20 +57,17 @@
                   <div class="flex flex-col text-right">
                     <span class="text-sm text-base-content/60">Места</span>
                     <span class="font-semibold">
-                      <%# Группируем места по столам для правильного отображения %>
                       <% seats_by_table = booking.seats.group_by(&:table_id) %>
                       
                       <% seats_by_table.each_with_index do |(table_id, seats), index| %>
                         <% if index > 0 %>, <% end %>
                         
                         <% if table_id.present? %>
-                          <%# Если это стол, показываем его название %>
                           Стол <%= seats.first.table.name %>
                           <span class="text-xs text-base-content/60">
                             (<%= seats.map(&:number).join(', ') %>)
                           </span>
                         <% else %>
-                          <%# Если это отдельные места без стола %>
                           <%= seats.map(&:number).join(', ') %>
                         <% end %>
                       <% end %>
@@ -86,7 +79,6 @@
                 </div>
               </div>
 
-              <!-- Добавляем отображение особых пожеланий -->
               <% if booking.special_requests.present? %>
                 <div class="bg-base-200 border border-base-300 rounded-lg p-3 mb-4">
                   <div class="flex items-start gap-2">
@@ -95,7 +87,9 @@
                     </svg>
                     <div>
                       <h4 class="text-sm font-semibold text-base-content">Особые пожелания:</h4>
-                      <p class="text-sm text-base-content/80 mt-1"><%= booking.special_requests %></p>
+                      <p class="text-sm text-base-content/80 mt-1 break-all whitespace-normal">
+                        <%= booking.special_requests %>
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -103,8 +97,6 @@
 
               <div class="divider my-2"></div>
 
-              <!-- БЛОК С ТОВАРАМИ: ОСНОВНАЯ ЛОГИКА -->
-              <%# Если есть финальный заказ, берем товары оттуда %>
               <% if booking.order && booking.order.order_items.any? %>
                 <h4 class="text-sm font-semibold text-base-content/70 mb-3">Состав заказа:</h4>
                 <div class="space-y-3">
@@ -123,7 +115,6 @@
                         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                           <div>
                             <h3 class="font-semibold text-base truncate"><%= item.dish.title %></h3>
-                            <!-- Добавляем отображение добавок и удалений -->
                             <% if item.special_instructions.present? %>
                               <div class="text-xs text-base-content/60 mt-1">
                                 <%= item.special_instructions %>
@@ -146,8 +137,6 @@
                     <div class="text-center text-base-content/60">... и еще <%= booking.order.order_items.count - 3 %> товаров</div>
                   <% end %>
                 </div>
-
-              <%# Иначе, если заказа еще нет, берем товары из корзины %>
               <% elsif booking.cart && booking.cart.cart_items.any? %>
                 <h4 class="text-sm font-semibold text-base-content/70 mb-3">Товары в корзине:</h4>
                 <div class="space-y-3">
@@ -166,7 +155,6 @@
                         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                           <div>
                             <h3 class="font-semibold text-base truncate"><%= item.dish.title %></h3>
-                            <!-- Добавляем отображение добавок и удалений -->
                             <% if generate_special_instructions(item).present? %>
                               <div class="text-xs text-base-content/60 mt-1">
                                 <%= generate_special_instructions(item) %>
@@ -193,7 +181,6 @@
                 <p class="text-center text-base-content/70 py-4">К этому бронированию не добавлено товаров.</p>
               <% end %>
 
-              <!-- Действия -->
               <div class="card-actions justify-end mt-4">
                 <%= link_to "Детали", order_path(booking.id), class: "btn btn-outline btn-sm" %>
                 <% if booking.status == 'confirmed' %>
@@ -208,7 +195,6 @@
         <% end %>
       </div>
     <% else %>
-      <!-- Пустая история -->
       <div class="card bg-base-100 shadow-xl">
         <div class="card-body text-center py-12">
           <div class="flex justify-center mb-4">

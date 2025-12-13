@@ -53,7 +53,9 @@
         <% if @booking.special_requests.present? %>
           <div class="mt-4">
             <p class="text-sm text-base-content/70">Особые пожелания</p>
-            <p class="font-semibold"><%= @booking.special_requests %></p>
+            <p class="font-semibold break-words whitespace-normal">
+              <%= @booking.special_requests %>
+            </p>
           </div>
         <% end %>
         

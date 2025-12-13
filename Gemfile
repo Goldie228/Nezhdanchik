@@ -33,7 +33,7 @@ gem "tailwindcss-rails", "~> 4.4"
 
 gem "avo", ">= 3.2"
 
-gem 'kaminari'
+gem "kaminari"
 
 gem "active_storage_validations"
 
@@ -43,14 +43,16 @@ gem "devise", "~> 4.9"
 
 gem "leaflet-rails", "~> 1.9"
 
+gem "connection_pool", "~> 2.5"
+
+gem "dotenv-rails"
+
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
 
   gem "brakeman", require: false
 
   gem "rubocop-rails-omakase", require: false
-
-  gem "dotenv-rails"
 
   gem "annotate"
 
@@ -72,5 +74,3 @@ group :test do
   gem "selenium-webdriver"
   gem "rails-controller-testing"
 end
-
-gem "connection_pool", "~> 2.5"

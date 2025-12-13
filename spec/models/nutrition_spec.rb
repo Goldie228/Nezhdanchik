@@ -13,6 +13,7 @@
 #
 require "rails_helper"
 
+
 RSpec.describe Nutrition, type: :model do
   let(:category) { Category.create!(name: "Пиццы", slug: "pizzas") }
   let(:dish) { Dish.create!(title: "Маргарита", price: 10, slug: "margarita", category: category) }

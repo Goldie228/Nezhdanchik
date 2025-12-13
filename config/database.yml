@@ -19,5 +19,3 @@ test:
 production:
   <<: *default
   database: nezhdanchik_production
-  username: <%= ENV["PGUSER"] %>
-  password: <%= ENV["PGPASSWORD"] %>

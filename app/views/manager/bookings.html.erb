@@ -1,5 +1,4 @@
 <div class="min-h-screen bg-base-200">
-  <!-- Навигация -->
   <div class="navbar bg-base-100 shadow-lg">
     <div class="flex-1">
       <a class="btn btn-ghost normal-case text-xl">Панель менеджера</a>
@@ -17,22 +16,52 @@
   <div class="container mx-auto px-4 py-6">
     <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
       <h1 class="text-3xl font-bold">Все бронирования</h1>
-      
-      <!-- Форма поиска и настроек -->
-      <%= form_with url: manager_bookings_path, method: :get, class: "flex flex-col sm:flex-row gap-2 w-full lg:w-auto" do |form| %>
-        <%= text_field_tag :search, params[:search], placeholder: "Поиск по номеру, клиенту, email, телефону", class: "input input-bordered input-sm w-full sm:w-auto" %>
-        
-        <div class="form-control">
-          <select id="per-page" name="per_page" class="select select-bordered select-sm">
-            <option value="10" <%= 'selected' if params[:per_page].to_i == 10 %>>10</option>
-            <option value="20" <%= 'selected' if params[:per_page].to_i == 20 || params[:per_page].nil? %>>20</option>
-            <option value="50" <%= 'selected' if params[:per_page].to_i == 50 %>>50</option>
-            <option value="100" <%= 'selected' if params[:per_page].to_i == 100 %>>100</option>
-          </select>
+    </div>
+
+    <div class="bg-base-100 rounded-lg shadow-lg p-4 mb-6">
+      <%= form_with url: manager_bookings_path, method: :get, class: "space-y-4", id: "booking-filters" do |form| %>
+        <div class="flex flex-col lg:flex-row gap-4">
+          <div class="flex-1">
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Поиск</span>
+              </label>
+              <div class="input-group">
+                <%= text_field_tag :search, params[:search], 
+                    placeholder: "Номер, клиент, email, телефон", 
+                    class: "input input-bordered flex-1" %>
+                <%= form.submit "Искать", class: "btn btn-primary" %>
+              </div>
+            </div>
+          </div>
+
+          <div class="lg:w-32">
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Записей</span>
+              </label>
+              <select id="per-page" name="per_page" class="select select-bordered w-full">
+                <option value="10" <%= 'selected' if params[:per_page].to_i == 10 %>>10</option>
+                <option value="20" <%= 'selected' if params[:per_page].to_i == 20 || params[:per_page].nil? %>>20</option>
+                <option value="50" <%= 'selected' if params[:per_page].to_i == 50 %>>50</option>
+                <option value="100" <%= 'selected' if params[:per_page].to_i == 100 %>>100</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="flex items-end">
+            <%= link_to "Сбросить фильтры", manager_bookings_path, class: "btn btn-ghost" %>
+          </div>
         </div>
 
-        <%= form.submit "Найти", class: "btn btn-primary btn-sm" %>
-        <%= link_to "Сброс", manager_bookings_path, class: "btn btn-ghost btn-sm" %>
+        <div class="flex flex-wrap gap-2 pt-2 border-t border-base-300">
+          <span class="text-sm font-semibold self-center mr-2">Быстрые фильтры:</span>
+          <%= link_to "Все", manager_bookings_path(search: params[:search], per_page: params[:per_page]), class: "badge badge-lg #{params[:status].blank? ? 'badge-primary' : 'badge-outline'}" %>
+          <% get_statuses_list.each do |status| %>
+            <%= link_to status[:text], manager_bookings_path(status: status[:value], search: params[:search], per_page: params[:per_page]), 
+                class: "badge badge-lg #{params[:status] == status[:value] ? status[:color].gsub('badge-', 'badge-') : 'badge-outline'}" %>
+          <% end %>
+        </div>
       <% end %>
     </div>
 
@@ -61,26 +90,22 @@
                 </td>
                 <td>
                   <% if booking.seats.any? %>
-                    <%# Группируем места по столам для корректного отображения %>
                     <% seats_by_table = booking.seats.includes(:table).group_by(&:table) %>
                     <% seats_by_table.each do |table, seats| %>
                       <% if table %>
-                        <%# Если забронированы все места за столом %>
                         <% if seats.count == table.seats.count %>
-                          <span class="badge badge-outline badge-lg">Стол <%= table.name %></span>
-                        <%# Если забронирована часть мест %>
+                          <span>Стол <%= table.name %></span>
                         <% else %>
-                          <span class="badge badge-outline badge-lg">Стол <%= table.name %> (места: <%= seats.map(&:number).join(', ') %>)</span>
+                          <span>Стол <%= table.name %> (места: <%= seats.map(&:number).join(', ') %>)</span>
                         <% end %>
                       <% else %>
-                        <%# Если места не привязаны к столу %>
                         <% seats.each do |seat| %>
-                          <span class="badge badge-outline">М<%= seat.number %></span>
+                          <span>М<%= seat.number %></span>
                         <% end %>
                       <% end %>
                     <% end %>
                   <% else %>
-                    <span class="badge badge-outline">Нет данных</span>
+                    <span>Нет данных</span>
                   <% end %>
                 </td>
                 <td>
@@ -119,8 +144,7 @@
           </tbody>
         </table>
       </div>
-      
-      <!-- Пагинация -->
+
       <div class="flex flex-col items-center mt-6">
         <div class="text-sm text-base-content/70 mb-4">
           <% if @bookings.respond_to?(:current_page_record_count) %>

@@ -1,7 +1,6 @@
 <div class="min-h-screen flex items-center justify-center from-base-200 to-base-300 p-4">
   <div class="card w-full max-w-md bg-base-100 shadow-2xl rounded-2xl overflow-hidden">
     <div class="card-body p-8">
-      <!-- Кнопка возврата на главную -->
       <div class="absolute top-4 left-4">
         <%= link_to "/", class: "btn btn-circle btn-ghost text-base-content/70 hover:text-base-content" do %>
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -20,7 +19,6 @@
         <p class="text-base-content/70 mt-2">Введите свои данные для входа</p>
       </div>
 
-      <!-- Flash сообщения -->
       <div id="flash-alert" class="alert alert-error mb-6 shadow-lg hidden">
         <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -28,8 +26,7 @@
         <span id="flash-message"></span>
       </div>
 
-      <%= form_with url: login_path, local: true, class: "space-y-5" do %>
-        <!-- Email -->
+      <%= form_with url: login_path, local: true, class: "space-y-5", html: { novalidate: true, id: "login-form" } do %>
         <div class="form-control">
           <label class="label">
             <span class="label-text font-medium">Email</span>
@@ -40,11 +37,13 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
-            <input type="email" name="email" class="input input-bordered w-full pl-10" placeholder="example@mail.com" required autocomplete="email">
+            <input type="email" name="email" id="email-input" class="input input-bordered w-full pl-10" placeholder="example@mail.com" required autocomplete="email">
           </div>
+          <label class="label">
+            <span id="email-error" class="label-text-alt text-error"></span>
+          </label>
         </div>
 
-        <!-- Пароль -->
         <div class="form-control">
           <div class="flex justify-between items-center">
             <label class="label">
@@ -56,7 +55,7 @@
             <input type="password" name="password" id="password" class="input input-bordered w-full pr-10" placeholder="Введите пароль" required autocomplete="current-password">
             <button type="button" class="absolute top-2 right-2 p-1 text-base-content/50 hover:text-base-content transition-colors z-10" onclick="togglePassword()" aria-label="Показать/скрыть пароль">
               <svg id="eye-open" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden text-base-content/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.477 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
               </svg>
               <svg id="eye-closed" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-base-content/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -64,15 +63,16 @@
               </svg>
             </button>
           </div>
+          <label class="label">
+            <span id="password-error" class="label-text-alt text-error"></span>
+          </label>
         </div>
 
-        <!-- Кнопка входа -->
         <div class="form-control mt-6">
           <button type="submit" class="btn btn-primary w-full text-lg font-medium shadow-lg">Войти</button>
         </div>
       <% end %>
 
-      <!-- Регистрация -->
       <div class="text-center mt-6">
         <p class="text-base-content/70">
           Еще нет аккаунта? 
@@ -100,7 +100,68 @@
     }
   }
 
-  // Очистка flash сообщений через 5 секунд
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('login-form');
+    const emailInput = document.getElementById('email-input');
+    const passwordInput = document.getElementById('password');
+    const emailError = document.getElementById('email-error');
+    const passwordError = document.getElementById('password-error');
+
+    const isValidEmail = (email) => {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    };
+
+    const showError = (input, errorElement, message) => {
+      input.classList.add('input-error');
+      errorElement.textContent = message;
+    };
+
+    const clearError = (input, errorElement) => {
+      input.classList.remove('input-error');
+      errorElement.textContent = '';
+    };
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault(); 
+      
+      let isFormValid = true;
+
+      clearError(emailInput, emailError);
+      clearError(passwordInput, passwordError);
+
+      if (!emailInput.value) {
+        showError(emailInput, emailError, 'Поле Email не может быть пустым');
+        isFormValid = false;
+      } else if (!isValidEmail(emailInput.value)) {
+        showError(emailInput, emailError, 'Пожалуйста, введите корректный адрес электронной почты');
+        isFormValid = false;
+      }
+
+      if (!passwordInput.value) {
+        showError(passwordInput, passwordError, 'Поле Пароль не может быть пустым');
+        isFormValid = false;
+      }
+
+      if (isFormValid) {
+        form.submit();
+      }
+    });
+
+    emailInput.addEventListener('blur', () => {
+      clearError(emailInput, emailError);
+      if (emailInput.value && !isValidEmail(emailInput.value)) {
+        showError(emailInput, emailError, 'Пожалуйста, введите корректный адрес электронной почты');
+      }
+    });
+
+    passwordInput.addEventListener('blur', () => {
+      clearError(passwordInput, passwordError);
+      if (!passwordInput.value) {
+        showError(passwordInput, passwordError, 'Поле Пароль не может быть пустым');
+      }
+    });
+  });
+
   setTimeout(() => {
     const alerts = document.querySelectorAll('.alert');
     alerts.forEach(alert => {

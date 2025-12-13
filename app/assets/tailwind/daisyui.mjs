@@ -50,7 +50,7 @@ var pluginOptionsHandler = (() => {
     const {
       logs = true,
       root = ":root",
-      themes = ["winter --default", "coffee --prefersdark"],
+      themes =  "all",
       include,
       exclude,
       prefix = ""

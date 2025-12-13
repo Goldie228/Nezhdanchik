@@ -1,45 +1,131 @@
+version: "3.9"
+
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  bundle_data:
+  node_modules_data:
+
+x-app-common: &app-common
+  build:
+    context: .
+    dockerfile: Dockerfile
+  env_file:
+    - .env
+  volumes:
+    - .:/rails
+    - bundle_data:/usr/local/bundle
+    - node_modules_data:/rails/node_modules
+  restart: unless-stopped
+  networks:
+    - app-network
 
 services:
   app:
-    build: .
-    container_name: nezhdanchik_app
-    env_file:
-      - .env
+    <<: *app-common
+    container_name: nezhdanchik_app_dev
+    profiles:
+      - dev
     ports:
       - "3000:3000"
+    environment:
+      - RAILS_ENV=development
+      - DATABASE_URL=postgresql://${PGUSER}:${PGPASSWORD}@db:5432/${PGDATABASE}
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
     depends_on:
-      - db
-    volumes:
-      - .:/rails
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: ./bin/dev
+
+  app-test:
+    <<: *app-common
+    container_name: nezhdanchik_app_test
+    profiles:
+      - test
+    environment:
+      - RAILS_ENV=test
+      - DATABASE_URL=postgresql://${PGUSER}:${PGPASSWORD}@db:5432/${PGDATABASE}_test
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/1
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: bundle exec rspec
+
+  app-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: nezhdanchik_app_prod
+    profiles:
+      - prod
+    ports:
+      - "3000:3000"
+    environment:
+      - RAILS_ENV=production
+      - DATABASE_URL=postgresql://${PGUSER}:${PGPASSWORD}@db:5432/${PGDATABASE}_production
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+    env_file:
+      - .env.production
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app-network
 
   db:
     image: postgres:15
     container_name: nezhdanchik_postgres
-    restart: always
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: ${PGUSER}         # задаётся в .env
-      POSTGRES_PASSWORD: ${PGPASSWORD} # задаётся в .env
+      POSTGRES_USER: ${PGUSER:-postgres}
+      POSTGRES_PASSWORD: ${PGPASSWORD:-postgres}
+      POSTGRES_DB: ${PGDATABASE:-nezhdanchik_development}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init-db:/docker-entrypoint-initdb.d
-
-    # В dev/test пробрасываем порт наружу
-    profiles: ["dev", "test"]
+    profiles:
+      - dev
+      - test
+      - prod
     ports:
-      - "5433:5432"  # внешний:внутренний
+      - "5433:5432"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PGUSER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
-    image: redis:7
+    image: redis:7-alpine
     container_name: nezhdanchik_redis
-    restart: always
-    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}"] # задаётся в .env
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:-password}"]
     volumes:
       - redis_data:/data
-
-    # В dev/test пробрасываем порт наружу
-    profiles: ["dev", "test"]
+    profiles:
+      - dev
+      - test
+      - prod
     ports:
-      - "6380:6379"  # внешний:внутренний
-
-volumes:
-  postgres_data:
+      - "6380:6379"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

@@ -13,15 +13,13 @@
     </div>
   </div>
 
-  <!-- Кнопки действий -->
   <div class="card-actions mt-4 md:mt-6 flex flex-col gap-3" id="cart-actions">
     <%= link_to "Оформить заказ", reservation_path, class: "btn btn-primary btn-md md:btn-lg w-full shadow-lg transform transition-all hover:scale-105 active:scale-95 duration-200" %>
-    <%= button_to "Очистить корзину", clear_cart_path, method: :delete,
-      class: "btn btn-outline btn-md md:btn-lg w-full",
-      form_class: "w-full inline" %>
+    <button type="button" id="clear-cart-button" class="btn btn-outline btn-md md:btn-lg w-full">
+      Очистить корзину
+    </button>
   </div>
 <% else %>
-  <!-- Пустая корзина -->
   <div class="flex flex-col items-center justify-center py-12 md:py-16">
     <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 text-primary mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />

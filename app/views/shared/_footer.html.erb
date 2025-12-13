@@ -1,6 +1,5 @@
 <footer class="footer footer-center bg-neutral text-neutral-content rounded p-10">
   <div class="w-full max-w-7xl mx-auto">
-    <!-- Логотип и описание -->
     <div class="text-center mb-8">
       <div class="flex items-center justify-center mb-4">
         <%= image_tag "logo.png", alt: "НЕЖДАНЧИК", class: "h-12 w-12 mr-3" %>
@@ -11,7 +10,6 @@
       </p>
     </div>
 
-    <!-- Контактная информация -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 w-full">
       <div class="flex flex-col items-center">
         <svg xmlns="http://www.w3.org/2000/svg"
@@ -78,7 +76,6 @@
       </div>
     </div>
 
-    <!-- Время работы -->
     <div class="bg-base-100 p-6 rounded-lg shadow-sm mb-8 max-w-md w-full">
       <div class="flex items-center justify-center mb-3">
         <?xml version="1.0"?><svg class="feather feather-clock" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="h-6 w-6 text-primary"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -91,7 +88,6 @@
       </div>
     </div>
 
-    <!-- Навигация -->
     <nav class="mb-8">
       <div class="flex flex-wrap justify-center gap-4 md:gap-6">
         <%= link_to "Главная", root_path, class: "link link-hover font-medium" %>
@@ -100,10 +96,8 @@
       </div>
     </nav>
 
-    <!-- Социальные сети -->
     <nav class="mb-8">
       <div class="flex gap-4 justify-center">
-        <!-- Здесь будут SVG социальных сетей -->
         <div class="btn btn-circle btn-ghost"><?xml version="1.0"?><!DOCTYPE svg  PUBLIC '-//W3C//DTD SVG 1.1//EN'  'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'><svg height="100%" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" viewBox="0 0 512 512" width="100%" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink" fill="currentColor" class="h-6 w-6 text-primary"><path d="M501.303,132.765c-5.887,-22.03 -23.235,-39.377 -45.265,-45.265c-39.932,-10.7 -200.038,-10.7 -200.038,-10.7c0,0 -160.107,0 -200.039,10.7c-22.026,5.888 -39.377,23.235 -45.264,45.265c-10.697,39.928 -10.697,123.238 -10.697,123.238c0,0 0,83.308 10.697,123.232c5.887,22.03 23.238,39.382 45.264,45.269c39.932,10.696 200.039,10.696 200.039,10.696c0,0 160.106,0 200.038,-10.696c22.03,-5.887 39.378,-23.239 45.265,-45.269c10.696,-39.924 10.696,-123.232 10.696,-123.232c0,0 0,-83.31 -10.696,-123.238Zm-296.506,200.039l0,-153.603l133.019,76.802l-133.019,76.801Z" style="fill-rule:nonzero;"/></svg></div>
         <div class="btn btn-circle btn-ghost">
           <?xml version="1.0"?><svg viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="h-6 w-6 text-primary"><path d="M446.7 98.6l-67.6 318.8c-5.1 22.5-18.4 28.1-37.3 17.5l-103-75.9-49.7 47.8c-5.5 5.5-10.1 10.1-20.7 10.1l7.4-104.9 190.9-172.5c8.3-7.4-1.8-11.5-12.9-4.1L117.8 284 16.2 252.2c-22.1-6.9-22.5-22.1 4.6-32.7L418.2 66.4c18.4-6.9 34.5 4.1 28.5 32.2z"/></svg>
@@ -122,15 +116,14 @@
       </div>
     </nav>
 
-    <!-- Копирайт -->
     <div class="text-center">
       <p class="text-sm opacity-70 mb-2">
-        © <%= Time.current.year %> Ресторан восточной кухни "НЕЖДАНЧИК". 
+        &copy; <%= Time.current.year %> Ресторан восточной кухни "НЕЖДАНЧИК".
         Все права защищены.
       </p>
       <div class="flex justify-center gap-4">
-        <%= link_to "Политика конфиденциальности", "#", class: "link link-hover text-xs opacity-70" %>
-        <%= link_to "Условия использования", "#", class: "link link-hover text-xs opacity-70" %>
+        <%= link_to "Политика конфиденциальности", privacy_policy_path, class: "link link-hover text-xs opacity-70" %>
+        <%= link_to "Условия использования", terms_of_use_path, class: "link link-hover text-xs opacity-70" %>
       </div>
     </div>
   </div>

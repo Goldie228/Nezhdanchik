@@ -11,21 +11,17 @@
     </div>
 
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 md:gap-8">
-      <!-- Левая колонка: изображения и основная информация -->
       <div class="xl:col-span-2">
-        <!-- Карусель изображений блюда -->
         <div class="card bg-base-100 shadow-xl md:shadow-2xl mb-4 md:mb-6">
           <div class="card-body p-0">
             <% if @dish.photos.attached? %>
               <% if @dish.photos.length > 1 %>
                 <div class="relative w-full rounded-2xl overflow-hidden group" id="dish-carousel-container">
-                  <!-- Основной контейнер карусели -->
                   <div class="carousel-container relative h-48 sm:h-64 md:h-80 lg:h-96 overflow-hidden">
                     <div class="carousel-track flex transition-transform duration-500 ease-in-out h-full" id="carousel-track">
                       <% @dish.photos.each_with_index do |photo, index| %>
                         <div class="carousel-slide min-w-full h-full relative" data-index="<%= index %>">
                           <div class="rounded-2xl overflow-hidden h-full relative">
-                            <!-- Скелетон под изображением -->
                             <div class="absolute inset-0 bg-base-300 animate-pulse rounded-2xl z-0">
                               <div class="w-full h-full flex items-center justify-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-base-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -40,8 +36,7 @@
                                   onload: "this.parentElement.querySelector('.animate-pulse').style.display='none'",
                                   loading: "lazy" %>
                           </div>
-                          
-                          <!-- Номер фото -->
+
                           <div class="absolute top-2 md:top-4 right-2 md:right-4 bg-base-100/90 rounded-full px-2 md:px-3 py-1 text-xs md:text-sm font-medium shadow-lg z-20">
                             <%= index + 1 %> / <%= @dish.photos.length %>
                           </div>
@@ -49,8 +44,7 @@
                       <% end %>
                     </div>
                   </div>
-                                  
-                  <!-- Навигационные кнопки -->
+
                   <button id="prev-slide" class="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 btn btn-circle btn-sm md:btn-md btn-ghost bg-base-100/80 hover:bg-base-100 border-0 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 flex items-center justify-center">
                     <span class="flex items-center justify-center text-lg md:text-xl mb-1">❮</span>
                   </button>
@@ -58,7 +52,6 @@
                     <span class="flex items-center justify-center text-lg md:text-xl mb-1">❯</span>
                   </button>
 
-                  <!-- Индикаторы -->
                   <div class="absolute bottom-2 md:bottom-4 left-1/2 transform -translate-x-1/2 z-20">
                     <div class="flex gap-1 md:gap-2 bg-base-100/80 rounded-full px-2 md:px-3 py-1 md:py-2 shadow-lg">
                       <% @dish.photos.each_with_index do |_, i| %>
@@ -89,7 +82,6 @@
           </div>
         </div>
 
-        <!-- Информация о блюде -->
         <div class="card bg-base-100 shadow-xl mb-4 md:mb-6">
           <div class="card-body p-4 md:p-6">
             <div class="flex flex-col gap-4">
@@ -123,7 +115,6 @@
                 <%= @dish.description %>
               </p>
 
-              <!-- Питательная ценность блюда -->
               <div class="bg-base-200 rounded-2xl p-4 md:p-6">
                 <h3 class="text-lg md:text-xl font-bold mb-3 md:mb-4 flex items-center gap-2">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary shrink-0" viewBox="0 0 24 24" fill="currentColor">
@@ -132,7 +123,6 @@
                   Пищевая ценность на 100г
                 </h3>
                 <div class="stats stats-vertical lg:stats-horizontal shadow w-full">
-                  <!-- Белки -->
                   <div class="stat">
                     <div class="stat-title">Белки</div>
                     <div class="stat-value text-primary">
@@ -140,7 +130,6 @@
                     </div>
                   </div>
 
-                  <!-- Жиры -->
                   <div class="stat">
                     <div class="stat-title">Жиры</div>
                     <div class="stat-value text-primary">
@@ -148,7 +137,6 @@
                     </div>
                   </div>
 
-                  <!-- Углеводы -->
                   <div class="stat">
                     <div class="stat-title">Углеводы</div>
                     <div class="stat-value text-primary">
@@ -156,7 +144,6 @@
                     </div>
                   </div>
 
-                  <!-- Калории -->
                   <div class="stat">
                     <div class="stat-title">Калории</div>
                     <div class="stat-value text-warning">
@@ -178,9 +165,7 @@
           </div>
         </div>
 
-        <!-- Ингредиенты -->
         <div class="space-y-4 md:space-y-6">
-          <!-- Ингредиенты по умолчанию -->
           <% if @default_ingredients.any? %>
             <div class="card bg-base-100 shadow-xl">
               <div class="card-body p-4 md:p-6">
@@ -204,10 +189,7 @@
                                data-fats="<%= di.ingredient.nutrition&.fats || 0 %>"
                                data-carbohydrates="<%= di.ingredient.nutrition&.carbohydrates || 0 %>"
                                data-default="true" />
-                        
-                        <!-- Изображение ингредиента -->
                         <figure class="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl overflow-hidden flex-shrink-0 relative">
-                          <!-- Скелетон для загрузки изображения -->
                           <div class="absolute inset-0 bg-base-300 animate-pulse skeleton-loader">
                             <div class="w-full h-full flex items-center justify-center">
                               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-base-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -249,7 +231,6 @@
                             <% end %>
                           </div>
 
-                          <!-- Питательная ценность ингредиента -->
                           <% if di.ingredient.nutrition && (di.ingredient.nutrition.proteins.present? || di.ingredient.nutrition.fats.present? || di.ingredient.nutrition.carbohydrates.present?) %>
                             <div class="mt-2 flex items-center gap-3 text-xs text-base-content/60">
                               <% if di.ingredient.nutrition.proteins.present? %>
@@ -281,7 +262,6 @@
             </div>
           <% end %>
 
-          <!-- Дополнительные ингредиенты -->
           <% if @new_ingredients.any? %>
             <div class="card bg-base-100 shadow-xl">
               <div class="card-body p-4 md:p-6">
@@ -304,10 +284,8 @@
                                data-fats="<%= di.ingredient.nutrition&.fats || 0 %>"
                                data-carbohydrates="<%= di.ingredient.nutrition&.carbohydrates || 0 %>"
                                data-default="false" />
-                        
-                        <!-- Изображение ингредиента -->
+
                         <figure class="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl overflow-hidden flex-shrink-0 relative">
-                          <!-- Скелетон для загрузки изображения -->
                           <div class="absolute inset-0 bg-base-300 animate-pulse skeleton-loader">
                             <div class="w-full h-full flex items-center justify-center">
                               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-base-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -348,7 +326,6 @@
                             <% end %>
                           </div>
 
-                          <!-- Питательная ценность ингредиента -->
                           <% if di.ingredient.nutrition && (di.ingredient.nutrition.proteins.present? || di.ingredient.nutrition.fats.present? || di.ingredient.nutrition.carbohydrates.present?) %>
                             <div class="mt-2 flex items-center gap-3 text-xs text-base-content/60">
                               <% if di.ingredient.nutrition.proteins.present? %>
@@ -382,10 +359,8 @@
         </div>
       </div>
 
-      <!-- Правая колонка: панель заказа и питательная ценность -->
     <div class="xl:col-span-1">
       <div class="sticky top-4 md:top-6 space-y-4 md:space-y-6">
-        <!-- Панель заказа -->
         <div class="card from-primary/10 via-primary/5 to-secondary/10 shadow-xl md:shadow-2xl border border-primary/20">
           <div class="card-body p-4 md:p-6">
             <h2 class="card-title text-xl md:text-2xl text-primary mb-2 flex items-center gap-2">
@@ -423,7 +398,6 @@
               </div>
             </div>
 
-            <!-- Динамическая питательная ценность -->
             <div class="mt-4 md:mt-6 bg-base-100/90 rounded-xl md:rounded-2xl p-4 md:p-6 backdrop-blur-sm border border-base-200">
               <h3 class="text-lg font-bold mb-3 flex items-center gap-2">
                 Пищевая ценность
@@ -455,38 +429,45 @@
               </div>
             </div>
 
-            <!-- Кнопки управления корзиной -->
             <div class="card-actions mt-4 md:mt-6 flex justify-center">
-              <!-- Состояние: товар еще не в корзине -->
-              <div id="add-to-cart-container" class="w-full">
-                <%= form_with url: add_to_cart_path(@dish.id), method: :post, local: false, id: "add-to-cart-form", html: { "data-type": :json } do |form| %>
-                  <%= form.submit "Добавить в корзину", 
-                      class: "btn btn-primary btn-md md:btn-lg w-full shadow-lg transform transition-all hover:scale-105 active:scale-95 duration-200",
-                      id: "order-button" %>
-                <% end %>
-              </div>
-              
-              <!-- Состояние: товар уже в корзине (изначально скрыто) -->
-              <div id="quantity-controls" class="hidden w-full">
-                <div class="flex items-center justify-center gap-4">
-                  <button id="decrease-quantity" class="btn btn-circle btn-outline">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
-                    </svg>
-                  </button>
-                  
-                  <div class="flex flex-col items-center">
-                    <span id="cart-quantity" class="text-2xl font-bold text-primary">0</span>
-                    <span class="text-xs text-base-content/60">в корзине</span>
-                  </div>
-                  
-                  <button id="increase-quantity" class="btn btn-circle btn-outline">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                  </button>
+              <% if current_user %>
+                <div id="add-to-cart-container" class="w-full">
+                  <%= form_with url: add_to_cart_path(@dish.id), method: :post, local: false, id: "add-to-cart-form", html: { "data-type": :json } do |form| %>
+                    <%= form.submit "Добавить в корзину", 
+                        class: "btn btn-primary btn-md md:btn-lg w-full shadow-lg transform transition-all hover:scale-105 active:scale-95 duration-200",
+                        id: "order-button" %>
+                  <% end %>
                 </div>
-              </div>
+
+                <div id="quantity-controls" class="hidden w-full">
+                  <div class="flex items-center justify-center gap-4">
+                    <button id="decrease-quantity" class="btn btn-circle btn-outline">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                      </svg>
+                    </button>
+                    
+                    <div class="flex flex-col items-center">
+                      <span id="cart-quantity" class="text-2xl font-bold text-primary">0</span>
+                      <span class="text-xs text-base-content/60">в корзине</span>
+                    </div>
+                    
+                    <button id="increase-quantity" class="btn btn-circle btn-outline">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              <% else %>
+                <div class="w-full">
+                  <%= link_to "Войдите, чтобы заказать", login_path, 
+                      class: "btn btn-primary btn-md md:btn-lg w-full shadow-lg transform transition-all hover:scale-105 active:scale-95 duration-200" %>
+                  <p class="text-center text-sm mt-2 text-base-content/70">
+                    <%= link_to "Зарегистрироваться", signup_path, class: "text-primary hover:text-primary-focus" %> для заказа
+                  </p>
+                </div>
+              <% end %>
             </div>
           </div>
         </div>
@@ -495,7 +476,6 @@
   </div>
 </div>
 
-<!-- Модальное окно для просмотра изображений -->
 <dialog id="image_modal" class="modal">
   <div class="modal-box max-w-7xl w-11/12 h-5/6 max-h-full p-0 bg-transparent shadow-none">
     <form method="dialog" class="absolute right-2 md:right-4 top-2 md:top-4 z-10">
@@ -513,491 +493,312 @@
 </dialog>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  function getCsrfToken() {
-    const metaTag = document.querySelector('meta[name="csrf-token"]');
-    if (metaTag) {
-      return metaTag.getAttribute('content');
-    }
-    
-    // Способ 2: из параметра мета-тега
-    const paramTag = document.querySelector('meta[name="csrf-param"]');
-    if (paramTag) {
-      const paramName = paramTag.getAttribute('content');
-      const input = document.querySelector(`input[name="${paramName}"]`);
-      if (input) {
-        return input.value;
-      }
+  document.addEventListener('DOMContentLoaded', function() {
+    function getCsrfToken() {
+      const metaTag = document.querySelector('meta[name="csrf-token"]');
+      return metaTag ? metaTag.getAttribute('content') : null;
     }
 
-    const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim();
-      if (cookie.startsWith('_rails_session=')) {
-        continue;
+    let currentTotalItems = parseInt(document.getElementById('cart-count')?.textContent || 0);
+
+    const updateHeaderCartBadge = () => {
+      const cartBadge = document.getElementById('cart-count');
+      if (cartBadge) {
+        cartBadge.textContent = currentTotalItems;
       }
-      if (cookie.startsWith('CSRF-TOKEN=')) {
-        return cookie.substring('CSRF-TOKEN='.length);
+    };
+
+    const safeElement = (id, fallback = null) => {
+      const element = document.getElementById(id);
+      if (!element) {
+        console.warn(`Element #${id} not found`);
+        return fallback;
       }
-    }
+      return element;
+    };
 
-    const csrfInput = document.querySelector('input[name="authenticity_token"]');
-    if (csrfInput) {
-      return csrfInput.value;
-    }
-    
-    console.warn('CSRF token not found using any method');
-    return null;
-  }
+    const dishId = <%= @dish.id %>;
+    const csrfToken = getCsrfToken();
+    const isLoggedIn = <%= current_user ? 'true' : 'false' %>;
 
-  const safeElement = (id, fallback = null) => {
-    const element = document.getElementById(id);
-    if (!element) {
-      console.warn(`Element #${id} not found`);
-      return fallback;
-    }
-    return element;
-  };
-
-  const dishId = <%= @dish.id %>;
-  const csrfToken = getCsrfToken();
-
-  const orderForm = document.getElementById('add-to-cart-form');
-  if (orderForm) {
-
-    orderForm.dataset.ingredientIds = '';
-    orderForm.dataset.removedIngredientIds = '';
-
-    orderForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      
-      const selectedIds = (orderForm.dataset.ingredientIds || '').split(',').filter(id => id);
-      const removedIds = (orderForm.dataset.removedIngredientIds || '').split(',').filter(id => id);
-      
-      const formData = new FormData();
-
-      if (selectedIds.length > 0) {
-        selectedIds.forEach(id => {
-          formData.append('selected_ingredient_ids[]', id);
-        });
-      }
-      
-      if (removedIds.length > 0) {
-        removedIds.forEach(id => {
-          formData.append('removed_ingredient_ids[]', id);
-        });
-      }
-
-      fetch(orderForm.action, {
-        method: 'POST',
-        body: formData,
-        headers: {
-          'X-CSRF-Token': csrfToken,
-          'Accept': 'application/json'
-        }
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-
-        return response.text().then(text => {
-          try {
-            return text ? JSON.parse(text) : { in_cart: true, quantity: 1 };
-          } catch (e) {
-            console.warn('Failed to parse JSON, using default response');
-            return { in_cart: true, quantity: 1 };
-          }
-        });
-      })
-      .then(data => {
-        updateCartInfoDisplay(data);
-      })
-      .catch(error => {
-        console.error('Error adding to cart:', error);
-
-        updateCartInfoDisplay({ in_cart: true, quantity: 1 });
-      });
-    });
-  }
-
-  const safeParseFloat = (value, fallback = 0) => {
-    const parsed = parseFloat(value);
-    return isNaN(parsed) ? fallback : parsed;
-  };
-
-  const safeParseInt = (value, fallback = 0) => {
-    const parsed = parseInt(value);
-    return isNaN(parsed) ? fallback : parsed;
-  };
-
-  const basePriceElement = safeElement('base-price');
-  const totalPriceElement = safeElement('total-price');
-  const totalWeightElement = safeElement('total-weight');
-  const orderButton = safeElement('order-button');
-
-  if (!basePriceElement || !totalPriceElement || !orderButton) {
-    console.error('Critical elements missing - disabling order functionality');
-    return;
-  }
-
-  const basePrice = safeParseFloat(basePriceElement?.dataset?.basePrice, 0);
-  const baseWeight = safeParseInt(totalWeightElement?.dataset?.baseWeight, 0);
-
-  const nutritionBlock = safeElement('nutrition-block');
-  let baseProteins = 0, baseFats = 0, baseCarbohydrates = 0;
-
-  if (nutritionBlock) {
-    baseProteins = safeParseFloat(nutritionBlock.dataset.baseProteins, 0);
-    baseFats = safeParseFloat(nutritionBlock.dataset.baseFats, 0);
-    baseCarbohydrates = safeParseFloat(nutritionBlock.dataset.baseCarbohydrates, 0);
-  }
-
-  const ingredientCheckboxes = document.querySelectorAll('.ingredient-checkbox');
-
-  const calculateCalories = (proteins, fats, carbohydrates) => {
-    return (Math.max(0, proteins) * 4) + (Math.max(0, fats) * 9) + (Math.max(0, carbohydrates) * 4);
-  };
-
-  const updateNutrition = () => {
-    if (!nutritionBlock) return;
-
-    let currentProteins = baseProteins;
-    let currentFats = baseFats;
-    let currentCarbohydrates = baseCarbohydrates;
-
-    ingredientCheckboxes.forEach(checkbox => {
-      if (!checkbox.dataset) return;
-      
-      const proteins = safeParseFloat(checkbox.dataset.proteins, 0);
-      const fats = safeParseFloat(checkbox.dataset.fats, 0);
-      const carbohydrates = safeParseFloat(checkbox.dataset.carbohydrates, 0);
-      const isDefault = checkbox.dataset.default === 'true';
-
-      if (isDefault) {
-        if (!checkbox.checked) {
-          currentProteins -= proteins;
-          currentFats -= fats;
-          currentCarbohydrates -= carbohydrates;
-        }
-      } else {
-        if (checkbox.checked) {
-          currentProteins += proteins;
-          currentFats += fats;
-          currentCarbohydrates += carbohydrates;
-        }
-      }
-    });
-
-    const proteinsEl = safeElement('nutrition-proteins');
-    const fatsEl = safeElement('nutrition-fats');
-    const carbsEl = safeElement('nutrition-carbs');
-    const caloriesEl = safeElement('nutrition-calories');
-
-    if (proteinsEl) proteinsEl.textContent = Math.max(0, currentProteins).toFixed(1) + ' г';
-    if (fatsEl) fatsEl.textContent = Math.max(0, currentFats).toFixed(1) + ' г';
-    if (carbsEl) carbsEl.textContent = Math.max(0, currentCarbohydrates).toFixed(1) + ' г';
-    if (caloriesEl) {
-      const calories = calculateCalories(currentProteins, currentFats, currentCarbohydrates);
-      caloriesEl.textContent = Math.max(0, calories).toFixed(0) + ' ккал';
-    }
-  };
-
-  const updateTotals = () => {
-    let currentTotalPrice = basePrice;
-    let currentTotalWeight = baseWeight;
-    let extrasPrice = 0;
-    const selectedIngredientIds = [];
-    const removedIngredientIds = [];
-
-    ingredientCheckboxes.forEach(checkbox => {
-      if (!checkbox.dataset) return;
-
-      const price = safeParseFloat(checkbox.dataset.price, 0);
-      const weight = safeParseInt(checkbox.dataset.weight, 0);
-      const ingredientId = checkbox.dataset.ingredientId;
-      const isDefault = checkbox.dataset.default === 'true';
-
-      if (!ingredientId) return;
-
-      if (isDefault) {
-        if (!checkbox.checked) {
-          currentTotalPrice -= price;
-          currentTotalWeight -= weight;
-          removedIngredientIds.push(ingredientId);
-        }
-      } else {
-        if (checkbox.checked) {
-          currentTotalPrice += price;
-          currentTotalWeight += weight;
-          extrasPrice += price;
-          selectedIngredientIds.push(ingredientId);
-        }
-      }
-    });
-
-    totalPriceElement.textContent = Math.max(0, currentTotalPrice).toFixed(2) + ' BYN';
-    totalWeightElement.textContent = Math.max(0, currentTotalWeight) + ' г';
-    
-    const extrasPriceElement = safeElement('extras-price');
-    if (extrasPriceElement) {
-      extrasPriceElement.textContent = Math.max(0, extrasPrice).toFixed(2) + ' BYN';
-    }
-
+    const orderForm = document.getElementById('add-to-cart-form');
     if (orderForm) {
-      orderForm.dataset.ingredientIds = selectedIngredientIds.join(',');
-      orderForm.dataset.removedIngredientIds = removedIngredientIds.join(',');
+      orderForm.dataset.ingredientIds = '';
+      orderForm.dataset.removedIngredientIds = '';
+
+      orderForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        if (!isLoggedIn) {
+          window.location.href = '/login';
+          return;
+        }
+        
+        const selectedIds = (orderForm.dataset.ingredientIds || '').split(',').filter(id => id);
+        const removedIds = (orderForm.dataset.removedIngredientIds || '').split(',').filter(id => id);
+        
+        const formData = new FormData();
+        if (selectedIds.length > 0) selectedIds.forEach(id => formData.append('selected_ingredient_ids[]', id));
+        if (removedIds.length > 0) removedIds.forEach(id => formData.append('removed_ingredient_ids[]', id));
+
+        fetch(orderForm.action, {
+          method: 'POST',
+          body: formData,
+          headers: { 'X-CSRF-Token': csrfToken, 'Accept': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(data => {
+
+          currentTotalItems++;
+
+          updateHeaderCartBadge();
+          updateCartInfoDisplay(data);
+        })
+        .catch(error => {
+          console.error('Error adding to cart:', error);
+          updateCartInfoDisplay({ in_cart: true, quantity: 1 });
+        });
+      });
     }
 
-    updateNutrition();
+    const safeParseFloat = (value, fallback = 0) => isNaN(parseFloat(value)) ? fallback : parseFloat(value);
+    const safeParseInt = (value, fallback = 0) => isNaN(parseInt(value)) ? fallback : parseInt(value);
+
+    const basePriceElement = safeElement('base-price');
+    const totalPriceElement = safeElement('total-price');
+    const totalWeightElement = safeElement('total-weight');
+    const orderButton = safeElement('order-button');
+
+    if (!basePriceElement || !totalPriceElement || !orderButton) {
+      console.error('Critical elements missing - disabling order functionality');
+      return;
+    }
+
+    const basePrice = safeParseFloat(basePriceElement?.dataset?.basePrice, 0);
+    const baseWeight = safeParseInt(totalWeightElement?.dataset?.baseWeight, 0);
+    
+    const nutritionBlock = safeElement('nutrition-block');
+    const baseProteins = safeParseFloat(nutritionBlock?.dataset?.baseProteins, 0);
+    const baseFats = safeParseFloat(nutritionBlock?.dataset?.baseFats, 0);
+    const baseCarbohydrates = safeParseFloat(nutritionBlock?.dataset?.baseCarbohydrates, 0);
+
+    const ingredientCheckboxes = document.querySelectorAll('.ingredient-checkbox');
+
+    const calculateCalories = (p, f, c) => (Math.max(0, p) * 4) + (Math.max(0, f) * 9) + (Math.max(0, c) * 4);
+
+    const updateNutrition = () => {
+      if (!nutritionBlock) return;
+      let p = baseProteins, f = baseFats, c = baseCarbohydrates;
+      ingredientCheckboxes.forEach(checkbox => {
+        if (!checkbox.dataset) return;
+        const proteins = safeParseFloat(checkbox.dataset.proteins, 0);
+        const fats = safeParseFloat(checkbox.dataset.fats, 0);
+        const carbs = safeParseFloat(checkbox.dataset.carbohydrates, 0);
+        const isDefault = checkbox.dataset.default === 'true';
+        if (isDefault && !checkbox.checked) { p -= proteins; f -= fats; c -= carbs; }
+        if (!isDefault && checkbox.checked) { p += proteins; f += fats; c += carbs; }
+      });
+      safeElement('nutrition-proteins').textContent = Math.max(0, p).toFixed(1) + ' г';
+      safeElement('nutrition-fats').textContent = Math.max(0, f).toFixed(1) + ' г';
+      safeElement('nutrition-carbs').textContent = Math.max(0, c).toFixed(1) + ' г';
+      safeElement('nutrition-calories').textContent = Math.max(0, calculateCalories(p, f, c)).toFixed(0) + ' ккал';
+    };
+
+    const updateTotals = () => {
+      let currentTotalPrice = basePrice;
+      let currentTotalWeight = baseWeight;
+      let extrasPrice = 0;
+      const selectedIngredientIds = [];
+      const removedIngredientIds = [];
+
+      ingredientCheckboxes.forEach(checkbox => {
+        if (!checkbox.dataset) return;
+        const price = safeParseFloat(checkbox.dataset.price, 0);
+        const weight = safeParseInt(checkbox.dataset.weight, 0);
+        const ingredientId = checkbox.dataset.ingredientId;
+        const isDefault = checkbox.dataset.default === 'true';
+        if (!ingredientId) return;
+        if (isDefault && !checkbox.checked) {
+          currentTotalPrice -= price; currentTotalWeight -= weight; removedIngredientIds.push(ingredientId);
+        } else if (!isDefault && checkbox.checked) {
+          currentTotalPrice += price; currentTotalWeight += weight; extrasPrice += price; selectedIngredientIds.push(ingredientId);
+        }
+      });
+
+      totalPriceElement.textContent = Math.max(0, currentTotalPrice).toFixed(2) + ' BYN';
+      totalWeightElement.textContent = Math.max(0, currentTotalWeight) + ' г';
+      const extrasPriceElement = safeElement('extras-price');
+      if (extrasPriceElement) extrasPriceElement.textContent = Math.max(0, extrasPrice).toFixed(2) + ' BYN';
+
+      if (orderForm) {
+        orderForm.dataset.ingredientIds = selectedIngredientIds.join(',');
+        orderForm.dataset.removedIngredientIds = removedIngredientIds.join(',');
+      }
+      updateNutrition();
+      updateCartInfo();
+    };
+
+    const updateCartInfo = () => {
+      const selectedIds = (orderForm?.dataset?.ingredientIds || '').split(',').filter(id => id);
+      const removedIds = (orderForm?.dataset?.removedIngredientIds || '').split(',').filter(id => id);
+      
+      fetch(`/cart/info/${dishId}?selected_ingredient_ids=${selectedIds.join(',')}&removed_ingredient_ids=${removedIds.join(',')}`)
+        .then(response => response.json())
+        .then(data => {
+          updateCartInfoDisplay(data);
+        })
+        .catch(error => console.error('Error updating cart info:', error));
+    };
+
+    const updateCartInfoDisplay = (data) => {
+      const addToCartContainer = safeElement('add-to-cart-container');
+      const quantityControls = safeElement('quantity-controls');
+      const cartQuantity = safeElement('cart-quantity');
+      
+      if (data.in_cart) {
+        if (addToCartContainer) addToCartContainer.classList.add('hidden');
+        if (quantityControls) quantityControls.classList.remove('hidden');
+        if (cartQuantity) cartQuantity.textContent = data.quantity || 1;
+      } else {
+        if (addToCartContainer) addToCartContainer.classList.remove('hidden');
+        if (quantityControls) quantityControls.classList.add('hidden');
+      }
+    };
+
+    const makeQuantityRequest = (action) => {
+      const selectedIds = (orderForm?.dataset?.ingredientIds || '').split(',').filter(id => id);
+      const removedIds = (orderForm?.dataset?.removedIngredientIds || '').split(',').filter(id => id);
+      
+      fetch(`/cart/${action}/${dishId}?selected_ingredient_ids=${selectedIds.join(',')}&removed_ingredient_ids=${removedIds.join(',')}`, {
+        method: 'POST',
+        headers: { 'X-CSRF-Token': csrfToken, 'Accept': 'application/json' }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (action === 'increase') {
+          currentTotalItems++;
+        } else if (action === 'decrease') {
+          currentTotalItems--;
+        }
+        updateHeaderCartBadge();
+
+        updateCartInfoDisplay(data);
+      })
+      .catch(error => console.error(`Error ${action} quantity:`, error));
+    };
+    
+    const increaseQuantity = () => makeQuantityRequest('increase');
+    const decreaseQuantity = () => makeQuantityRequest('decrease');
+
+    ingredientCheckboxes.forEach(checkbox => checkbox.addEventListener('change', updateTotals));
+    safeElement('increase-quantity')?.addEventListener('click', (e) => { e.preventDefault(); increaseQuantity(); });
+    safeElement('decrease-quantity')?.addEventListener('click', (e) => { e.preventDefault(); decreaseQuantity(); });
+
+    updateTotals();
     updateCartInfo();
-  };
 
-  const updateCartInfo = () => {
-    const selectedIds = (orderForm?.dataset?.ingredientIds || '').split(',').filter(id => id);
-    const removedIds = (orderForm?.dataset?.removedIngredientIds || '').split(',').filter(id => id);
+    const carouselContainer = document.getElementById('dish-carousel-container');
+    const carouselTrack = document.getElementById('carousel-track');
+    const prevButton = document.getElementById('prev-slide');
+    const nextButton = document.getElementById('next-slide');
+    const indicators = document.querySelectorAll('.carousel-indicator');
+    const slides = document.querySelectorAll('.carousel-slide');
     
-    fetch(`/cart/info/${dishId}?selected_ingredient_ids=${selectedIds.join(',')}&removed_ingredient_ids=${removedIds.join(',')}`)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
+    if (carouselContainer && carouselTrack && slides.length > 0) {
+      let currentIndex = 0;
+      const totalSlides = slides.length;
 
-        return response.text().then(text => {
-          try {
-            return text ? JSON.parse(text) : { in_cart: false, quantity: 0 };
-          } catch (e) {
-            console.warn('Failed to parse JSON, using default response');
-            return { in_cart: false, quantity: 0 };
+      const updateCarousel = () => {
+        carouselTrack.style.transform = `translateX(-${currentIndex * 100}%)`;
+
+        indicators.forEach((indicator, index) => {
+          if (index === currentIndex) {
+            indicator.classList.add('bg-primary', 'md:w-6');
+            indicator.classList.remove('bg-base-300');
+          } else {
+            indicator.classList.remove('bg-primary', 'md:w-6');
+            indicator.classList.add('bg-base-300');
           }
         });
-      })
-      .then(data => {
-        updateCartInfoDisplay(data);
-      })
-      .catch(error => {
-        console.error('Error updating cart info:', error);
-        updateCartInfoDisplay({ in_cart: false, quantity: 0 });
-      });
-  };
+      };
 
-  const updateCartInfoDisplay = (data) => {
-    const addToCartContainer = safeElement('add-to-cart-container');
-    const quantityControls = safeElement('quantity-controls');
-    const cartQuantity = safeElement('cart-quantity');
-    
-    if (data.in_cart) {
-      if (addToCartContainer) addToCartContainer.classList.add('hidden');
-      if (quantityControls) quantityControls.classList.remove('hidden');
-      if (cartQuantity) cartQuantity.textContent = data.quantity || 1;
-    } else {
-      if (addToCartContainer) addToCartContainer.classList.remove('hidden');
-      if (quantityControls) quantityControls.classList.add('hidden');
-    }
-  };
+      const nextSlide = () => {
+        currentIndex = (currentIndex + 1) % totalSlides;
+        updateCarousel();
+      };
 
-  const increaseQuantity = () => {
-    const selectedIds = (orderForm?.dataset?.ingredientIds || '').split(',').filter(id => id);
-    const removedIds = (orderForm?.dataset?.removedIngredientIds || '').split(',').filter(id => id);
-    
-    const headers = {
-      'Content-Type': 'application/json'
-    };
+      const prevSlide = () => {
+        currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
+        updateCarousel();
+      };
 
-    if (csrfToken) {
-      headers['X-CSRF-Token'] = csrfToken;
-    }
-    
-    fetch(`/cart/increase/${dishId}?selected_ingredient_ids=${selectedIds.join(',')}&removed_ingredient_ids=${removedIds.join(',')}`, {
-      method: 'POST',
-      headers: headers
-    })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
+      const goToSlide = (index) => {
+        currentIndex = index;
+        updateCarousel();
+      };
 
-        return response.text().then(text => {
-          try {
-            return text ? JSON.parse(text) : { in_cart: true, quantity: 1 };
-          } catch (e) {
-            console.warn('Failed to parse JSON, using default response');
-            return { in_cart: true, quantity: 1 };
-          }
+      if (prevButton) {
+        prevButton.addEventListener('click', (e) => {
+          e.preventDefault();
+          prevSlide();
         });
-      })
-      .then(data => {
-        updateCartInfoDisplay(data);
-      })
-      .catch(error => {
-        console.error('Error increasing quantity:', error);
-      });
-  };
-
-  const decreaseQuantity = () => {
-    const selectedIds = (orderForm?.dataset?.ingredientIds || '').split(',').filter(id => id);
-    const removedIds = (orderForm?.dataset?.removedIngredientIds || '').split(',').filter(id => id);
-    
-    const headers = {
-      'Content-Type': 'application/json'
-    };
-
-    if (csrfToken) {
-      headers['X-CSRF-Token'] = csrfToken;
-    }
-    
-    fetch(`/cart/decrease/${dishId}?selected_ingredient_ids=${selectedIds.join(',')}&removed_ingredient_ids=${removedIds.join(',')}`, {
-      method: 'POST',
-      headers: headers
-    })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.text().then(text => {
-          try {
-            return text ? JSON.parse(text) : { in_cart: false, quantity: 0 };
-          } catch (e) {
-            console.warn('Failed to parse JSON, using default response');
-            return { in_cart: false, quantity: 0 };
-          }
+      }
+      
+      if (nextButton) {
+        nextButton.addEventListener('click', (e) => {
+          e.preventDefault();
+          nextSlide();
         });
-      })
-      .then(data => {
-        updateCartInfoDisplay(data);
-      })
-      .catch(error => {
-        console.error('Error decreasing quantity:', error);
-      });
-  };
-
-  ingredientCheckboxes.forEach(checkbox => {
-    checkbox.addEventListener('change', updateTotals);
-  });
-
-  const increaseButton = document.getElementById('increase-quantity');
-  const decreaseButton = document.getElementById('decrease-quantity');
-  
-  if (increaseButton) {
-    increaseButton.addEventListener('click', (e) => {
-      e.preventDefault();
-      increaseQuantity();
-    });
-  }
-  
-  if (decreaseButton) {
-    decreaseButton.addEventListener('click', (e) => {
-      e.preventDefault();
-      decreaseQuantity();
-    });
-  }
-
-  updateTotals();
-
-  updateCartInfo();
-
-  const carouselContainer = document.getElementById('dish-carousel-container');
-  const carouselTrack = document.getElementById('carousel-track');
-  const prevButton = document.getElementById('prev-slide');
-  const nextButton = document.getElementById('next-slide');
-  const indicators = document.querySelectorAll('.carousel-indicator');
-  const slides = document.querySelectorAll('.carousel-slide');
-  
-  if (carouselContainer && carouselTrack && slides.length > 0) {
-    let currentIndex = 0;
-    const totalSlides = slides.length;
-
-    const updateCarousel = () => {
-      carouselTrack.style.transform = `translateX(-${currentIndex * 100}%)`;
+      }
 
       indicators.forEach((indicator, index) => {
-        if (index === currentIndex) {
-          indicator.classList.add('bg-primary', 'md:w-6');
-          indicator.classList.remove('bg-base-300');
-        } else {
-          indicator.classList.remove('bg-primary', 'md:w-6');
-          indicator.classList.add('bg-base-300');
-        }
+        indicator.addEventListener('click', (e) => {
+          e.preventDefault();
+          goToSlide(index);
+        });
       });
-    };
 
-    const nextSlide = () => {
-      currentIndex = (currentIndex + 1) % totalSlides;
-      updateCarousel();
-    };
-
-    const prevSlide = () => {
-      currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
-      updateCarousel();
-    };
-
-    const goToSlide = (index) => {
-      currentIndex = index;
-      updateCarousel();
-    };
-
-    if (prevButton) {
-      prevButton.addEventListener('click', (e) => {
-        e.preventDefault();
-        prevSlide();
-      });
-    }
-    
-    if (nextButton) {
-      nextButton.addEventListener('click', (e) => {
-        e.preventDefault();
-        nextSlide();
-      });
-    }
-
-    indicators.forEach((indicator, index) => {
-      indicator.addEventListener('click', (e) => {
-        e.preventDefault();
-        goToSlide(index);
-      });
-    });
-
-    let touchStartX = 0;
-    let touchEndX = 0;
-    
-    carouselContainer.addEventListener('touchstart', (e) => {
-      touchStartX = e.changedTouches[0].screenX;
-    });
-    
-    carouselContainer.addEventListener('touchend', (e) => {
-      touchEndX = e.changedTouches[0].screenX;
-      handleSwipe();
-    });
-    
-    const handleSwipe = () => {
-      if (touchEndX < touchStartX - 50) {
-        nextSlide();
-      }
+      let touchStartX = 0;
+      let touchEndX = 0;
       
-      if (touchEndX > touchStartX + 50) {
-        prevSlide();
+      carouselContainer.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+      });
+      
+      carouselContainer.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+      });
+      
+      const handleSwipe = () => {
+        if (touchEndX < touchStartX - 50) {
+          nextSlide();
+        }
+        
+        if (touchEndX > touchStartX + 50) {
+          prevSlide();
+        }
+      };
+
+      updateCarousel();
+    }
+  });
+
+  function openImageModal(imageUrl) {
+    try {
+      const modal = document.getElementById('image_modal');
+      const modalImage = document.getElementById('modal_image');
+      
+      if (modal && modalImage && typeof modal.showModal === 'function') {
+        modalImage.src = imageUrl;
+        modal.showModal();
+      } else {
+        console.warn('Modal elements not found or showModal not supported');
+        window.open(imageUrl, '_blank');
       }
-    };
-
-    updateCarousel();
-  }
-});
-
-function openImageModal(imageUrl) {
-  try {
-    const modal = document.getElementById('image_modal');
-    const modalImage = document.getElementById('modal_image');
-    
-    if (modal && modalImage && typeof modal.showModal === 'function') {
-      modalImage.src = imageUrl;
-      modal.showModal();
-    } else {
-      console.warn('Modal elements not found or showModal not supported');
+    } catch (error) {
+      console.error('Error opening image modal:', error);
       window.open(imageUrl, '_blank');
     }
-  } catch (error) {
-    console.error('Error opening image modal:', error);
-    window.open(imageUrl, '_blank');
   }
-}
 </script>

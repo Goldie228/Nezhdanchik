@@ -3,6 +3,9 @@
 Avo.configure do |config|
   ## == Routing ==
   config.root_path = "/avo"
+
+  config.app_name = "Нежданчик"
+
   # used only when you have custom `map` configuration in your config.ru
   # config.prefix_path = "/internal"
 

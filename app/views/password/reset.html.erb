@@ -1,7 +1,6 @@
 <div class="min-h-screen bg-base-200 flex items-center justify-center p-4">
   <div class="card w-full max-w-md bg-base-100 shadow-2xl border border-base-300">
     <div class="card-body p-8">
-      <!-- Заголовок -->
       <div class="text-center mb-8">
         <div class="inline-flex items-center justify-center w-20 h-20 bg-warning/10 rounded-2xl mb-4 transition-all duration-300 hover:scale-105 hover:shadow-lg">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -12,7 +11,6 @@
         <p class="text-base-content/50 text-sm">Введите ваш новый пароль</p>
       </div>
 
-      <!-- Блок для отображения ошибок -->
       <% if flash[:alert] %>
         <div class="alert alert-error shadow-lg mb-6">
           <div>
@@ -22,7 +20,6 @@
         </div>
       <% end %>
 
-      <!-- Форма сброса пароля -->
       <%= form_with url: password_reset_path(token: @token), method: :patch, local: true, class: "space-y-6" do |f| %>
         <div class="form-control w-full">
           <label class="label">
@@ -88,7 +85,6 @@
     }
   }
 
-  // Очистка flash сообщений через 5 секунд
   setTimeout(() => {
     const alerts = document.querySelectorAll('.alert');
     alerts.forEach(alert => {

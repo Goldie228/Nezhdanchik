@@ -12,6 +12,7 @@
 #
 require "digest"
 
+
 class CartItem < ApplicationRecord
   belongs_to :cart
   belongs_to :dish
@@ -26,12 +27,10 @@ class CartItem < ApplicationRecord
 
   after_create :build_ingredients_from_dish, if: -> { dish.present? }
 
-  # Сумма для этой строки в копейках: (dish price + доп. ингредиенты) * quantity
   def subtotal_cents
     (base_price_cents + ingredients_extra_cents) * quantity
   end
 
-  # Базовая цена блюда в копейках; если dish.nil? — 0
   def base_price_cents
     if dish && dish.respond_to?(:price)
       (dish.price.to_d * 100).to_i
@@ -40,7 +39,6 @@ class CartItem < ApplicationRecord
     end
   end
 
-  # Сумма изменений от ингредиентов в копейках
   def ingredients_extra_cents
     cart_item_ingredients.to_a.sum do |cii|
       if cii.default_in_dish

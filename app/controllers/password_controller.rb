@@ -62,7 +62,6 @@ class PasswordController < ApplicationController
         )
       end
       UserMailer.password_reset(user, token).deliver_later
-      Rails.logger.info "Password reset token for #{user.email}: #{token}"
 
       redirect_to root_path, notice: "Ссылка на сброс отправлена на Вашу электронную почту" and return
     end

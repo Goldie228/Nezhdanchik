@@ -1,5 +1,4 @@
 <div class="min-h-screen bg-base-200">
-  <!-- Навигация -->
   <div class="navbar bg-base-100 shadow-lg">
     <div class="flex-1">
       <a class="btn btn-ghost normal-case text-xl">Панель менеджера</a>
@@ -28,10 +27,8 @@
       <% end %>
       
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Левая колонка - информация о бронировании -->
         <div class="lg:col-span-1">
           <%= form_with(model: [:manager, @booking], local: true, class: "bg-base-100 rounded-lg shadow-lg p-6", id: "booking-form") do |form| %>
-            <!-- Поле статуса -->
             <div class="form-control">
               <label class="label">
                 <span class="label-text">Статус</span>
@@ -45,13 +42,11 @@
             </div>
           <% end %>
         </div>
-        
-        <!-- Правая колонка - управление заказом -->
+
         <div class="lg:col-span-2">
           <div class="bg-base-100 rounded-lg shadow-lg p-6 mb-6">
             <h2 class="text-xl font-bold mb-4">Заказ</h2>
-            
-            <!-- Текущие блюда в заказе -->
+
             <div class="mb-6">
               <h3 class="text-lg font-semibold mb-3">Текущие блюда в заказе</h3>
               
@@ -111,8 +106,7 @@
                 </div>
               <% end %>
             </div>
-            
-            <!-- Добавление нового блюда -->
+
             <div>
               <h3 class="text-lg font-semibold mb-3">Добавить блюдо</h3>
               
@@ -168,8 +162,7 @@
                       <span id="dish-price" class="font-mono">0.00 BYN</span>
                     </div>
                   </div>
-                  
-                  <!-- Ингредиенты -->
+
                   <div id="ingredients-container" class="mb-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
@@ -203,7 +196,6 @@
   </div>
 </div>
 
-<!-- Модальное окно для редактирования блюда -->
 <div id="edit-dish-modal" class="modal">
   <div class="modal-box w-11/12 max-w-3xl">
     <h3 class="font-bold text-lg mb-4">Редактировать блюдо</h3>
@@ -235,27 +227,22 @@
   </div>
 </div>
 
-<!-- Скрытое поле с CSRF токеном -->
 <div id="csrf-token-container" class="hidden">
   <%= form_authenticity_token %>
 </div>
 
 <script>
-  // Глобальные переменные
   let dishes = {};
   let currentEditingItemId = null;
   let selectedIngredients = [];
   let removedIngredients = [];
-  
-  // Вспомогательная функция для получения CSRF-токена
+
   function getCsrfToken() {
-    // Сначала пытаемся получить из скрытого div
     const tokenContainer = document.getElementById('csrf-token-container');
     if (tokenContainer && tokenContainer.textContent.trim()) {
       return tokenContainer.textContent.trim();
     }
-    
-    // Если не нашли, пробуем найти в мета-тегах
+
     const token = document.querySelector('meta[name="csrf-token"]');
     if (token) {
       return token.getAttribute('content');
@@ -265,11 +252,9 @@
     return null;
   }
 
-  // Инициализация при загрузке страницы
   document.addEventListener('DOMContentLoaded', function() {
     console.log("Initializing edit booking page...");
-    
-    // Проверяем наличие необходимых элементов
+
     const categorySelect = document.getElementById('category-select');
     const dishSelect = document.getElementById('dish-select');
     const addDishBtn = document.getElementById('add-dish-btn');
@@ -280,8 +265,7 @@
       console.error("One or more required elements not found");
       return;
     }
-    
-    // Загрузка блюд при выборе категории
+
     categorySelect.addEventListener('change', function() {
       const categoryId = this.value;
       
@@ -293,7 +277,7 @@
           })
           .then(data => {
             dishes = {};
-            // Преобразуем массив блюд в объект с ключами по ID
+
             if (data.dishes && Array.isArray(data.dishes)) {
               data.dishes.forEach(dish => {
                 dishes[dish.id] = dish;
@@ -311,8 +295,7 @@
         document.getElementById('dish-details').classList.add('hidden');
       }
     });
-    
-    // Отображение деталей блюда при выборе
+
     dishSelect.addEventListener('change', function() {
       const dishId = this.value;
       
@@ -322,17 +305,14 @@
         document.getElementById('dish-details').classList.add('hidden');
       }
     });
-    
-    // Добавление блюда в заказ
+
     addDishBtn.addEventListener('click', addDishToOrder);
     saveDishBtn.addEventListener('click', saveEditedDish);
-    
-    // Добавляем обработчик для кнопки отмены в модальном окне
+
     if (cancelEditBtn) {
       cancelEditBtn.addEventListener('click', closeEditModal);
     }
-    
-    // Добавляем обработчик для закрытия модального окна при клике вне его
+
     document.getElementById('edit-dish-modal').addEventListener('click', function(e) {
       if (e.target === this) {
         closeEditModal();
@@ -341,8 +321,7 @@
     
     console.log("Edit booking page initialized successfully");
   });
-  
-  // Функция для отображения уведомлений
+
   function showToast(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast toast-top toast-end`;
@@ -359,8 +338,7 @@
     `;
     
     document.body.appendChild(toast);
-    
-    // Автоматически закрываем уведомление через 3 секунды
+
     setTimeout(() => {
       toast.remove();
     }, 3000);
@@ -379,12 +357,10 @@
     const formData = new FormData();
     formData.append('dish_id', dishId);
     formData.append('quantity', quantity);
-    
-    // Добавляем выбранные и удаленные ингредиенты
+
     selectedIngredients.forEach(id => formData.append('selected_ingredient_ids[]', id));
     removedIngredients.forEach(id => formData.append('removed_ingredient_ids[]', id));
-    
-    // Показываем индикатор загрузки
+
     const addBtn = document.getElementById('add-dish-btn');
     const originalText = addBtn.textContent;
     addBtn.disabled = true;
@@ -397,7 +373,6 @@
     })
     .then(response => {
       if (!response.ok) {
-        // Возвращаем кнопку в исходное состояние
         addBtn.disabled = false;
         addBtn.textContent = originalText;
         throw new Error('Network response was not ok');
@@ -405,23 +380,20 @@
       return response.json();
     })
     .then(data => {
-      // Возвращаем кнопку в исходное состояние
       addBtn.disabled = false;
       addBtn.textContent = originalText;
       
       if (data.success) {
         showToast('Блюдо успешно добавлено в заказ', 'success');
-        // Обновляем сумму заказа, если она есть в ответе
+
         if (data.order_total) {
-          // Обновляем сумму заказа на странице без перезагрузки
           const totalElement = document.querySelector('tfoot th:nth-child(4)');
           if (totalElement) {
             totalElement.textContent = data.order_total;
           }
         }
-        // Сбрасываем форму добавления блюда
         resetDishForm();
-        // Перезагружаем страницу через короткую задержку, чтобы показать изменения
+
         setTimeout(() => {
           location.reload();
         }, 1000);
@@ -432,7 +404,7 @@
     .catch(error => {
       console.error('Error adding dish to order:', error);
       showToast('Ошибка при добавлении блюда: ' + error.message, 'error');
-      // Возвращаем кнопку в исходное состояние
+
       addBtn.disabled = false;
       addBtn.textContent = originalText;
     });
@@ -447,12 +419,10 @@
 
     const formData = new FormData();
     formData.append('quantity', quantity);
-    
-    // Добавляем выбранные и удаленные ингредиенты
+
     selectedIngredients.forEach(id => formData.append('selected_ingredient_ids[]', id));
     removedIngredients.forEach(id => formData.append('removed_ingredient_ids[]', id));
-    
-    // Показываем индикатор загрузки
+
     const saveBtn = document.getElementById('save-dish-btn');
     const originalText = saveBtn.textContent;
     saveBtn.disabled = true;
@@ -465,7 +435,6 @@
     })
     .then(response => {
       if (!response.ok) {
-        // Возвращаем кнопку в исходное состояние
         saveBtn.disabled = false;
         saveBtn.textContent = originalText;
         throw new Error('Network response was not ok');
@@ -473,22 +442,20 @@
       return response.json();
     })
     .then(data => {
-      // Возвращаем кнопку в исходное состояние
       saveBtn.disabled = false;
       saveBtn.textContent = originalText;
       
       if (data.success) {
         showToast('Блюдо успешно обновлено', 'success');
         closeEditModal();
-        // Обновляем сумму заказа, если она есть в ответе
+
         if (data.order_total) {
-          // Обновляем сумму заказа на странице без перезагрузки
           const totalElement = document.querySelector('tfoot th:nth-child(4)');
           if (totalElement) {
             totalElement.textContent = data.order_total;
           }
         }
-        // Перезагружаем страницу через короткую задержку, чтобы показать изменения
+
         setTimeout(() => {
           location.reload();
         }, 1000);
@@ -499,7 +466,7 @@
     .catch(error => {
       console.error('Error updating order item:', error);
       showToast('Ошибка при обновлении блюда: ' + error.message, 'error');
-      // Возвращаем кнопку в исходное состояние
+
       saveBtn.disabled = false;
       saveBtn.textContent = originalText;
     });
@@ -512,7 +479,6 @@
   }
   
   function resetDishForm() {
-    // Сбрасываем форму добавления блюда
     document.getElementById('dish-select').value = '';
     document.getElementById('dish-select').disabled = true;
     document.getElementById('category-select').value = '';
@@ -544,8 +510,7 @@
     document.getElementById('dish-description').textContent = dish.description || '';
     const basePrice = parseFloat(dish.price);
     document.getElementById('base-price').textContent = `${basePrice.toFixed(2)} BYN`;
-    
-    // Проверяем, что dish.ingredients существует и является массивом
+
     const baseIngredients = [];
     const addOnIngredients = [];
     
@@ -633,8 +598,7 @@
     const dish = dishes[dishId];
     const basePrice = parseFloat(dish.price);
     let addOnsPrice = 0;
-    
-    // Проверяем, что dish.ingredients существует
+
     if (dish.ingredients && Array.isArray(dish.ingredients)) {
       selectedIngredients.forEach(id => {
         const ingredient = dish.ingredients.find(ing => ing.id == id);
@@ -652,12 +616,10 @@
     currentEditingItemId = itemId;
     selectedIngredients = [];
     removedIngredients = [];
-    
-    // Показываем модальное окно
+
     const modal = document.getElementById('edit-dish-modal');
     modal.classList.add('modal-open');
-    
-    // Показываем индикатор загрузки
+
     const modalBody = modal.querySelector('.modal-box');
     const originalContent = modalBody.innerHTML;
     modalBody.innerHTML = '<div class="flex justify-center items-center h-64"><span class="loading loading-spinner loading-lg"></span></div>';
@@ -671,14 +633,13 @@
         return response.json();
       })
       .then(data => {
-        modalBody.innerHTML = originalContent; // Восстанавливаем содержимое
+        modalBody.innerHTML = originalContent;
         
         if (!data.success) throw new Error(data.message);
         
         const item = data.order_item;
         document.getElementById('edit-dish-quantity').value = item.quantity;
-        
-        // Проверяем, что item.dish.ingredients существует
+
         const baseIngredients = [];
         const addOnIngredients = [];
         if (item.dish.ingredients && Array.isArray(item.dish.ingredients)) {
@@ -719,12 +680,10 @@
         } else {
           addOnList.innerHTML = '<p class="text-sm opacity-70">Нет дополнительных ингредиентов</p>';
         }
-        
-        // Повторно привязываем обработчики событий к кнопкам
+
         document.getElementById('save-dish-btn').addEventListener('click', saveEditedDish);
         document.getElementById('cancel-edit-btn').addEventListener('click', closeEditModal);
-        
-        // Добавляем обработчик для закрытия модального окна при клике вне его
+
         document.getElementById('edit-dish-modal').addEventListener('click', function(e) {
           if (e.target === this) {
             closeEditModal();
@@ -732,7 +691,7 @@
         });
       })
       .catch(error => {
-        modalBody.innerHTML = originalContent; // Восстанавливаем содержимое
+        modalBody.innerHTML = originalContent;
         console.error('Error loading order item:', error);
         showToast('Ошибка при загрузке данных о блюде: ' + error.message, 'error');
       });
@@ -784,7 +743,7 @@
     })
     .then(response => {
       if (!response.ok) {
-        row.innerHTML = originalContent; // Восстанавливаем
+        row.innerHTML = originalContent;
         throw new Error('Network response was not ok');
       }
       return response.json();
@@ -792,28 +751,26 @@
     .then(data => {
       if (data.success) {
         showToast('Блюдо успешно удалено из заказа', 'success');
-        // Обновляем сумму заказа, если она есть в ответе
+
         if (data.order_total) {
-          // Обновляем сумму заказа на странице без перезагрузки
           const totalElement = document.querySelector('tfoot th:nth-child(4)');
           if (totalElement) {
             totalElement.textContent = data.order_total;
           }
         }
-        // Удаляем строку из таблицы
+
         row.remove();
-        // Проверяем, есть ли еще блюда в заказе
         const tbody = document.querySelector('tbody');
         if (!tbody.querySelector('tr')) {
           tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8"><p class="text-base-content/70">В заказе нет блюд.</p></td></tr>';
         }
       } else {
-        row.innerHTML = originalContent; // Восстанавливаем
+        row.innerHTML = originalContent;
         showToast(data.message || 'Ошибка при удалении блюда', 'error');
       }
     })
     .catch(error => {
-      row.innerHTML = originalContent; // Восстанавливаем
+      row.innerHTML = originalContent;
       console.error('Error removing order item:', error);
       showToast('Ошибка при удалении блюда: ' + error.message, 'error');
     });

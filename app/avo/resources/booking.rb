@@ -1,7 +1,6 @@
-
 class Avo::Resources::Booking < Avo::BaseResource
   self.title = :booking_number
-  self.includes = [ :user, :seats, :table ]
+  self.includes = [ :user, :seats ]
   self.translation_key = "avo.resource_translations.booking"
 
   self.search = {
@@ -25,7 +24,7 @@ class Avo::Resources::Booking < Avo::BaseResource
     field :ends_at, as: :date_time, required: true, translation_key: "avo.field_translations.ends_at"
 
     field :booking_type, as: :select,
-          options: Booking.booking_types.transform_keys(&:to_sym),
+          enum: ::Booking.booking_types,
           display_with_value: true,
           translation_key: "avo.field_translations.booking_type"
 
@@ -40,11 +39,12 @@ class Avo::Resources::Booking < Avo::BaseResource
     field :booking_seats, as: :has_many, translation_key: "avo.field_translations.booking_seats"
     field :seats, as: :has_many, through: :booking_seats, translation_key: "avo.field_translations.seats"
 
-    field :table, as: :text,
+    field :table_name, as: :text,
+          name: "Столик",
           hide_on: :forms,
-          format_using: -> { value&.name },
+          sortable: false,
           translation_key: "avo.field_translations.table" do
-      model.table
+      record.table&.name
     end
 
     field :created_at, as: :date_time, hide_on: :forms, translation_key: "avo.field_translations.created_at"

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html data-theme="<%= cookies[:site_theme].presence || nil %>">
   <head>
     <title>Нежданчик</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -24,8 +24,9 @@
   </head>
 
   <body class="bg-base-100">
-    <% unless controller_name.in?(%w[sessions users two_factor email password]) && 
-      action_name.in?(%w[new create verification confirmation change_status confirm resend_confirmation change update forgot reset success]) 
+    <% unless (controller_name.in?(%w[sessions users email password]) && 
+      action_name.in?(%w[new create verification confirmation change_status confirm resend_confirmation change update forgot reset success])) ||
+      controller_name == "two_factor" 
     %>
       <%= render "shared/header" %>
     <% end %>
@@ -48,8 +49,9 @@
       </div>
     </main>
 
-    <% unless controller_name.in?(%w[sessions users two_factor email password]) && 
-      action_name.in?(%w[new create verification confirmation change_status confirm resend_confirmation change update forgot reset success])
+    <% unless (controller_name.in?(%w[sessions users email password]) && 
+      action_name.in?(%w[new create verification confirmation change_status confirm resend_confirmation change update forgot reset success])) ||
+      controller_name == "two_factor"
     %>
       <%= render "shared/footer" %>
     <% end %>

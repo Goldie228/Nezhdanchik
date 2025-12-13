@@ -1,4 +1,6 @@
+
 require "rails_helper"
+
 
 RSpec.describe DishesController, type: :request do
   let!(:category) { Category.create!(name: "Pizza", slug: "pizza", active: true) }

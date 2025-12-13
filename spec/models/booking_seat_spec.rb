@@ -10,6 +10,7 @@
 #
 require 'rails_helper'
 
+
 RSpec.describe BookingSeat, type: :model do
   describe 'validations' do
     let(:booking) { create(:booking) }

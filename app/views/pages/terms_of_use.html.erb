@@ -1,77 +1,49 @@
 <div class="min-h-screen bg-base-200">
   <div class="container mx-auto px-4 py-6 md:py-8">
-    <!-- Хлебные крошки -->
     <div class="text-sm breadcrumbs mb-6 md:mb-8">
       <ul>
-        <li><a href="#" class="text-primary hover:text-primary-focus">Главная</a></li>
+        <li><a href="/" class="text-primary hover:text-primary-focus">Главная</a></li>
         <li><span class="text-base-content/60">Условия использования</span></li>
       </ul>
     </div>
 
     <div class="max-w-4xl mx-auto">
-      <!-- Заголовок -->
       <div class="text-center mb-8 md:mb-12">
-        <h1 class="text-3xl md:text-4xl font-bold text-primary mb-4">Условия использования</h1>
-        <p class="text-base-content/70 text-lg">Последнее обновление: <%= @last_updated %></p>
+        <h1 class="text-3xl md:text-4xl font-bold text-primary mb-4">Пользовательское соглашение</h1>
+        <p class="text-base-content/70">Дата последнего обновления: 08.12.2025</p>
       </div>
 
       <div class="card bg-base-100 shadow-xl">
         <div class="card-body p-6 md:p-8">
-          <!-- Принятие условий -->
           <section class="mb-8">
             <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              1. Принятие условий
+              1. Общие положения и термины
             </h2>
             <div class="space-y-4 text-base-content/80 leading-relaxed">
-              <p>Используя наш Сервис, вы подтверждаете, что прочитали, поняли и соглашаетесь соблюдать настоящие Условия использования.</p>
-              <p>Если вы не согласны с какими-либо положениями данных Условий, вы не должны использовать наш Сервис.</p>
+              <p>1.1. Настоящее Пользовательское соглашение (далее – «Соглашение») является публичной офертой ООО "Нежданчик" (далее – «Исполнитель»), и определяет условия использования веб-приложения «Нежданчик» (далее – «Сервис»). Юридический адрес: 220030, г. Минск, проспект Независимости, д. 11, УНП 192837465.</p>
+              <p>1.2. В соответствии со статьей 397 Гражданского кодекса Республики Беларусь, безусловным принятием (акцептом) настоящей оферты является фактическое использование Сервиса Пользователем, что считается заключением договора возмездного оказания услуг на условиях настоящего Соглашения.</p>
+              <p>1.3. <strong>Пользователь</strong> – физическое лицо, принявшее (акцептовавшее) настоящую оферту и использующее Сервис. В рамках Соглашения Пользователь является Потребителем в соответствии с Законом Республики Беларусь "О защите прав потребителей".</p>
+              <p>1.4. <strong>Сервис</strong> – совокупность информационных и технологических услуг, предоставляемых Исполнителем через веб-приложение «Нежданчик».</p>
             </div>
           </section>
 
-          <!-- Описание сервиса -->
           <section class="mb-8">
             <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
               </svg>
-              2. Описание сервиса
+              2. Предмет Соглашения
             </h2>
             <div class="space-y-4 text-base-content/80 leading-relaxed">
-              <p>Наш Сервис предоставляет возможность:</p>
-              
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                <div class="flex items-center gap-3 p-3 bg-base-200 rounded-xl">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-                  </svg>
-                  <span>Бронирования столов в ресторане</span>
-                </div>
-                <div class="flex items-center gap-3 p-3 bg-base-200 rounded-xl">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                  </svg>
-                  <span>Оформления заказов с доставкой</span>
-                </div>
-                <div class="flex items-center gap-3 p-3 bg-base-200 rounded-xl">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                  </svg>
-                  <span>Просмотра меню и цен</span>
-                </div>
-                <div class="flex items-center gap-3 p-3 bg-base-200 rounded-xl">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
-                  </svg>
-                  <span>Обратной связи и поддержки</span>
-                </div>
-              </div>
+              <p>2.1. Исполнитель обязуется оказывать Пользователю услуги по предоставлению информации о меню, ценам, а также по приему, обработке и передаче заказов и бронирований в ресторане.</p>
+              <p>2.2. Пользователь обязуется оплатить оказанные услуги в порядке и на условиях, установленных настоящим Соглашением.</p>
+              <p>2.3. Услуги считаются оказанными надлежащим образом, если заказ выполнен в соответствии с подтвержденным составом, а забронированный столик предоставлен в указанное время.</p>
             </div>
           </section>
 
-          <!-- Регистрация и учетная запись -->
           <section class="mb-8">
             <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -80,128 +52,79 @@
               3. Регистрация и учетная запись
             </h2>
             <div class="space-y-4 text-base-content/80 leading-relaxed">
-              <p>Для использования некоторых функций Сервиса может потребоваться регистрация учетной записи.</p>
+              <p>3.1. Для использования полного функционала Сервиса Пользователь обязан пройти регистрацию, предоставив достоверную и полную информацию.</p>
               
               <div class="bg-base-200 rounded-2xl p-6">
-                <h3 class="font-bold text-lg mb-3 text-primary">Обязанности пользователя:</h3>
+                <h3 class="font-bold text-lg mb-3 text-primary">Пользователь гарантирует, что:</h3>
                 <ul class="list-disc list-inside space-y-2 ml-4">
-                  <li>Предоставлять точную и полную информацию при регистрации</li>
-                  <li>Своевременно обновлять информацию в учетной записи</li>
-                  <li>Сохранять конфиденциальность данных для входа</li>
-                  <li>Не передавать учетную запись третьим лицам</li>
-                  <li>Немедленно уведомлять нас о несанкционированном доступе</li>
+                  <li>Предоставленные им данные являются точными и актуальными.</li>
+                  <li>Он обладает полной дееспособностью для заключения договора.</li>
+                  <li>Он будет хранить в тайне свои учетные данные (логин, пароль) и не передаст их третьим лицам.</li>
+                  <li>Он несет полную ответственность за все действия, совершенные под его учетной записью.</li>
                 </ul>
               </div>
             </div>
           </section>
 
-          <!-- Заказы и оплата -->
           <section class="mb-8">
             <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
               </svg>
-              4. Заказы и оплата
+              4. Порядок оформления заказов и оплата
             </h2>
             <div class="space-y-4 text-base-content/80 leading-relaxed">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="space-y-3">
-                  <h3 class="font-bold text-lg text-primary">Процесс заказа:</h3>
-                  <ul class="list-decimal list-inside space-y-2 ml-4">
-                    <li>Выбор блюд из меню</li>
-                    <li>Указание модификаций и предпочтений</li>
-                    <li>Выбор способа получения</li>
-                    <li>Подтверждение заказа</li>
-                    <li>Оплата выбранным способом</li>
-                  </ul>
-                </div>
-                <div class="space-y-3">
-                  <h3 class="font-bold text-lg text-primary">Способы оплаты:</h3>
-                  <ul class="list-disc list-inside space-y-2 ml-4">
-                    <li>Банковской картой онлайн</li>
-                    <li>Наличными при получении</li>
-                    <li>Электронными платежами</li>
-                    <li>Корпоративная оплата</li>
-                  </ul>
-                </div>
-              </div>
-              
-              <div class="alert alert-info mt-4">
-                <div>
-                  <span>Все цены указаны в белорусских рублях (BYN) и включают все applicable taxes.</span>
-                </div>
-              </div>
+              <p>4.1. Заказы принимаются через интерфейс Сервиса. Момент подтверждения заказа Пользователем является моментом заключения договора на оказание услуг.</p>
+              <p>4.2. Все цены в Сервисе указаны в белорусских рублях и включают все налоги и сборы, установленные законодательством Республики Беларусь.</p>
+              <p>4.3. Оплата может быть произведена следующими способами: банковской картой онлайн, при получении заказа (наличными или картой), электронными платежными системами.</p>
+              <p>4.4. При оплате банковской картой Исполнитель предоставляет Потребителю кассовый чек в электронном виде в соответствии с законодательством.</p>
             </div>
           </section>
 
-          <!-- Отмена и возвраты -->
           <section class="mb-8">
             <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
-              5. Отмена заказов и возвраты
+              5. Порядок расторжения договора и возврата денежных средств
             </h2>
             <div class="space-y-4 text-base-content/80 leading-relaxed">
+              <p>5.1. Пользователь вправе отказаться от заказанной услуги в любое время до ее получения, оплатив Исполнителю фактически понесенные им расходы (если они имелись).</p>
+              
               <div class="overflow-x-auto">
                 <table class="table table-zebra w-full">
                   <thead>
                     <tr>
                       <th>Тип заказа</th>
-                      <th>Условия отмены</th>
-                      <th>Возврат средств</th>
+                      <th>Условия для отказа</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
-                      <td>Доставка</td>
-                      <td>Не менее чем за 30 минут до готовности</td>
-                      <td>Полный возврат</td>
-                    </tr>
-                    <tr>
-                      <td>Самовывоз</td>
-                      <td>Не менее чем за 15 минут до готовности</td>
-                      <td>Полный возврат</td>
-                    </tr>
-                    <tr>
                       <td>Бронирование стола</td>
-                      <td>Не менее чем за 2 часа</td>
-                      <td>Возврат депозита</td>
+                      <td>Отмена не позднее времени бронирования.</td>
                     </tr>
                   </tbody>
                 </table>
               </div>
-              
-              <div class="bg-warning/10 rounded-2xl p-4 border border-warning/20">
-                <h3 class="font-bold text-warning mb-2">Важно:</h3>
-                <p class="text-sm">Заказы, отмененные после начала приготовления, могут быть subject to partial refund или не подлежать возврату.</p>
-              </div>
             </div>
           </section>
 
-          <!-- Ограничения ответственности -->
           <section class="mb-8">
-            <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
+            <h2 class="2xl font-bold text-primary mb-4 flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
-              6. Ограничения ответственности
+              6. Ответственность сторон
             </h2>
             <div class="space-y-4 text-base-content/80 leading-relaxed">
-              <p>Мы стремимся предоставлять точную информацию о меню, ценах и времени приготовления. Однако, мы не можем гарантировать:</p>
-              
-              <ul class="list-disc list-inside space-y-2 ml-4">
-                <li>Точное время доставки в условиях пробок или непогоды</li>
-                <li>Наличие всех позиций меню в реальном времени</li>
-                <li>Отсутствие изменений во внешнем виде блюд</li>
-                <li>Точное соответствие пищевой ценности указанным значениям</li>
-              </ul>
-              
-              <p>Мы оставляем за собой право вносить изменения в меню, цены и условия обслуживания без предварительного уведомления.</p>
+              <p>6.1. За неисполнение или ненадлежащее исполнение обязательств по настоящему Соглашению Стороны несут ответственность в соответствии с действующим законодательством Республики Беларусь.</p>
+              <p>6.2. Исполнитель не несет ответственности за убытки, возникшие у Пользователя вследствие предоставления им недостоверной информации при регистрации.</p>
+              <p>6.3. Исполнитель не несет ответственности за сбои в работе Сервиса, если они вызваны действиями третьих лиц (провайдеров хостинга, операторов связи) или форс-мажорными обстоятельствами.</p>
+              <p>6.4. Исполнитель отвечает за качество и безопасность приготовленных блюд и напитков в соответствии с требованиями технических нормативных правовых актов в области безопасности пищевой продукции.</p>
             </div>
           </section>
 
-          <!-- Интеллектуальная собственность -->
           <section class="mb-8">
             <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -211,32 +134,18 @@
               7. Интеллектуальная собственность
             </h2>
             <div class="space-y-4 text-base-content/80 leading-relaxed">
-              <p>Все содержимое Сервиса, включая, но не ограничиваясь: тексты, графику, логотипы, изображения, фотографии блюд, программное обеспечение, является собственностью ресторана или его поставщиков и защищено законами об интеллектуальной собственности.</p>
-              
-              <div class="bg-error/10 rounded-2xl p-4 border border-error/20">
-                <h3 class="font-bold text-error mb-2">Запрещается:</h3>
-                <ul class="list-disc list-inside space-y-1 ml-4 text-sm">
-                  <li>Копировать, воспроизводить или распространять материалы Сервиса</li>
-                  <li>Использовать содержимое в коммерческих целях без разрешения</li>
-                  <li>Создавать производные работы на основе нашего контента</li>
-                </ul>
-              </div>
+              <p>7.1. Все объекты интеллектуальной собственности, размещенные в Сервисе (тексты, графические элементы, логотипы, изображения, дизайн Сервиса), являются собственностью Исполнителя и защищены законодательством Республики Беларусь об авторском праве и смежных правах.</p>
+              <p>7.2. Пользователю предоставляется неисключительное право на использование объектов интеллектуальной собственности исключительно в рамках, необходимых для использования Сервиса в личных некоммерческих целях.</p>
             </div>
           </section>
 
-          <!-- Изменения условий -->
           <section class="bg-base-200 rounded-2xl p-6">
-            <h2 class="text-2xl font-bold text-primary mb-4">8. Изменения условий</h2>
+            <h2 class="text-2xl font-bold text-primary mb-4">8. Заключительные положения</h2>
             <div class="space-y-4 text-base-content/80 leading-relaxed">
-              <p>Мы оставляем за собой право изменять настоящие Условия использования в любое время. Все изменения вступают в силу с момента их публикации на Сайте.</p>
-              <p>Продолжая использовать Сервис после внесения изменений, вы подтверждаете свое согласие с обновленными Условиями.</p>
-              
-              <div class="flex items-center gap-2 text-sm text-base-content/60">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>Рекомендуем периодически проверять данную страницу для ознакомления с актуальной версией Условий.</span>
-              </div>
+              <p>8.1. <strong>Применимое право и разрешение споров.</strong> Настоящее Соглашение регулируется и толкуется в соответствии с законодательством Республики Беларусь. Все споры и разногласия, возникающие из Соглашения, решаются путем переговоров. При недостижении согласия спор подлежит разрешению в порядке, установленном законодательством РБ "О защите прав потребителей".</p>
+              <p>8.2. Исполнитель вправе вносить изменения в настоящее Соглашение, уведомив Пользователей путем публикации новой редакции на странице Сервиса. Новая редакция вступает в силу с момента ее публикации, если иное не предусмотрено новой редакцией Соглашения.</p>
+              <p>8.3. Если по тем или иным причинам одно или несколько положений настоящего Соглашения будут признаны недействительными, это не влияет на действительность остальных положений.</p>
+              <p>8.4. Все вопросы и предложения, касающиеся настоящего Соглашения, можно направлять по электронной почте: <a href="mailto:egorarararara5@gmail.com" class="text-primary hover:underline">egorarararara5@gmail.com</a>.</p>
             </div>
           </section>
         </div>

@@ -29,14 +29,10 @@ class UsersController < ApplicationController
   end
 
   def update
-    # Добавим отладочную информацию
-    Rails.logger.debug "Параметры профиля: #{profile_params.inspect}"
-
     if @user.update(profile_params)
       flash[:notice] = "Ваш профиль успешно обновлен"
       redirect_to profile_path
     else
-      Rails.logger.debug "Ошибки валидации: #{@user.errors.full_messages.inspect}"
       flash.now[:alert] = @user.errors.full_messages.join(", ")
       render :show, status: :unprocessable_entity
     end
@@ -97,15 +93,12 @@ class UsersController < ApplicationController
   def normalize_phone(raw)
     return "" if raw.blank?
 
-    # Убираем все нецифровые символы
     digits = raw.gsub(/\D/, "")
 
-    # Если номер начинается с 375, убираем префикс
     if digits.start_with?("375")
       digits = digits.sub(/^375/, "")
     end
 
-    # Возвращаем последние 9 цифр или пустую строку, если цифр меньше
     digits.length >= 9 ? digits[-9, 9] : ""
   end
 end

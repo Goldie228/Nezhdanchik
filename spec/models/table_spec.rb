@@ -10,8 +10,8 @@
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null
 #
-# spec/models/table_spec.rb
 require 'rails_helper'
+
 
 RSpec.describe Table, type: :model do
   let(:table) { create(:table) }
@@ -26,11 +26,9 @@ RSpec.describe Table, type: :model do
     end
 
     it 'returns available seats excluding booked ones' do
-      # Создаем отдельный стол и места для первого бронирования
       other_table = create(:table)
       other_seats = create_list(:seat, 2, table: other_table)
 
-      # Создаем первое бронирование с другими местами
       booking1 = Booking.create!(
         user: user,
         starts_at: Time.current + 1.day,
@@ -40,10 +38,8 @@ RSpec.describe Table, type: :model do
       )
       booking1.seats << other_seats
 
-      # Проверяем, что все места нашего стола свободны
       expect(table.available_seats_count(Time.current + 1.day, Time.current + 1.day + 2.hours)).to eq(4)
 
-      # Создаем второе бронирование с местами нашего стола
       booking2 = Booking.create!(
         user: user,
         starts_at: Time.current + 1.day,
@@ -53,7 +49,6 @@ RSpec.describe Table, type: :model do
       )
       booking2.seats << seats.first(2)
 
-      # Проверяем, что осталось 2 свободных места
       expect(table.available_seats_count(Time.current + 1.day, Time.current + 1.day + 2.hours)).to eq(2)
     end
   end

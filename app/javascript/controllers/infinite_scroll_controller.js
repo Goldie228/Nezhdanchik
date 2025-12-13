@@ -1,4 +1,3 @@
-
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
@@ -17,15 +16,51 @@ export default class extends Controller {
       if (entries[0].isIntersecting && !this.loading) {
         this.loadMore()
       }
+    }, {
+      rootMargin: "200px",
+      threshold: 0.1
     })
+    
     this.observer.observe(this.triggerTarget)
+    
+    this.setupFooterObserver()
+    
+    this.handleInitialNavigation()
   }
 
   disconnect() {
     this.observer.disconnect()
+    if (this.footerObserver) {
+      this.footerObserver.disconnect()
+    }
+  }
+
+  setupFooterObserver() {
+    const footer = document.querySelector('footer')
+    if (!footer) return
+    
+    this.footerObserver = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && !this.loading) {
+        this.loadMore()
+      }
+    }, {
+      threshold: 0.1
+    })
+    
+    this.footerObserver.observe(footer)
+  }
+
+  handleInitialNavigation() {
+    const hash = window.location.hash.substring(1)
+    if (hash && !isNaN(hash)) {
+      const categoryId = parseInt(hash)
+      this.navigateToCategoryById(categoryId)
+    }
   }
 
   loadMore() {
+    if (!this.observer) return
+    
     this.loading = true
     this.triggerTarget.innerHTML = `
       <div class="flex justify-center py-4">
@@ -55,6 +90,8 @@ export default class extends Controller {
           }
 
           this.triggerTarget.innerHTML = '';
+          
+          this.checkForPendingNavigation()
         } else {
           this.triggerTarget.innerHTML = `
             <div class="text-center py-4 text-base-content">
@@ -62,6 +99,9 @@ export default class extends Controller {
             </div>
           `
           this.observer.disconnect()
+          if (this.footerObserver) {
+            this.footerObserver.disconnect()
+          }
         }
         this.loading = false
       })
@@ -74,5 +114,52 @@ export default class extends Controller {
         `
         this.loading = false
       })
+  }
+
+  checkForPendingNavigation() {
+    if (this.pendingNavigation) {
+      const { categoryId, callback } = this.pendingNavigation
+      
+      const loadedCategories = this.loadedCategoriesValue.split(',').map(id => parseInt(id))
+      
+      if (loadedCategories.includes(categoryId)) {
+        this.scrollToCategory(categoryId)
+        this.pendingNavigation = null
+        if (callback) callback()
+      } else {
+        this.loadMore()
+      }
+    }
+  }
+
+  scrollToCategory(categoryId) {
+    const categoryElement = document.querySelector(`[data-category-id="${categoryId}"]`)
+    if (categoryElement) {
+      categoryElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      
+      document.querySelectorAll('.category-tab').forEach(tab => {
+        tab.classList.remove('bg-primary', 'text-primary-content')
+        if (tab.dataset.categoryId == categoryId) {
+          tab.classList.add('bg-primary', 'text-primary-content')
+          
+          const mobileCategoryName = document.getElementById('current-category-name')
+          if (mobileCategoryName) {
+            mobileCategoryName.textContent = tab.textContent.trim()
+          }
+        }
+      })
+    }
+  }
+
+  navigateToCategoryById(categoryId, callback) {
+    const loadedCategories = this.loadedCategoriesValue.split(',').map(id => parseInt(id))
+    
+    if (loadedCategories.includes(categoryId)) {
+      this.scrollToCategory(categoryId)
+      if (callback) callback()
+    } else {
+      this.pendingNavigation = { categoryId, callback }
+      this.loadMore()
+    }
   }
 }

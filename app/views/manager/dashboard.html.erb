@@ -1,5 +1,4 @@
 <div class="min-h-screen bg-base-200">
-  <!-- Навигация -->
   <div class="navbar bg-base-100 shadow-lg">
     <div class="flex-1">
       <a class="btn btn-ghost normal-case text-xl">Панель менеджера</a>
@@ -15,7 +14,6 @@
   </div>
 
   <div class="container mx-auto px-4 py-6">
-    <!-- Заголовок и быстрые действия -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
       <div>
         <h1 class="text-3xl font-bold">Панель управления</h1>
@@ -31,7 +29,6 @@
       </div>
     </div>
 
-    <!-- Ключевые метрики -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <div class="stat bg-base-100 rounded-lg shadow">
         <div class="stat-figure text-primary">
@@ -78,9 +75,7 @@
       </div>
     </div>
 
-    <!-- Содержимое: текущие бронирования и ближайшие -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Текущие бронирования -->
       <div class="bg-base-100 rounded-lg shadow-lg p-6">
         <div class="flex justify-between items-center mb-4">
           <h2 class="text-xl font-bold">Текущие бронирования</h2>
@@ -102,29 +97,24 @@
                 <tr>
                   <td>
                     <% if booking.seats.any? %>
-                      <%# Группируем места по столам для корректного отображения %>
                       <% seats_by_table = booking.seats.includes(:table).group_by(&:table) %>
                       <% seats_by_table.each do |table, seats| %>
                         <% if table %>
-                          <%# Получаем общее количество мест за столом из предзагруженных данных в контроллере %>
                           <% total_seats_at_table = @table_seat_counts[table.id] || 0 %>
-                          
-                          <%# Если забронированы все места за столом %>
+
                           <% if seats.count == total_seats_at_table && total_seats_at_table > 0 %>
-                            <span class="badge badge-outline">Стол <%= table.name %></span>
-                          <%# Если забронирована только часть мест %>
+                            <span>Стол <%= table.name %></span>
                           <% else %>
-                            <span class="badge badge-outline">Стол <%= table.name %> (<%= seats.map(&:number).join(', ') %>)</span>
+                            <span>Стол <%= table.name %> (<%= seats.map(&:number).join(', ') %>)</span>
                           <% end %>
                         <% else %>
-                          <%# Если места не привязаны к столу (отдельные места) %>
                           <% seats.each do |seat| %>
-                            <span class="badge badge-outline">М<%= seat.number %></span>
+                            <span>М<%= seat.number %></span>
                           <% end %>
                         <% end %>
                       <% end %>
                     <% else %>
-                      <span class="badge badge-outline">Нет данных</span>
+                      <span>Нет данных</span>
                     <% end %>
                   </td>
                   <td><%= booking.user&.full_name || "Неизвестный" %></td>
@@ -150,7 +140,6 @@
         </div>
       </div>
 
-      <!-- Ближайшие бронирования -->
       <div class="bg-base-100 rounded-lg shadow-lg p-6">
         <div class="flex justify-between items-center mb-4">
           <h2 class="text-xl font-bold">Ближайшие бронирования</h2>
@@ -170,20 +159,16 @@
                       <% seats_by_table = booking.seats.includes(:table).group_by(&:table) %>
                       <% seats_by_table.each do |table, seats| %>
                         <% if table %>
-                          <%# Получаем общее количество мест за столом из предзагруженных данных в контроллере %>
                           <% total_seats_at_table = @table_seat_counts[table.id] || 0 %>
-                          
-                          <%# Если забронированы все места за столом %>
+
                           <% if seats.count == total_seats_at_table && total_seats_at_table > 0 %>
-                            <span class="badge badge-outline badge-sm">Стол <%= table.name %></span>
-                          <%# Если забронирована только часть мест %>
+                            <span>Стол <%= table.name %></span>
                           <% else %>
-                            <span class="badge badge-outline badge-sm">Стол <%= table.name %> (<%= seats.map(&:number).join(', ') %>)</span>
+                            <span>Стол <%= table.name %> (<%= seats.map(&:number).join(', ') %>)</span>
                           <% end %>
                         <% else %>
-                          <%# Если места не привязаны к столу (отдельные места) %>
                           <% seats.each do |seat| %>
-                            <span class="badge badge-outline badge-sm">М<%= seat.number %></span>
+                            <span>М<%= seat.number %></span>
                           <% end %>
                         <% end %>
                       <% end %>
@@ -209,7 +194,6 @@
       </div>
     </div>
 
-    <!-- Состояние столов и мест -->
     <div class="bg-base-100 rounded-lg shadow-lg p-6 mt-6">
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-bold">Состояние столов и мест</h2>
@@ -234,8 +218,7 @@
             </div>
           </div>
         <% end %>
-        
-        <%# Отображение отдельных мест, не привязанных к столам %>
+
         <% @individual_seats.each do |seat| %>
           <% booking = @current_bookings.find { |b| b.seats.include?(seat) } %>
           <div class="card bg-base-200 shadow-md <%= 'border-2 border-warning' if booking %>">

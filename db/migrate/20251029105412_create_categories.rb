@@ -18,6 +18,5 @@ class CreateCategories < ActiveRecord::Migration[7.2]
 
     # Индексы
     add_index :categories, :slug, unique: true
-    add_index :categories, :position
   end
 end

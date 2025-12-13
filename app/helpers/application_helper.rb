@@ -36,6 +36,19 @@ module ApplicationHelper
     Time.current.year
   end
 
+  def russian_pluralize(number, one, few, many)
+    last_digit = number % 10
+    last_two_digits = number % 100
+
+    if last_digit == 1 && last_two_digits != 11
+      one
+    elsif [ 2, 3, 4 ].include?(last_digit) && ![ 12, 13, 14 ].include?(last_two_digits)
+      few
+    else
+      many
+    end
+  end
+
   def email_change_confirmation_url(token)
     "http://localhost:3000/email/confirm/#{token}"
   end
@@ -50,13 +63,13 @@ module ApplicationHelper
 
   def sort_link(column, title = nil)
     title ||= column.titleize
-    direction = column == params[:sort] && params[:direction] == 'asc' ? 'desc' : 'asc'
-    icon = params[:sort] == column ? (direction == 'asc' ? '▲' : '▼') : ''
-    
-    link_to manager_bookings_path(request.query_parameters.merge(sort: column, direction: direction, page: nil)), class: 'flex items-center gap-1' do
+    direction = column == params[:sort] && params[:direction] == "asc" ? "desc" : "asc"
+    icon = params[:sort] == column ? (direction == "asc" ? "▲" : "▼") : ""
+
+    link_to manager_bookings_path(request.query_parameters.merge(sort: column, direction: direction, page: nil)), class: "flex items-center gap-1" do
       concat(title)
       if icon.present?
-        content_tag(:span, icon, class: 'text-xs')
+        content_tag(:span, icon, class: "text-xs")
       end
     end
   end

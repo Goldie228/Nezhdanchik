@@ -1,5 +1,4 @@
 <div class="min-h-screen bg-base-200">
-  <!-- Навигация -->
   <div class="navbar bg-base-100 shadow-lg">
     <div class="flex-1">
       <a class="btn btn-ghost normal-case text-xl">Панель менеджера</a>
@@ -15,7 +14,6 @@
   </div>
 
   <div class="container mx-auto px-4 py-6">
-    <!-- Заголовок и навигация по датам -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
       <div>
         <h1 class="text-3xl font-bold">Календарь бронирований</h1>
@@ -42,12 +40,9 @@
       </div>
     </div>
 
-    <!-- Календарь с временными слотами -->
     <div class="bg-base-100 rounded-lg shadow-lg p-6 mb-6">
-      <!-- ИСПРАВЛЕНО: Локализованная дата -->
       <h2 class="text-xl font-bold mb-4">Бронирования на <%= russian_date(@selected_date) %></h2>
-      
-      <!-- Легенда -->
+
       <div class="flex flex-wrap gap-4 mb-4">
         <% get_statuses_list.each do |status| %>
           <div class="flex items-center gap-2">
@@ -56,25 +51,21 @@
           </div>
         <% end %>
       </div>
-      
-      <!-- Таблица с временными слотами -->
+
       <div class="overflow-x-auto">
         <table class="table table-compact w-full">
           <thead>
             <tr>
               <th>Время</th>
-              <!-- Заголовки для столов -->
               <% @tables.each do |table| %>
                 <th class="text-center">Стол <%= table.name %></th>
               <% end %>
-              <!-- Заголовки для отдельных мест -->
               <% @individual_seats.each do |seat| %>
                 <th class="text-center">Место <%= seat.number %></th>
               <% end %>
             </tr>
           </thead>
           <tbody>
-            <% # Генерируем временные слоты с шагом в 30 минут %>
             <% (9..23).each do |hour| %>
               <% [0, 30].each do |minute| %>
                 <% time_slot = Time.zone.parse("#{@selected_date.strftime('%Y-%m-%d')} #{hour.to_s.rjust(2, '0')}:#{minute.to_s.rjust(2, '0')}:00") %>
@@ -82,8 +73,7 @@
                   <td class="font-semibold">
                     <%= time_slot.strftime('%H:%M') %>
                   </td>
-                  
-                  <!-- Ячейки для столов -->
+
                   <% @tables.each do |table| %>
                     <% booking = @bookings.find { |b| b.seats.any? { |s| s.table_id == table.id } && b.starts_at <= time_slot && b.ends_at > time_slot } %>
                     <td class="text-center p-1">
@@ -106,8 +96,7 @@
                       <% end %>
                     </td>
                   <% end %>
-                  
-                  <!-- Ячейки для отдельных мест -->
+
                   <% @individual_seats.each do |seat| %>
                     <% booking = @bookings.find { |b| b.seats.include?(seat) && b.starts_at <= time_slot && b.ends_at > time_slot } %>
                     <td class="text-center p-1">
@@ -138,9 +127,7 @@
       </div>
     </div>
 
-    <!-- Список бронирований на выбранный день -->
     <div class="bg-base-100 rounded-lg shadow-lg p-6">
-      <!-- ИСПРАВЛЕНО: Локализованная дата -->
       <h2 class="text-xl font-bold mb-4">Бронирования на <%= russian_date(@selected_date) %></h2>
       <div class="overflow-x-auto">
         <table class="table table-compact w-full">
@@ -167,18 +154,18 @@
                         <% total_seats_at_table = @table_seat_counts[table.id] || 0 %>
 
                         <% if seats.count == total_seats_at_table && total_seats_at_table > 0 %>
-                          <span class="badge badge-outline">Стол <%= table.name %></span>
+                          <span>Стол <%= table.name %></span>
                         <% else %>
-                          <span class="badge badge-outline">Стол <%= table.name %> (места: <%= seats.map(&:number).join(', ') %>)</span>
+                          <span>Стол <%= table.name %> (места: <%= seats.map(&:number).join(', ') %>)</span>
                         <% end %>
                       <% else %>
                         <% seats.each do |seat| %>
-                          <span class="badge badge-outline">М<%= seat.number %></span>
+                          <span>М<%= seat.number %></span>
                         <% end %>
                       <% end %>
                     <% end %>
                   <% else %>
-                    <span class="badge badge-outline">Нет данных</span>
+                    <span>Нет данных</span>
                   <% end %>
                 </td>
                 <td>

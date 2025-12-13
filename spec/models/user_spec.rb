@@ -54,7 +54,7 @@ RSpec.describe User, type: :model do
     it { should_not allow_value("invalid_email").for(:email) }
 
     it { should validate_presence_of(:phone) }
-    it { should validate_uniqueness_of(:phone).case_insensitive } # <-- FIXED
+    it { should validate_uniqueness_of(:phone).case_insensitive }
     it { should allow_value("291234567").for(:phone) }
     it { should_not allow_value("12345").for(:phone).with_message(:invalid_phone) }
 
