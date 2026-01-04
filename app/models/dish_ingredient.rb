@@ -10,9 +10,13 @@
 #  updated_at    :datetime         not null
 #
 class DishIngredient < ApplicationRecord
+  # Связь с блюдом, к которому относится ингредиент
   belongs_to :dish
+  # Связь с конкретным ингредиентом (продукт)
   belongs_to :ingredient
 
+  # Гарантирует, что один и тот же ингредиент не может быть добавлен в одно блюдо дважды
   validates :dish_id, uniqueness: { scope: :ingredient_id }
+  # Указывает, входит ли ингредиент в состав блюда по умолчанию (или является дополнением)
   validates :default, inclusion: { in: [ true, false ] }
 end
