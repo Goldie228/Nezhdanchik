@@ -1,11 +1,16 @@
+
 class PasswordController < ApplicationController
+  # Смена пароля внутри профиля требует авторизации
   before_action :authenticate_user!, only: [ :change, :update ]
+  # Восстановление пароля через ссылку требует валидации токена
   before_action :set_reset_token_from_params, only: [ :reset, :update_by_token ]
   before_action :validate_reset_token, only: [ :reset, :update_by_token ]
 
+  # Время жизни ссылки на сброс пароля
   TOKEN_EXPIRY = 2.hours
 
   def change
+    # Форма смены пароля (требуется ввод старого пароля)
   end
 
   def update
@@ -13,6 +18,7 @@ class PasswordController < ApplicationController
     new_password = params[:new_password]
     password_confirmation = params[:password_confirmation]
 
+    # Безопасность: проверяем, что пользователь знает текущий пароль
     unless current_user.authenticate(current_password)
       flash.now[:alert] = "Неверный текущий пароль"
       render :change, status: :unprocessable_entity and return
@@ -30,8 +36,8 @@ class PasswordController < ApplicationController
 
     if current_user.update(password: new_password)
       session[:password_changed] = true
+      # Принудительный выход: сброс сессии для повторной авторизации с новым паролем
       session.delete(:user_id)
-
       redirect_to password_success_path, notice: "Пароль успешно изменен!"
     else
       flash.now[:alert] = "Произошла ошибка: #{current_user.errors.full_messages.to_sentence}"
@@ -44,6 +50,7 @@ class PasswordController < ApplicationController
   end
 
   def forgot
+    # Форма ввода email для восстановления пароля
   end
 
   def create_reset_token
@@ -54,6 +61,7 @@ class PasswordController < ApplicationController
       token = generate_secure_token
       params[:token] = token
 
+      # Сохраняем токен в Redis с автоудалением (TTL) вместо БД
       with_redis do |r|
         r.setex(
           "password_reset:#{token}",
@@ -61,6 +69,7 @@ class PasswordController < ApplicationController
           { user_id: user.id, created_at: Time.current.iso8601 }.to_json
         )
       end
+      # Асинхронная отправка письма (не блокирует ответ пользователю)
       UserMailer.password_reset(user, token).deliver_later
 
       redirect_to root_path, notice: "Ссылка на сброс отправлена на Вашу электронную почту" and return
@@ -73,6 +82,7 @@ class PasswordController < ApplicationController
   end
 
   def reset
+    # Форма ввода нового пароля (после перехода по ссылке из письма)
   end
 
   def update_by_token
@@ -90,6 +100,7 @@ class PasswordController < ApplicationController
     end
 
     if @user.update(password: new_password)
+      # Удаляем токен после использования, чтобы ссылку нельзя было применить повторно
       with_redis { |r| r.del("password_reset:#{@token}") }
       session[:password_changed] = true
       redirect_to password_success_path, notice: "Ваш пароль был успешно изменен."
@@ -104,6 +115,7 @@ class PasswordController < ApplicationController
   end
 
   def success
+    # Защита страницы успеха: редирект, если пароль не менялся в этой сессии
     if session[:password_changed]
       session.delete(:password_changed)
       redirect_to root_path
@@ -122,6 +134,7 @@ class PasswordController < ApplicationController
       return
     end
 
+    # Проверяем наличие токена в Redis. Если его нет — ссылка истекла или неверна.
     data = with_redis { |r| r.get("password_reset:#{@token}") }
     if data.blank?
       redirect_to password_forgot_path, alert: "Ссылка для сброса пароля недействительна или истекла."
@@ -137,10 +150,12 @@ class PasswordController < ApplicationController
   end
 
   def generate_secure_token
+    # Криптографически стойкий токен для предотвращения перебора
     SecureRandom.urlsafe_base64(32)
   end
 
   def with_redis
+    # Универсальный адаптер для работы с Redis (Pool или Client)
     if defined?(REDIS_POOL) && REDIS_POOL
       REDIS_POOL.with { |conn| yield conn }
     elsif defined?(REDIS_CLIENT) && REDIS_CLIENT

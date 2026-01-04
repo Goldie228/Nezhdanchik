@@ -11,8 +11,8 @@
 #
 require "rails_helper"
 
-
 RSpec.describe DishIngredient, type: :model do
+  # Создаем зависимости "вручную" для изоляции теста от заводов (factories)
   let!(:dish) { Dish.create!(title: "Pizza", slug: "pizza", price: 10, category: Category.create!(name: "Main", slug: "main")) }
   let!(:ingredient) { Ingredient.create!(name: "Cheese", price: 1.5) }
 
@@ -31,6 +31,7 @@ RSpec.describe DishIngredient, type: :model do
     expect(di).not_to be_valid
   end
 
+  # Гарантирует, что один и тот же ингредиент нельзя добавить в одно блюдо дважды
   it "enforces uniqueness of dish and ingredient pair" do
     DishIngredient.create!(dish: dish, ingredient: ingredient)
     duplicate = DishIngredient.new(dish: dish, ingredient: ingredient)

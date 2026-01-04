@@ -1,10 +1,14 @@
+
 <div class="min-h-screen bg-base-200">
+  <!-- Основной контейнер страницы -->
   <div class="container mx-auto px-4 py-4 md:py-8">
+    <!-- Хлебные крошки: Главная -> История -> Детали -->
     <div class="text-sm breadcrumbs mb-4 md:mb-6">
       <ul>
         <li><a href="/" class="text-primary hover:text-primary-focus">Главная</a></li>
         <li><a href="<%= orders_history_path %>" class="text-primary hover:text-primary-focus">История</a></li>
         <li>
+          <!-- Заголовок страницы зависит от статуса: если есть бронь без заказа -> Бронь №X, если есть заказ -> Заказ №X -->
           <span class="text-base-content/60">
             <% if @booking && !@order %>
               Бронирование №<%= @booking.booking_number %>
@@ -16,6 +20,7 @@
       </ul>
     </div>
 
+    <!-- Карточка заголовка (Номер, Статус) -->
     <div class="card bg-base-100 shadow-xl mb-6">
       <div class="card-body">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
@@ -28,228 +33,261 @@
               <% end %>
             </h1>
           </div>
+          <!-- Бейдж статуса (Заказ или Бронирование) -->
           <div class="flex items-center gap-4">
             <div class="badge badge-lg <%= status_badge_class((@order || @booking).status) %>">
               <%= status_in_russian((@order || @booking).status) %>
             </div>
           </div>
         </div>
+      </div>
+    </div>
 
-        <% if @booking %>
-          <div class="mb-8">
-            <h2 class="text-lg font-bold text-primary mb-4 flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              Информация о бронировании
-            </h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <div class="bg-base-200 rounded-xl p-4">
-                <p class="text-sm text-base-content/70 mb-1">Дата и время начала</p>
-                <p class="font-semibold"><%= l(@booking.starts_at, format: :long) %></p>
-              </div>
-              
-              <div class="bg-base-200 rounded-xl p-4">
-                <p class="text-sm text-base-content/70 mb-1">Дата и время окончания</p>
-                <p class="font-semibold"><%= l(@booking.ends_at, format: :long) %></p>
-              </div>
-              
-              <div class="bg-base-200 rounded-xl p-4">
-                <p class="text-sm text-base-content/70 mb-1">Продолжительность</p>
-                <p class="font-semibold"><%= ((@booking.ends_at - @booking.starts_at) / 1.hour).round(1) %> ч.</p>
-              </div>
-              
-              <div class="bg-base-200 rounded-xl p-4">
-                <p class="text-sm text-base-content/70 mb-1">Стоимость бронирования</p>
-                <p class="font-semibold"><%= number_to_currency(@booking.total_price, unit: "BYN", format: "%n %u") %></p>
-              </div>
-            </div>
-            
-            <% if @booking.special_requests.present? %>
-              <div class="bg-base-200 rounded-xl p-4 mb-6">
-                <p class="text-sm text-base-content/70 mb-1">Особые пожелания</p>
-                <p class="text-sm text-base-content/80 mt-1 break-all whitespace-normal">
-                  <%= @booking.special_requests %>
-                </p>
-              </div>
-            <% end %>
+    <!-- Основной контент информации о брони и заказе -->
+    <% if @booking %>
+      <div class="mb-8">
+        <h2 class="text-lg font-bold text-primary mb-4 flex items-center">
+          <!-- Иконка брони -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          Информация о бронировании
+        </h2>
 
-            <div class="bg-base-200 rounded-xl p-4">
-              <p class="text-sm text-base-content/70 mb-2">Выбранные места</p>
-
-              <% seats_by_table = @booking.seats.group_by(&:table_id) %>
-              
-              <div class="flex flex-wrap gap-2">
-                <% seats_by_table.each do |table_id, seats| %>
-                  <% if table_id.present? %>
-                    <div class="badge badge-neutral badge-lg">
-                      <div class="flex items-center gap-1">
-                        <span>Стол <%= seats.first.table.name %></span>
-                        <span class="text-base-content/60">(<%= seats.map(&:number).join(', ') %>)</span>
-                      </div>
-                    </div>
-                  <% else %>
-                    <% seats.each do |seat| %>
-                      <div class="badge badge-neutral badge-outline">
-                        Место <%= seat.number %>
-                      </div>
-                    <% end %>
-                  <% end %>
-                <% end %>
-              </div>
-            </div>
+        <!-- Сетка полей деталей бронирования -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div class="bg-base-200 rounded-xl p-4">
+            <p class="text-sm text-base-content/70 mb-1">Дата и время начала</p>
+            <p class="font-semibold"><%= l(@booking.starts_at, format: :long) %></p>
           </div>
 
-          <div>
-            <h2 class="text-lg font-bold text-primary mb-4 flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-              </svg>
-              Состав заказа
-            </h2>
+          <div class="bg-base-200 rounded-xl p-4">
+            <p class="text-sm text-base-content/70 mb-1">Дата и время окончания</p>
+            <p class="font-semibold"><%= l(@booking.ends_at, format: :long) %></p>
+          </div>
 
-            <% if @order && @order_items.any? %>
-              <div class="overflow-x-auto">
-                <table class="table table-compact w-full">
-                  <thead>
-                    <tr>
-                      <th>Товар</th>
-                      <th>Цена</th>
-                      <th>Кол-во</th>
-                      <th>Сумма</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <% @order_items.each do |item| %>
-                      <tr>
-                        <td>
-                          <div class="flex items-center space-x-3">
-                            <div class="avatar">
-                              <div class="mask mask-squircle w-12 h-12">
-                                <% if item.dish.photos.attached? %>
-                                  <%= image_tag url_for(item.dish.photos.first), class: "w-full h-full object-cover" %>
-                                <% else %>
-                                  <div class="bg-base-300 w-full h-full flex items-center justify-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-base-content/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                  </div>
-                                <% end %>
-                              </div>
-                            </div>
-                            <div>
-                              <div class="font-bold"><%= item.dish.title %></div>
-                              <div class="text-sm opacity-50"><%= item.dish.description %></div>
-                              <% if item.special_instructions.present? %>
-                                <div class="text-xs text-base-content/60 mt-1">
-                                  <%= item.special_instructions %>
-                                </div>
-                              <% end %>
-                            </div>
-                          </div>
-                        </td>
-                        <td><%= number_to_currency(item.unit_price, unit: "BYN", format: "%n %u") %></td>
-                        <td><%= item.quantity %></td>
-                        <td><%= number_to_currency(item.total_price, unit: "BYN", format: "%n %u") %></td>
-                      </tr>
-                    <% end %>
-                  </tbody>
-                  <tfoot>
-                    <tr>
-                      <th colspan="3">Итого по заказу:</th>
-                      <th><%= number_to_currency(@order.total_amount, unit: "BYN", format: "%n %u") %></th>
-                    </tr>
-                    <tr>
-                      <th colspan="3">Итого с учетом бронирования:</th>
-                      <th><%= number_to_currency(@order.total_amount + (@booking&.total_price || 0), unit: "BYN", format: "%n %u") %></th>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
+          <div class="bg-base-200 rounded-xl p-4">
+            <p class="text-sm text-base-content/70 mb-1">Продолжительность</p>
+            <p class="font-semibold"><%= ((@booking.ends_at - @booking.starts_at) / 1.hour).round(1) %> ч.</p>
+          </div>
 
-            <% elsif @booking.cart && @booking.cart.cart_items.active.any? %>
-              <div class="overflow-x-auto">
-                <table class="table table-compact w-full">
-                  <thead>
-                    <tr>
-                      <th>Товар</th>
-                      <th>Цена</th>
-                      <th>Кол-во</th>
-                      <th>Сумма</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <% @booking.cart.cart_items.includes(:dish, :cart_item_ingredients).active.each do |item| %>
-                      <tr>
-                        <td>
-                          <div class="flex items-center space-x-3">
-                            <div class="avatar">
-                              <div class="mask mask-squircle w-12 h-12">
-                                <% if item.dish.photos.attached? %>
-                                  <%= image_tag url_for(item.dish.photos.first), class: "w-full h-full object-cover" %>
-                                <% else %>
-                                  <div class="bg-base-300 w-full h-full flex items-center justify-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-base-content/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                  </div>
-                                <% end %>
-                              </div>
-                            </div>
-                            <div>
-                              <div class="font-bold"><%= item.dish.title %></div>
-                              <div class="text-sm opacity-50"><%= item.dish.description %></div>
-                              <% if generate_special_instructions(item).present? %>
-                                <div class="text-xs text-base-content/60 mt-1">
-                                  <%= generate_special_instructions(item) %>
-                                </div>
-                              <% end %>
-                            </div>
-                          </div>
-                        </td>
-                        <td><%= number_to_currency(item.dish.price, unit: "BYN", format: "%n %u") %></td>
-                        <td><%= item.quantity %></td>
-                        <td><%= number_to_currency(item.dish.price * item.quantity, unit: "BYN", format: "%n %u") %></td>
-                      </tr>
-                    <% end %>
-                  </tbody>
-                  <tfoot>
-                    <tr>
-                      <th colspan="3">Промежуточный итог:</th>
-                      <th><%= number_to_currency(@booking.cart.total_cents / 100.0, unit: "BYN", format: "%n %u") %></th>
-                    </tr>
-                    <tr>
-                      <th colspan="3">Итого с учетом бронирования:</th>
-                      <th><%= number_to_currency((@booking.cart.total_cents / 100.0) + (@booking.total_price || 0), unit: "BYN", format: "%n %u") %></th>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-            <% else %>
-              <p class="text-base-content/70">В этом бронировании еще нет заказанных товаров.</p>
-            <% end %>
+          <div class="bg-base-200 rounded-xl p-4">
+            <p class="text-sm text-base-content/70 mb-1">Стоимость бронирования</p>
+            <p class="font-semibold"><%= number_to_currency(@booking.total_price, unit: "BYN", format: "%n %u") %></p>
+          </div>
+        </div>
+
+        <!-- Особые пожелания -->
+        <% if @booking.special_requests.present? %>
+          <div class="bg-base-200 rounded-xl p-4 mb-6">
+            <p class="text-sm text-base-content/70 mb-1">Особые пожелания</p>
+            <p class="text-sm text-base-content/80 mt-1 break-all whitespace-normal">
+              <%= @booking.special_requests %>
+            </p>
           </div>
         <% end %>
 
-        <div class="card-actions justify-between mt-8">
-          <%= link_to "Вернуться к истории", orders_history_path, class: "btn btn-outline" %>
-          
-          <div class="flex gap-2">
-            <% if @booking && @booking.confirmed? && @booking.future? %>
-              <%= button_to "Отменить бронирование", 
-                  cancel_reservation_path(@booking), 
-                  method: :delete, 
-                  class: "btn btn-error",
-                  form: { 
-                    data: { 
-                      turbo_confirm: "Вы уверены, что хотите отменить это бронирование?" 
-                    } 
-                  } %>
+        <!-- Выбранные места -->
+        <div class="bg-base-200 rounded-xl p-4">
+          <p class="text-sm text-base-content/70 mb-2">Выбранные места</p>
+
+          <!-- Группировка мест по столам -->
+          <% seats_by_table = @booking.seats.group_by(&:table_id) %>
+
+          <div class="flex flex-wrap gap-2">
+            <!-- ИСПРАВЛЕНО: Добавлен each_with_index для использования index -->
+            <% seats_by_table.each_with_index do |(table_id, seats), index| %>
+              <% if index > 0 %>, <% end %>
+
+              <!-- Если место привязано к столу -->
+              <% if table_id.present? %>
+                <div class="badge badge-neutral badge-lg">
+                  <div class="flex items-center gap-1">
+                    <span>Стол <%= seats.first.table.name %></span>
+                    <span class="text-base-content/60">(<%= seats.map(&:number).join(', ') %>)</span>
+                  </div>
+                </div>
+              <!-- Если место индивидуальное (без стола) -->
+              <% else %>
+                <% seats.each do |seat| %>
+                  <div class="badge badge-neutral badge-outline">
+                    Место <%= seat.number %>
+                  </div>
+                <% end %>
+              <% end %>
             <% end %>
           </div>
         </div>
       </div>
-    </div>
+
+      <!-- Блок Содержания Заказа (Блюда) -->
+      <div>
+        <h2 class="text-lg font-bold text-primary mb-4 flex items-center">
+          <!-- Иконка блюда/корзины -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+          </svg>
+          Состав заказа
+        </h2>
+
+        <!-- Вариант 1: Есть оформленный заказ (Order) -->
+        <% if @order && @order.order_items.any? %>
+          <div class="overflow-x-auto">
+            <table class="table table-compact w-full">
+              <thead>
+                <tr>
+                  <th>Товар</th>
+                  <th>Цена</th>
+                  <th>Кол-во</th>
+                  <th>Сумма</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @order.order_items.includes(:dish).limit(3).each do |item| %>
+                  <tr>
+                    <td>
+                      <div class="flex items-center space-x-3">
+                        <!-- Фото блюда -->
+                        <div class="avatar">
+                          <div class="mask mask-squircle w-12 h-12">
+                            <% if item.dish.photos.attached? %>
+                              <%= image_tag url_for(item.dish.photos.first), class: "w-full h-full object-cover" %>
+                            <% else %>
+                              <!-- Заглушка -->
+                              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-base-content/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                            <% end %>
+                          </div>
+                        </div>
+                        <div>
+                          <!-- Название и описание -->
+                          <div class="font-bold"><%= item.dish.title %></div>
+                          <div class="text-sm opacity-50"><%= item.dish.description %></div>
+                          <!-- Инструкции к заказу (модификаторы) -->
+                          <% if item.special_instructions.present? %>
+                            <div class="text-xs text-base-content/60 mt-1">
+                              <%= item.special_instructions %>
+                            </div>
+                          <% end %>
+                        </div>
+                      </div>
+                    </td>
+                    <!-- Цена за единицу -->
+                    <td><%= number_to_currency(item.unit_price, unit: "BYN", format: "%n %u") %></td>
+                    <!-- Кол-во -->
+                    <td><%= item.quantity %></td>
+                    <!-- Сумма позиции -->
+                    <td><%= number_to_currency(item.total_price, unit: "BYN", format: "%n %u") %></td>
+                  </tr>
+                <% end %>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <!-- Итого по еде -->
+                  <th colspan="3">Итого по заказу:</th>
+                  <th><%= number_to_currency(@order.total_amount, unit: "BYN", format: "%n %u") %></th>
+                </tr>
+                <tr>
+                  <!-- Общий итог (Бронь + Еда) -->
+                  <th colspan="3">Итого с учетом бронирования:</th>
+                  <th><%= number_to_currency(@order.total_amount + (@booking&.total_price || 0), unit: "BYN", format: "%n %u") %></th>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+        <!-- Вариант 2: Есть товары в корзине (Cart), заказ еще не оформлен -->
+        <% elsif @booking.cart && @booking.cart.cart_items.active.any? %>
+          <div class="overflow-x-auto">
+            <table class="table table-compact w-full">
+              <thead>
+                <tr>
+                  <th>Товар</th>
+                  <th>Цена</th>
+                  <th>Кол-во</th>
+                  <th>Сумма</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @booking.cart.cart_items.includes(:dish, :cart_item_ingredients).active.each do |item| %>
+                  <tr>
+                    <td>
+                      <div class="flex items-center space-x-3">
+                        <!-- Фото -->
+                        <div class="avatar">
+                          <div class="mask mask-squircle w-12 h-12">
+                            <% if item.dish.photos.attached? %>
+                              <%= image_tag url_for(item.dish.photos.first), class: "w-full h-full object-cover" %>
+                            <% else %>
+                              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-base-content/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                            <% end %>
+                          </div>
+                        </div>
+                        <div>
+                          <div class="font-bold"><%= item.dish.title %></div>
+                          <div class="text-sm opacity-50"><%= item.dish.description %></div>
+                          <!-- Инструкции генерируются из ингредиентов корзины -->
+                          <% if generate_special_instructions(item).present? %>
+                            <div class="text-xs text-base-content/60 mt-1">
+                              <%= generate_special_instructions(item) %>
+                            </div>
+                          <% end %>
+                        </div>
+                      </div>
+                    </td>
+                    <!-- Базовая цена блюда (так как заказ еще не создан, фиксированной unit_price нет) -->
+                    <td><%= number_to_currency(item.dish.price, unit: "BYN", format: "%n %u") %></td>
+                    <td><%= item.quantity %></td>
+                    <!-- Считаем сумму на лету: цена блюда * кол-во -->
+                    <td><%= number_to_currency(item.quantity * item.dish.price, unit: "BYN", format: "%n %u") %></td>
+                  </tr>
+                <% end %>
+              </tbody>
+              <tfoot>
+                <!-- Промежуточный итог корзины -->
+                <tr>
+                  <th colspan="3">Промежуточный итог:</th>
+                  <th><%= number_to_currency(@booking.cart.total_cents / 100.0, unit: "BYN", format: "%n %u") %></th>
+                </tr>
+                <tr>
+                  <!-- Общий итог -->
+                  <th colspan="3">Итого с учетом бронирования:</th>
+                  <th><%= number_to_currency((@booking.cart.total_cents / 100.0) + (@booking.total_price || 0), unit: "BYN", format: "%n %u") %></th>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+        <!-- Вариант 3: Нет товаров -->
+        <% else %>
+          <p class="text-base-content/70">В этом бронировании еще нет заказанных товаров.</p>
+        <% end %>
+      </div>
+
+      <!-- Действия пользователя -->
+      <div class="card-actions justify-between mt-8">
+        <!-- Кнопка возврата в историю -->
+        <%= link_to "Вернуться к истории", orders_history_path, class: "btn btn-outline" %>
+
+        <div class="flex gap-2">
+          <!-- Кнопка отмены бронирования (только если статус 'confirmed' и время в будущем) -->
+          <% if @booking && @booking.confirmed? && @booking.future? %>
+            <%= button_to "Отменить бронирование",
+                cancel_reservation_path(@booking),
+                method: :delete,
+                class: "btn btn-error",
+                form: {
+                  # turbo_confirm для современных Rails/Turbo (безопасная отмена AJAX)
+                  data: {
+                    turbo_confirm: "Вы уверены, что хотите отменить это бронирование?"
+                  }
+                } %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
   </div>
 </div>

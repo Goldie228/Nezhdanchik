@@ -13,18 +13,19 @@
 #
 require 'rails_helper'
 
-
 RSpec.describe Order, type: :model do
   let(:user) { create(:user) }
 
   describe 'validations' do
+    # Проверка защиты от отрицательных сумм в заказах
     it 'validates numericality of total_amount' do
       order = build(:order, user: user, total_amount: -10.0)
       expect(order).not_to be_valid
 
-      expect(order.errors[:total_amount]).to include('должен быть больше или равен 0')
+      expect(order.errors[:total_amount]).to include('должно быть больше или равно 0')
     end
 
+    # Заказ может быть бесплатным (например, при промо-акции)
     it 'is valid with zero total_amount' do
       order = build(:order, user: user, total_amount: 0.0)
       expect(order).to be_valid
@@ -37,6 +38,7 @@ RSpec.describe Order, type: :model do
   end
 
   describe 'callbacks' do
+    # Защита от ошибок при расчетах, если сумма не была инициализирована
     it 'sets default total_amount to 0 if nil' do
       order = Order.new(user: user, total_amount: nil)
       order.valid?
@@ -49,6 +51,7 @@ RSpec.describe Order, type: :model do
     let(:order) { create(:order, user: user) }
     let(:dish) { create(:dish) }
 
+    # Проверяет корректность агрегации цен всех позиций заказа
     it 'calculates total from order items' do
       create(:order_item, order: order, dish: dish, quantity: 2, unit_price: 10.0, total_price: 20.0)
       create(:order_item, order: order, dish: dish, quantity: 1, unit_price: 15.0, total_price: 15.0)
@@ -57,6 +60,7 @@ RSpec.describe Order, type: :model do
       expect(order.total_amount).to eq(35.0)
     end
 
+    # Проверяет возможность перерасчета суммы (например, после возврата товара)
     it 'updates total when order items change' do
       order = create(:order, user: user, total_amount: 50.0)
 

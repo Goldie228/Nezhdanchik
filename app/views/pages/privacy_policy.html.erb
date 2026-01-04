@@ -1,5 +1,9 @@
+
+<!-- Страница "Политика конфиденциальности". Используется Tailwind CSS и DaisyUI. -->
 <div class="min-h-screen bg-base-200">
+  <!-- Основной контейнер с адаптивными отступами -->
   <div class="container mx-auto px-4 py-6 md:py-8">
+    <!-- Хлебные крошки: Навигация (Главная -> Политика) -->
     <div class="text-sm breadcrumbs mb-6 md:mb-8">
       <ul>
         <li><a href="/" class="text-primary hover:text-primary-focus">Главная</a></li>
@@ -7,31 +11,39 @@
       </ul>
     </div>
 
+    <!-- Центрированный блок заголовка -->
     <div class="max-w-4xl mx-auto">
       <div class="text-center mb-8 md:mb-12">
         <h1 class="text-3xl md:text-4xl font-bold text-primary mb-4">Политика конфиденциальности Веб-приложения «Нежданчик»</h1>
         <p class="text-base-content/70">Дата последнего обновления: 08.12.2025</p>
       </div>
 
+      <!-- Основная карточка с текстом политики -->
       <div class="card bg-base-100 shadow-xl">
         <div class="card-body p-6 md:p-8">
+
+          <!-- РАЗДЕЛ 1: Общие положения -->
           <section class="mb-8">
             <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
+              <!-- Иконка щита/защиты -->
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
               1. Общие положения
             </h2>
+            <!-- Абзацы текста с межстрочным интервалом -->
             <div class="space-y-4 text-base-content/80 leading-relaxed">
-              <p>1.1. Настоящая Политика конфиденциальности (далее – «Политика») разработана в соответствии с Конституцией Республики Беларусь, Законом Республики Беларусь от 7 мая 2021 г. № 99-З «О персональных данных» (далее – Закон) и иными актами законодательства Республики Беларусь.</p>
+              <p>1.1. Настоящая Политика конфиденциальности (далее – «Политика») разработана в соответствии с Конституцией Республики Беларусь, Законом Республики Беларусь от 7 мая 2021 г. № 99-З «О персональных данных» (далее – Закон) иными актами законодательства Республики Беларусь.</p>
               <p>1.2. Оператором персональных данных (далее – «Оператор») является ООО "Нежданчик", Юридический адрес: 220030, г. Минск, проспект Независимости, д. 11, УНП 192837465.</p>
               <p>1.3. Политика определяет порядок получения, сбора, хранения, обработки, использования, защиты и распространения персональных данных пользователей (далее – «Пользователи») веб-приложения «Нежданчик» (далее – «Приложение»).</p>
               <p>1.4. Регистрируясь в Приложении или используя его функционал, Пользователь выражает свое полное и безоговорочное согласие на обработку его персональных данных на условиях, изложенных в настоящей Политике. В случае несогласия с условиями Политики Пользователь должен воздержаться от использования Приложения.</p>
             </div>
           </section>
 
+          <!-- РАЗДЕЛ 2: Собираемая и обрабатываемая информация -->
           <section class="mb-8">
             <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
+              <!-- Иконка базы данных/сервера -->
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
               </svg>
@@ -39,7 +51,8 @@
             </h2>
             <div class="space-y-4 text-base-content/80 leading-relaxed">
               <p>2.1. Оператор собирает и обрабатывает только те персональные данные, которые необходимы для предоставления услуг Приложения. Обработка персональных данных осуществляется на основе согласия Пользователя.</p>
-              
+
+              <!-- Подблок: Персональные данные пользователя (светлый фон) -->
               <div class="bg-base-200 rounded-2xl p-6">
                 <h3 class="font-bold text-lg mb-3 text-primary">Персональные данные, предоставляемые Пользователем:</h3>
                 <ul class="list-disc list-inside space-y-2 ml-4">
@@ -50,6 +63,7 @@
                 </ul>
               </div>
 
+              <!-- Подблок: Данные, собираемые автоматически (светлый фон) -->
               <div class="bg-base-200 rounded-2xl p-6 mt-4">
                 <h3 class="font-bold text-lg mb-3 text-primary">Данные, собираемые автоматически:</h3>
                 <ul class="list-disc list-inside space-y-2 ml-4">
@@ -62,26 +76,33 @@
             </div>
           </section>
 
+          <!-- РАЗДЕЛ 3: Цели обработки -->
           <section class="mb-8">
             <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
+              <!-- Иконка молнии/энергии -->
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
               3. Цели обработки персональных данных
             </h2>
+            <!-- Сетка 2x2 карточек с целями (цветные плашки) -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- 1. Идентификация (Primary/10%) -->
               <div class="bg-primary/10 rounded-2xl p-4">
                 <h3 class="font-bold text-primary mb-2">Идентификация и аутентификация</h3>
                 <p class="text-sm text-base-content/80">Предоставление доступа к личному кабинету, обеспечение безопасности учетной записи.</p>
               </div>
+              <!-- 2. Договорные обязательства (Secondary/10%) -->
               <div class="bg-secondary/10 rounded-2xl p-4">
                 <h3 class="font-bold text-secondary mb-2">Исполнение договорных обязательств</h3>
                 <p class="text-sm text-base-content/80">Обработка заказов, управление бронированиями столиков, проведение расчетов.</p>
               </div>
+              <!-- 3. Клиентская поддержка (Accent/10%) -->
               <div class="bg-accent/10 rounded-2xl p-4">
                 <h3 class="font-bold text-accent mb-2">Клиентская поддержка</h3>
                 <p class="text-sm text-base-content/80">Связь с Пользователем для ответов на запросы, решения проблем и обработки обратной связи.</p>
               </div>
+              <!-- 4. Улучшение качества (Info/10%) -->
               <div class="bg-info/10 rounded-2xl p-4">
                 <h3 class="font-bold text-info mb-2">Улучшение качества сервиса</h3>
                 <p class="text-sm text-base-content/80">Анализ данных для оптимизации работы Приложения, меню и пользовательского опыта.</p>
@@ -89,8 +110,10 @@
             </div>
           </section>
 
+          <!-- РАЗДЕЛ 4: Меры по защите -->
           <section class="mb-8">
             <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
+              <!-- Иконка щита -->
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
@@ -99,7 +122,8 @@
             <div class="space-y-4 text-base-content/80 leading-relaxed">
               <p>4.1. Оператор принимает необходимые правовые, организационные и технические меры для защиты персональных данных от неправомерного или случайного доступа, уничтожения, изменения, блокирования, копирования и распространения.</p>
               <p>4.2. Доступ к персональным данным имеют только уполномоченные сотрудники Оператора, которые обязаны соблюдать режим конфиденциальности.</p>
-              
+
+              <!-- Инфо-алерт для технических деталей безопасности -->
               <div class="alert alert-info">
                 <div>
                   <span>4.3. Все данные передаются по защищенному SSL-соединению. Пароли Пользователей хранятся в хэшированном виде, что исключает их получение в исходном виде. Двухфакторная аутентификация обеспечивает дополнительный уровень защиты учетных записей.</span>
@@ -109,16 +133,20 @@
             </div>
           </section>
 
+          <!-- РАЗДЕЛ 5: Права субъекта -->
           <section class="mb-8">
             <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
+              <!-- Иконка документа/листа -->
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31-.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c-.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31.826-2.37 2.37a1.724 1.724 0 001.065-2.572c1.756-.426 1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
               5. Права субъекта персональных данных
             </h2>
             <div class="space-y-3 text-base-content/80">
               <p>В соответствии с Законом Республики Беларусь «О персональных данных», Пользователь имеет право:</p>
+
+              <!-- Список прав с иконками-галочками -->
               <div class="flex items-start gap-3">
                 <div class="bg-primary/20 rounded-full p-2 mt-1">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -129,6 +157,7 @@
                   <strong>Право на доступ:</strong> Пользователь может запросить информацию о том, какие его персональные данные обрабатываются, и получить их копию.
                 </div>
               </div>
+
               <div class="flex items-start gap-3">
                 <div class="bg-primary/20 rounded-full p-2 mt-1">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -139,6 +168,7 @@
                   <strong>Право на исправление:</strong> Пользователь может обновить или исправить свои персональные данные в личном кабинете или обратившись к Оператору.
                 </div>
               </div>
+
               <div class="flex items-start gap-3">
                 <div class="bg-primary/20 rounded-full p-2 mt-1">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -149,6 +179,7 @@
                   <strong>Право на удаление ("право на забвение"):</strong> Пользователь может удалить свой аккаунт и все связанные с ним персональные данные через соответствующий раздел личного кабинета. Некоторые данные могут быть сохранены в обезличенном виде или если их хранение требуется по закону.
                 </div>
               </div>
+
               <div class="flex items-start gap-3">
                 <div class="bg-primary/20 rounded-full p-2 mt-1">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -159,14 +190,17 @@
                   <strong>Право на отозвать согласие:</strong> Пользователь может в любой момент отозвать свое согласие на обработку персональных данных, удалив свой аккаунт.
                 </div>
               </div>
+
               <p>Для реализации своих прав Пользователь может связаться с Оператором по электронной почте: nezhdanchik.by@gmail.com.</p>
             </div>
           </section>
 
+          <!-- РАЗДЕЛ 6: Передача данных третьим лицам -->
           <section class="mb-8">
             <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
+              <!-- Иконка обмена/стрелки -->
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               6. Передача данных третьим лицам
             </h2>
@@ -181,35 +215,40 @@
             </div>
           </section>
 
+          <!-- РАЗДЕЛ 7: Сторонние сервисы -->
           <section class="mb-8">
             <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
+              <!-- Иконка настроек/глобуса -->
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 019-9m-9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m-9 9a9 9 0 0119-9" />
               </svg>
               7. Сторонние сервисы и технологии
             </h2>
             <div class="space-y-4 text-base-content/80 leading-relaxed">
               <p>7.1. Наше Приложение использует сторонние сервисы и технологии для обеспечения своей функциональности, безопасности и аналитики.</p>
-              
+
+              <!-- Блок Cloudflare -->
               <div class="bg-base-200 rounded-2xl p-6">
                 <h3 class="font-bold text-lg mb-3 text-primary">Cloudflare</h3>
                 <p>Мы используем Cloudflare для обеспечения безопасности, производительности и надежности нашего приложения. Cloudflare может собирать и обрабатывать IP-адреса, информацию о браузере и устройстве, а также другие технические данные в соответствии с <a href="https://www.cloudflare.com/privacypolicy/" class="text-primary hover:underline" target="_blank">Политикой конфиденциальности Cloudflare</a>.</p>
               </div>
-              
+
               <p>7.2. Мы тщательно выбираем наших партнеров и требуем от них соблюдения надлежащих стандартов защиты данных.</p>
             </div>
           </section>
 
+          <!-- РАЗДЕЛ 8: Заключительные положения -->
           <section class="mb-8">
             <h2 class="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
+              <!-- Иконка пера/редактирования -->
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
               8. Заключительные положения
             </h2>
             <div class="space-y-4 text-base-content/80 leading-relaxed">
               <p>8.1. Оператор вправе вносить изменения в настоящую Политику. Новая редакция Политики вступает в силу с момента ее публикации на сайте Приложения, если иное не предусмотрено новой редакцией Политики.</p>
-              <p>8.2. Все предложения или вопросы по настоящей Политике следует направлять по электронной почте: egorarararara5@gmail.com.</p>
+              <p>8.2. Все предложения или вопросы по настоящей Политике следует направлять по электронной почте: egorararara5@gmail.com.</p>
               <p>8.3. Действующая редакция Политики всегда доступна на странице по адресу: <a href="/privacy_policy" class="text-primary hover:underline">/privacy_policy</a>.</p>
             </div>
           </section>

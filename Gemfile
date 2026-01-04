@@ -52,6 +52,8 @@ group :development, :test do
 
   gem "brakeman", require: false
 
+  gem "erb_lint", require: false
+
   gem "rubocop-rails-omakase", require: false
 
   gem "annotate"

@@ -1,46 +1,72 @@
 
+<!-- Модальное окно выбора времени бронирования (Time Selection Modal) -->
+<!-- max-w-6xl: широкое модальное окно. max-h-[90vh] + overflow-y-auto: прокрутка контента, если он превышает высоту экрана -->
 <div class="modal-box max-w-6xl max-h-[90vh] overflow-y-auto">
+  <!-- Заголовок модального окна -->
   <h3 class="font-bold text-lg mb-6">Выберите время бронирования</h3>
 
+  <!-- =========================================
+       РАЗДЕЛ 1: Выбор даты
+       ========================================= -->
   <div class="form-control mb-6">
     <label class="label">
       <span class="label-text font-semibold">Дата</span>
     </label>
+    <!-- Flex-контейнер: дата (растягивается) + кнопка (авто-ширина) -->
     <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+      <!-- Поле ввода даты -->
+      <!-- min: Устанавливает минимальную дату на текущий день (Date.today), предотвращая выбор прошедших дат -->
       <div class="w-full sm:w-auto">
-        <input type="date" id="modal-date" class="input input-bordered input-lg w-full sm:w-auto" min="<%= Date.today.strftime('%Y-%m-%d') %>" />
+        <input type="date" id="modal-date" class="input input-bordered input-lg w-full sm:w-auto" min="<%= Date.today.strftime('%Y-%m-%d') %>" autocomplete="off">
       </div>
+      <!-- Кнопка загрузки слотов на выбранную дату -->
       <button id="load-availability" class="btn btn-primary w-full sm:w-auto">Показать время</button>
     </div>
+    <!-- Контейнер для сообщения валидации (если дата не выбрана) -->
     <div id="date-validation-message" class="mt-2 text-sm hidden">
     </div>
+    <!-- Контейнер для отображения часов работы ресторана в выбранный день -->
     <div id="working-hours" class="mt-2 text-sm text-base-content/60">
     </div>
   </div>
 
+  <!-- =========================================
+       РАЗДЕЛ 2: Быстрый выбор даты (UX ярлыки)
+       ========================================= -->
   <div class="form-control mb-6">
     <label class="label">
       <span class="label-text font-semibold">Быстрый выбор</span>
     </label>
+    <!-- Контейнер для кнопок "Сегодня", "Завтра". Заполняется через JS -->
     <div class="flex flex-wrap gap-2" id="quick-date-buttons">
     </div>
   </div>
 
+  <!-- =========================================
+       РАЗДЕЛ 3: Выбор времени и длительности
+       Изначально скрыт (class="hidden"), появляется после выбора даты
+       ========================================= -->
   <div id="time-selection-container" class="hidden">
+
+    <!-- Выбор времени начала -->
     <div class="form-control mb-6">
       <label class="label">
-        <span class="label-text font-semibold">Время начала</span>
+          <span class="label-text font-semibold">Время начала</span>
       </label>
       <div class="bg-base-100 rounded-lg p-4 border border-base-300">
+        <!-- Сетка слотов времени (адаптивная: 4 на моб, 6 на планшете, 8 на десктопе) -->
         <div id="start-time-grid" class="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+          <!-- Кнопки слотов (например, 12:00, 13:00) будут добавлены сюда через JS -->
         </div>
       </div>
     </div>
 
+    <!-- Выбор длительности -->
     <div class="form-control mb-6">
       <label class="label">
         <span class="label-text font-semibold">Длительность</span>
       </label>
+      <!-- Кнопки выбора длительности. data-duration хранит значение в часах для JS -->
       <div class="flex flex-wrap gap-2" id="duration-buttons">
         <button class="btn btn-outline duration-btn" data-duration="1">1 час</button>
         <button class="btn btn-outline duration-btn" data-duration="1.5">1.5 часа</button>
@@ -50,11 +76,14 @@
         <button class="btn btn-outline duration-btn" data-duration="4">4 часа</button>
         <button class="btn btn-outline duration-btn" data-duration="5">5 часов</button>
       </div>
+      <!-- Сообщение валидации длительности -->
       <div id="duration-validation-message" class="mt-2 text-sm hidden">
       </div>
     </div>
 
+    <!-- Резюме выбора (Info Alert) -->
     <div class="form-control mb-6">
+      <!-- Стандартный DaisyUI alert с инфо-цветом -->
       <div class="alert alert-info">
         <div class="flex items-center gap-4">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -62,6 +91,7 @@
           </svg>
           <div>
             <div class="font-semibold">Выбранное время:</div>
+            <!-- Текстовое представление выбранного времени. Обновляется при клике на слоты/длительность -->
             <div id="selected-time-summary" class="text-sm">
               Сначала выберите время начала и длительность
             </div>
@@ -70,11 +100,13 @@
       </div>
     </div>
 
+    <!-- Статус доступности (Динамический блок) -->
     <div class="form-control mb-6">
       <label class="label">
         <span class="label-text font-semibold">Доступность мест</span>
       </label>
       <div id="availability-status" class="p-4 bg-base-100 rounded-lg border border-base-300">
+        <!-- Заглушка, пока не проверена доступность -->
         <div class="text-center text-base-content/60">
           Выберите время для проверки доступности
         </div>
@@ -82,23 +114,37 @@
     </div>
   </div>
 
+  <!-- =========================================
+       РАЗДЕЛ 4: Индикатор загрузки
+       ========================================= -->
+  <!-- Отображается, пока идет AJAX запрос к серверу -->
   <div id="loading-indicator" class="hidden p-8">
     <div class="flex justify-center items-center">
+      <!-- DaisyUI спиннер загрузки -->
       <span class="loading loading-spinner loading-lg"></span>
     </div>
   </div>
 
+  <!-- =========================================
+       РАЗДЕЛ 5: Выбранные места (Контекст)
+       ========================================= -->
   <div class="form-control mt-6">
     <label class="label">
       <span class="label-text font-semibold">Выбранные места</span>
     </label>
+    <!-- Область, куда подставляются места, выбранные на предыдущем шаге (например, на карте) -->
     <div id="modal-selected-seats-display" class="flex flex-wrap gap-2">
       <span class="text-base-content/60">Не выбраны</span>
     </div>
   </div>
 
+  <!-- =========================================
+       FOOTER: Кнопки действий
+       ========================================= -->
   <div class="modal-action">
+    <!-- Кнопка отмены (закрывает модалку без сохранения) -->
     <button id="cancel-time-selection" class="btn btn-ghost">Отмена</button>
+    <!-- Кнопка подтверждения (изначально disabled, пока не выбраны все данные) -->
     <button id="confirm-time-selection" class="btn btn-primary" disabled>Подтвердить выбор</button>
   </div>
 </div>

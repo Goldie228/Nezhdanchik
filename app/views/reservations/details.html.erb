@@ -1,47 +1,62 @@
 
+<!-- Страница деталей бронирования (Booking Details) -->
+<!-- Использование компонента Hero для центрирования контента по вертикали и горизонтали (min-h-screen) -->
 <div class="hero min-h-screen bg-base-200">
   <div class="hero-content">
+    <!-- Карточка с деталями: максимальная ширина (max-w-2xl), белая тема, большая тень -->
     <div class="card w-full max-w-2xl shadow-2xl bg-base-100">
       <div class="card-body">
+        <!-- Заголовок страницы -->
         <h2 class="card-title text-2xl mb-6">Детали бронирования</h2>
-        
+
+        <!-- Разделитель (Line) -->
         <div class="divider"></div>
-        
+
+        <!-- Сетка для полей информации (адаптивная: 1 колонка на мобильном, 2 на десктопе) -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- 1. Номер брони -->
           <div>
             <p class="text-sm text-base-content/70">Номер бронирования</p>
             <p class="font-semibold"><%= @booking.booking_number %></p>
           </div>
-          
+
+          <!-- 2. Статус -->
           <div>
             <p class="text-sm text-base-content/70">Статус</p>
             <p class="font-semibold">
+              <!-- Бейдж статуса с цветом (через хелпер get_status_info) -->
               <span class="badge <%= status_badge_class(@booking.status) %>">
                 <%= status_in_russian(@booking.status) %>
               </span>
             </p>
           </div>
-          
+
+          <!-- 3. Время начала -->
           <div>
             <p class="text-sm text-base-content/70">Дата и время начала</p>
             <p class="font-semibold"><%= l(@booking.starts_at, format: :long) %></p>
           </div>
-          
+
+          <!-- 4. Время окончания -->
           <div>
             <p class="text-sm text-base-content/70">Дата и время окончания</p>
             <p class="font-semibold"><%= l(@booking.ends_at, format: :long) %></p>
           </div>
-          
+
+          <!-- 5. Длительность (расчитывается через метод модели) -->
           <div>
             <p class="text-sm text-base-content/70">Продолжительность</p>
             <p class="font-semibold"><%= @booking.duration_hours %> ч.</p>
           </div>
-          
+
+          <!-- 6. Стоимость -->
           <div>
             <p class="text-sm text-base-content/70">Стоимость</p>
             <p class="font-semibold"><%= number_to_currency(@booking.total_price, unit: "BYN", format: "%n %u") %></p>
           </div>
-          
+
+          <!-- 7. Паспортные данные (Требуется? Да/Нет) -->
+          <!-- Отображается только если включен флаг require_passport -->
           <% if @booking.require_passport %>
             <div>
               <p class="text-sm text-base-content/70">Паспортные данные</p>
@@ -49,24 +64,31 @@
             </div>
           <% end %>
         </div>
-        
+
+        <!-- Особые пожелания клиента -->
+        <!-- Блок отображается только если поле не пустое (present?) -->
         <% if @booking.special_requests.present? %>
           <div class="mt-4">
             <p class="text-sm text-base-content/70">Особые пожелания</p>
+            <!-- break-words/whitespace-normal для корректного переноса длинного текста -->
             <p class="font-semibold break-words whitespace-normal">
               <%= @booking.special_requests %>
             </p>
           </div>
         <% end %>
-        
+
         <div class="divider"></div>
-        
+
+        <!-- Список выбранных мест -->
         <div>
           <p class="text-sm text-base-content/70 mb-2">Выбранные места</p>
+          <!-- Флекс-контейнер для размещения бейджей мест в одну строку (flex-wrap) -->
           <div class="flex flex-wrap gap-2">
+            <!-- Цикл по всем местам в бронировании (@booking.seats) -->
             <% @booking.seats.each do |seat| %>
               <div class="badge badge-outline">
                 Место <%= seat.number %>
+                <!-- Если место привязано к столу, показываем имя стола в скобках -->
                 <% if seat.table.present? %>
                   (Стол <%= seat.table.name %>)
                 <% end %>
@@ -74,22 +96,28 @@
             <% end %>
           </div>
         </div>
-        
+
         <div class="divider"></div>
-        
+
+        <!-- Кнопки действий (футер карточки) -->
         <div class="card-actions justify-between">
+          <!-- Ссылка на профиль (Outline стиль) -->
           <%= link_to "В профиль", profile_path, class: "btn btn-outline" %>
-          
+
+          <!-- Кнопка отмены бронирования (Error/Красная) -->
+          <!-- Условия отображения: статус 'confirmed' И время брони в будущем (future?) -->
           <% if @booking.confirmed? && @booking.future? %>
-            <%= button_to "Отменить бронирование", 
-                cancel_reservation_path(@booking), 
-                method: :delete, 
-                class: "btn btn-error",
-                form: { 
-                  data: { 
-                    turbo_confirm: "Вы уверены, что хотите отменить это бронирование?" 
-                  } 
-                } %>
+            <!-- button_to для отправки DELETE запроса -->
+            <!-- turbo_confirm: модальное окно подтверждения в стиле Rails/Turbo -->
+            <%= button_to "Отменить бронирование",
+                  cancel_reservation_path(@booking),
+                  method: :delete,
+                  class: "btn btn-error",
+                  form: {
+                    data: {
+                      turbo_confirm: "Вы уверены, что хотите отменить это бронирование?"
+                    }
+                  } %>
           <% end %>
         </div>
       </div>

@@ -1,40 +1,50 @@
+
+<!-- Страница менеджера: Список всех бронирований (CRUD интерфейс) -->
 <div class="min-h-screen bg-base-200">
+  <!-- Навигационная панель менеджера -->
   <div class="navbar bg-base-100 shadow-lg">
     <div class="flex-1">
       <a class="btn btn-ghost normal-case text-xl">Панель менеджера</a>
     </div>
+    <!-- Горизонтальное меню основных разделов (Обзор, Календарь, Столы, Бронирования) -->
     <div class="flex-none">
       <ul class="menu menu-horizontal p-0">
         <li><%= link_to "Обзор", manager_dashboard_path %></li>
         <li><%= link_to "Календарь", manager_calendar_path %></li>
         <li><%= link_to "Столы", manager_tables_path %></li>
+        <!-- Класс active подсвечивает текущий раздел -->
         <li><%= link_to "Бронирования", manager_bookings_path, class: "active" %></li>
       </ul>
     </div>
   </div>
 
   <div class="container mx-auto px-4 py-6">
+    <!-- Заголовок страницы -->
     <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
       <h1 class="text-3xl font-bold">Все бронирования</h1>
     </div>
 
+    <!-- Форма фильтрации и поиска -->
     <div class="bg-base-100 rounded-lg shadow-lg p-4 mb-6">
       <%= form_with url: manager_bookings_path, method: :get, class: "space-y-4", id: "booking-filters" do |form| %>
         <div class="flex flex-col lg:flex-row gap-4">
+          <!-- Поле поиска -->
           <div class="flex-1">
             <div class="form-control">
               <label class="label">
                 <span class="label-text">Поиск</span>
               </label>
               <div class="input-group">
-                <%= text_field_tag :search, params[:search], 
-                    placeholder: "Номер, клиент, email, телефон", 
-                    class: "input input-bordered flex-1" %>
+                <%= text_field_tag :search, params[:search],
+                    placeholder: "Номер, клиент, email, телефон",
+                    class: "input input-bordered flex-1",
+                    autocomplete: "off" %>
                 <%= form.submit "Искать", class: "btn btn-primary" %>
               </div>
             </div>
           </div>
 
+          <!-- Выбор количества записей на страницу (per_page) -->
           <div class="lg:w-32">
             <div class="form-control">
               <label class="label">
@@ -49,27 +59,34 @@
             </div>
           </div>
 
+          <!-- Кнопка сброса фильтров -->
           <div class="flex items-end">
             <%= link_to "Сбросить фильтры", manager_bookings_path, class: "btn btn-ghost" %>
           </div>
         </div>
 
+        <!-- Быстрые фильтры по статусу (бейджи) -->
         <div class="flex flex-wrap gap-2 pt-2 border-t border-base-300">
           <span class="text-sm font-semibold self-center mr-2">Быстрые фильтры:</span>
+          <!-- Кнопка "Все" активна, если статус не выбран -->
           <%= link_to "Все", manager_bookings_path(search: params[:search], per_page: params[:per_page]), class: "badge badge-lg #{params[:status].blank? ? 'badge-primary' : 'badge-outline'}" %>
+          <!-- Цикл по доступным статусам из хелпера -->
           <% get_statuses_list.each do |status| %>
-            <%= link_to status[:text], manager_bookings_path(status: status[:value], search: params[:search], per_page: params[:per_page]), 
+            <%= link_to status[:text], manager_bookings_path(status: status[:value], search: params[:search], per_page: params[:per_page]),
                 class: "badge badge-lg #{params[:status] == status[:value] ? status[:color].gsub('badge-', 'badge-') : 'badge-outline'}" %>
           <% end %>
         </div>
       <% end %>
     </div>
 
+    <!-- Таблица бронирований -->
     <div class="bg-base-100 rounded-lg shadow-lg p-6">
+      <!-- Горизонтальный скролл для мобильных устройств -->
       <div class="overflow-x-auto">
         <table class="table table-compact w-full">
           <thead>
             <tr>
+              <!-- Сортируемые колонки. Хелпер sort_link генерирует URL с параметром sort и direction -->
               <th><%= sort_link('booking_number', 'Номер') %></th>
               <th><%= sort_link('users.full_name', 'Клиент') %></th>
               <th>Места / Столы</th>
@@ -83,22 +100,30 @@
             <% @bookings.each do |booking| %>
               <tr>
                 <td><%= booking.booking_number %></td>
+                <!-- Информация о клиенте (Имя, Email, Форматированный телефон) -->
                 <td>
                   <div class="font-semibold"><%= booking.user&.full_name || "Неизвестный" %></div>
                   <div class="text-xs text-base-content/70"><%= booking.user&.email %></div>
                   <div class="text-xs text-base-content/70"><%= format_phone_number(booking.user&.phone) %></div>
                 </td>
+
+                <!-- Сложная логика отображения мест/столов -->
                 <td>
                   <% if booking.seats.any? %>
+                    <!-- Группируем места по столам -->
                     <% seats_by_table = booking.seats.includes(:table).group_by(&:table) %>
+
                     <% seats_by_table.each do |table, seats| %>
                       <% if table %>
+                        <!-- Если забронированы все места за столом -> "Стол X" -->
                         <% if seats.count == table.seats.count %>
                           <span>Стол <%= table.name %></span>
                         <% else %>
+                          <!-- Если часть мест -> "Стол X (места: 1, 2)" -->
                           <span>Стол <%= table.name %> (места: <%= seats.map(&:number).join(', ') %>)</span>
                         <% end %>
                       <% else %>
+                        <!-- Если места не привязаны к столу -> "М1, М2" -->
                         <% seats.each do |seat| %>
                           <span>М<%= seat.number %></span>
                         <% end %>
@@ -108,24 +133,32 @@
                     <span>Нет данных</span>
                   <% end %>
                 </td>
+
+                <!-- Дата и время (День + Временной диапазон) -->
                 <td>
                   <div class="font-semibold"><%= l(booking.starts_at, format: '%d %B %Y') %></div>
                   <div class="text-sm text-base-content/70">
                     c <%= booking.starts_at.strftime('%H:%M') %> до <%= booking.ends_at.strftime('%H:%M') %>
                   </div>
                 </td>
+
+                <!-- Статус (цветной бейдж) -->
                 <td>
                   <% status_info = get_status_info(booking.status) %>
                   <div class="badge <%= status_info[:color] %>">
                     <%= status_info[:text] %>
                   </div>
                 </td>
+
+                <!-- Стоимость (Сумма брони + Сумма заказа) -->
                 <td>
                   <div class="text-sm">
                     <div class="font-semibold">Итого: <%= number_to_currency(booking.total_price + (booking.order&.total_amount || 0), unit: "BYN", format: "%n %u") %></div>
+                    <!-- Детализация: сколько стоит стол, сколько блюда -->
                     <div class="text-xs text-base-content/70">
                       Бронь: <%= number_to_currency(booking.total_price, unit: "BYN", format: "%n %u") %>
                     </div>
+                    <!-- Заказ показываем, если он есть и есть сумма -->
                     <% if booking.order&.total_amount && booking.order.total_amount > 0 %>
                       <div class="text-xs text-base-content/70">
                         Заказ: <%= number_to_currency(booking.order.total_amount, unit: "BYN", format: "%n %u") %>
@@ -133,8 +166,11 @@
                     <% end %>
                   </div>
                 </td>
+
+                <!-- Кнопки действий (Детали, Редактирование) -->
                 <td>
                   <div class="flex gap-1">
+                    <!-- target="_blank" позволяет смотреть детали, не теряя текущую страницу -->
                     <%= link_to "Детали", manager_booking_path(booking), class: "btn btn-ghost btn-xs", target: "_blank", rel: "noopener noreferrer" %>
                     <%= link_to "Редактировать", edit_manager_booking_path(booking), class: "btn btn-ghost btn-xs" %>
                   </div>
@@ -145,12 +181,15 @@
         </table>
       </div>
 
+      <!-- Блок пагинации и счетчика записей -->
       <div class="flex flex-col items-center mt-6">
         <div class="text-sm text-base-content/70 mb-4">
           <% if @bookings.respond_to?(:current_page_record_count) %>
+            <!-- Вывод: Показано 1 - 20 из 150 записей -->
             Показано <%= @bookings.offset_value + 1 %> - <%= [@bookings.offset_value + @bookings.current_page_record_count, @bookings.total_count].min %> из <%= @bookings.total_count %> записей
           <% end %>
         </div>
+        <!-- Рендеринг кастомного компонента пагинации (prev, page numbers, next) -->
         <%= render 'custom_pagination', bookings: @bookings %>
       </div>
     </div>

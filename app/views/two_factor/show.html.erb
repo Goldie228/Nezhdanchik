@@ -1,6 +1,12 @@
+
+<!-- Страница двухфакторной аутентификации (2FA / OTP) -->
+<!-- Адаптивная верстка: Центрирование карточки на фоне bg-base-200 -->
 <div class="min-h-screen bg-base-200 flex items-center justify-center p-4">
+  <!-- Карточка ввода кода -->
   <div class="card w-full max-w-md bg-base-100 shadow-2xl border border-base-300">
     <div class="card-body p-8">
+
+      <!-- Кнопка "Назад" в профиль -->
       <div class="flex items-center justify-between mb-6">
         <%= link_to profile_path, class: "btn btn-circle btn-ghost btn-sm hover:bg-base-200" do %>
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -9,8 +15,10 @@
         <% end %>
       </div>
 
+      <!-- Заголовок -->
       <div class="text-center mb-8">
         <div class="inline-flex items-center justify-center w-20 h-20 bg-primary/10 rounded-2xl mb-4 transition-all duration-300 hover:scale-105 hover:shadow-lg">
+          <!-- Иконка щита/замка -->
           <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
           </svg>
@@ -19,34 +27,43 @@
         <p class="text-base-content/50 text-sm">Введите 6-значный код из письма</p>
       </div>
 
+      <!-- Инфо-алерт с email пользователя -->
       <div class="alert bg-base-200 border-base-300 mb-6">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-5 h-5 text-base-content/60">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
         </svg>
         <div class="flex-1">
           <p class="text-xs text-base-content/50 pb-2">Код отправлен на</p>
+          <!-- Email пользователя, которому отправлен код -->
           <p class="font-medium text-sm text-base-content/80"><%= @target_user.email %></p>
         </div>
       </div>
 
+      <!-- Форма ввода OTP кода -->
       <%= form_with url: two_factor_path, method: :post, id: "otp-form", class: "space-y-6", local: true do |form| %>
+        <!-- Скрытое поле, которое собирает значения из 6 отдельных инпутов -->
         <%= hidden_field_tag :otp_code, "", id: "otp-hidden-field" %>
+
         <div class="form-control">
           <label class="label">
             <span class="label-text font-medium text-base-content/70">Код подтверждения</span>
           </label>
+          <!-- Контейнер для 6 инпутов цифр -->
           <div class="flex justify-center gap-2" id="otp-inputs">
+            <!-- Цикл генерирует 6 инпутов (maxlen 1) -->
             <% 6.times do |i| %>
-              <input type="text" 
-                     maxlength="1" 
-                     class="input input-bordered input-lg w-14 text-center text-xl font-mono focus:input-primary focus:scale-105 transition-all" 
-                     pattern="[0-9]" 
+              <input type="text"
+                     maxlength="1"
+                     class="input input-bordered input-lg w-14 text-center text-xl font-mono focus:input-primary focus:scale-105 transition-all"
+                     pattern="[0-9]"
                      required
-                     data-index="<%= i %>">
+                     data-index="<%= i %>"
+                     autocomplete="off">
             <% end %>
           </div>
         </div>
 
+        <!-- Блок с таймером и кнопкой повторной отправки -->
         <div class="flex flex-col items-center space-y-4">
           <div class="flex items-center gap-2 text-sm text-base-content/60">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -54,20 +71,23 @@
             </svg>
             <span>Код действителен: <span id="timer" class="font-mono font-medium text-base-content/80"><%= format_time(@time_left) %></span></span>
           </div>
-          
+
+          <!-- Кнопка "Отправить код повторно" (изначально скрыта, пока таймер не истечет) -->
           <div id="resend-container">
             <%= link_to "Отправить код повторно",
-              resend_two_factor_path,
-              method: :post,
-              class: "btn btn-ghost btn-sm text-primary/70 hover:text-primary hover:bg-primary/5 transition-all hidden",
-              id: "resend-btn",
-              data: { confirm: nil } %>
+                  resend_two_factor_path,
+                  method: :post,
+                  class: "btn btn-ghost btn-sm text-primary/70 hover:text-primary hover:bg-primary/5 transition-all hidden",
+                  id: "resend-btn",
+                  data: { confirm: nil } %>
           </div>
         </div>
 
+        <!-- Кнопка отправки формы -->
         <div class="form-control mt-8">
           <button type="submit" class="btn btn-primary w-full btn-lg shadow-lg hover:shadow-xl transition-all duration-300">
             Подтвердить
+            <!-- Иконка галочки -->
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>
@@ -75,54 +95,68 @@
         </div>
       <% end %>
 
+      <!-- Контейнер для динамических сообщений об ошибке (из JS) -->
       <div id="error-message" class="hidden"></div>
     </div>
   </div>
 </div>
 
+<!-- =========================================
+     JAVASCRIPT (ЛОГИКА OTP И ТАЙМЕРА)
+     ========================================= -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  // Выборка DOM элементов
   const inputs = document.querySelectorAll('#otp-inputs input');
   const form = document.getElementById('otp-form');
   const timerElement = document.getElementById('timer');
   const resendBtn = document.getElementById('resend-btn');
   const hiddenField = document.getElementById('otp-hidden-field');
   const errorMessage = document.getElementById('error-message');
-  
+
+  // Получение времени действия кода из Rails (или дефолт 300 сек)
   let timeLeft = <%= @time_left || 300 %>;
   let timerInterval;
 
+  // Функция обновления таймера
   function updateTimer() {
+    // Если время вышло
     if (timeLeft <= 0) {
       clearInterval(timerInterval);
       timerElement.textContent = "00:00";
-      timerElement.classList.add('text-error');
-      resendBtn.classList.remove('hidden');
+      timerElement.classList.add('text-error'); // Красный цвет
+      resendBtn.classList.remove('hidden'); // Показываем кнопку "Отправить повторно"
       return;
     }
-    
+
+    // Расчет минут и секунд
     const minutes = Math.floor(timeLeft / 60);
     const seconds = timeLeft % 60;
+    // Форматирование строки ММ:СС
     timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    
+
+    // Красным цветом, если осталось меньше минуты
     if (timeLeft <= 60) {
       timerElement.classList.add('text-error');
     }
-    
+
     timeLeft--;
   }
 
+  // Запуск таймера, если время еще есть
   if (timeLeft > 0) {
     timerInterval = setInterval(updateTimer, 1000);
     updateTimer();
   }
 
+  // Обновление скрытого поля (сборка значений из инпутов)
   function updateHiddenField() {
     const code = Array.from(inputs).map(input => input.value).join('');
     hiddenField.value = code;
     return code;
   }
 
+  // Функция показа ошибки (создает alert и исчезает через 5 сек)
   function showError(message) {
     errorMessage.innerHTML = `
       <div class="alert alert-error mt-4">
@@ -133,12 +167,14 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     `;
     errorMessage.classList.remove('hidden');
-    
+
+    // Автоудаление
     setTimeout(() => {
       errorMessage.classList.add('hidden');
     }, 5000);
   }
 
+  // Очистка ошибок (убирает красный бордер у инпутов)
   function clearErrors() {
     inputs.forEach(input => {
       input.classList.remove('input-error');
@@ -146,25 +182,32 @@ document.addEventListener('DOMContentLoaded', function() {
     errorMessage.classList.add('hidden');
   }
 
+  // Обработчики событий для каждого инпута (перемещение фокуса, очистка)
   inputs.forEach((input, index) => {
+    // При вводе цифры
     input.addEventListener('input', function(e) {
       clearErrors();
+      // Убираем не-цифры
       this.value = this.value.replace(/[^0-9]/g, '');
-      
+
       updateHiddenField();
-      
+
+      // Если ввели 1 символ и это не последний инпут -> переходим к следующему
       if (this.value.length === 1 && index < inputs.length - 1) {
         inputs[index + 1].focus();
       }
     });
-    
+
+    // Обработка клавиш (Backspace, Enter)
     input.addEventListener('keydown', function(e) {
+      // Backspace: если поле пустое и это не первый инпут -> на предыдущий
       if (e.key === 'Backspace') {
         if (this.value === '' && index > 0) {
           inputs[index - 1].focus();
         }
       }
-      
+
+      // Enter: отправка формы, если код полон (6 символов)
       if (e.key === 'Enter') {
         e.preventDefault();
         const code = updateHiddenField();
@@ -175,19 +218,24 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
+  // Обработка вставки (Paste) из буфера обмена
+  // Позволяет вставить сразу весь код (например "123456") и разнести по инпутам
   document.getElementById('otp-inputs').addEventListener('paste', function(e) {
     e.preventDefault();
     clearErrors();
-    
+
+    // Получаем данные из буфера
     const pastedData = (e.clipboardData || window.clipboardData).getData('text');
-    const digits = pastedData.replace(/[^0-9]/g, '');
-    
+    const digits = pastedData.replace(/[^0-9]/g, ''); // Оставляем только цифры
+
+    // Заполняем инпуты
     for (let i = 0; i < Math.min(digits.length, inputs.length); i++) {
       inputs[i].value = digits[i];
     }
-    
+
     updateHiddenField();
-    
+
+    // Фокус на первый пустой инпут после вставки (или на последний, если все заполнены)
     const nextEmptyIndex = Array.from(inputs).findIndex(input => input.value === '');
     if (nextEmptyIndex !== -1) {
       inputs[nextEmptyIndex].focus();
@@ -196,12 +244,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
+  // Обработчик отправки формы
   form.addEventListener('submit', function(e) {
     const code = updateHiddenField();
-    
+
+    // Валидация: код должен быть ровно 6 символов
     if (code.length !== 6) {
       e.preventDefault();
       showError("Заполните все поля кода");
+      // Подсветка пустых полей
       inputs.forEach(input => {
         if (!input.value) {
           input.classList.add('input-error');
@@ -210,17 +261,21 @@ document.addEventListener('DOMContentLoaded', function() {
       return false;
     }
 
+    // Валидация: только цифры (double check)
     if (!/^\d{6}$/.test(code)) {
       e.preventDefault();
       showError("Код должен содержать только цифры");
       return false;
     }
-    
+
+    // Останавливаем таймер перед отправкой
     clearInterval(timerInterval);
     return true;
   });
 
+  // Обработчик кнопки "Отправить повторно"
   resendBtn.addEventListener('click', function() {
+    // Добавляем лоадинг (спиннер) внутрь кнопки через JS или класс
     this.classList.add('loading');
     this.disabled = true;
   });

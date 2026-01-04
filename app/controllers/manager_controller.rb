@@ -1,11 +1,16 @@
+
 class ManagerController < ApplicationController
   include ActionView::Helpers::NumberHelper
 
   before_action :authenticate_user!
+  # Ограничиваем доступ только для персонала (manager/admin), проверяя роль пользователя
   before_action :require_manager_role
+  # Устанавливаем диапазон дат для фильтрации календаря и вида столов
   before_action :set_date_range, only: [ :calendar, :tables_view ]
+  # Извлекаем бронирование и связанные данные для операций редактирования
   before_action :set_booking, only: [ :show, :edit, :update, :destroy, :add_dish_to_order, :update_order_item, :remove_order_item ]
 
+  # Координаты столов для отрисовки карты зала (в процентах от контейнера)
   TABLE_COORDS = [
     { id: 1, x_percent: 38.5, y_percent: 38.5, width_percent: 10, height_percent: 5 },
     { id: 2, x_percent: 54.5, y_percent: 7.5, width_percent: 21, height_percent: 5 },
@@ -13,6 +18,7 @@ class ManagerController < ApplicationController
     { id: 4, x_percent: 54, y_percent: 68.5, width_percent: 21, height_percent: 5 }
   ].freeze
 
+  # Координаты отдельных мест для интерактивной карты зала
   SEATS_COORDS = [
     { id: 1,  x_percent: 37,   y_percent: 29   },
     { id: 2,  x_percent: 46.4, y_percent: 29   },
@@ -21,7 +27,7 @@ class ManagerController < ApplicationController
     { id: 5,  x_percent: 47,   y_percent: 8    },
     { id: 6,  x_percent: 51,   y_percent: 17.8 },
     { id: 7,  x_percent: 59.8, y_percent: 17.8 },
-    { id: 8, x_percent: 68.8, y_percent: 17.8 },
+    { id: 8,  x_percent: 68.8, y_percent: 17.8 },
     { id: 9,  x_percent: 78,   y_percent: 17.8 },
     { id: 10, x_percent: 81.1, y_percent: 7.9  },
     { id: 11, x_percent: 81,   y_percent: 29.5 },
@@ -36,6 +42,7 @@ class ManagerController < ApplicationController
     { id: 20, x_percent: 46.3, y_percent: 69.0 }
   ].freeze
 
+  # Маппинг статусов на CSS-классы DaisyUI для цветовой индикации
   STATUSES = [
     { value: "pending", color: "badge-warning" },
     { value: "confirmed", color: "badge-info" },
@@ -43,14 +50,17 @@ class ManagerController < ApplicationController
     { value: "cancelled", color: "badge-neutral" }
   ].freeze
 
+  # Время работы ресторана по дням недели (wday: 0 - воскресенье, 1 - понедельник)
   WORKING_HOURS = {
-    1..4 => { open: "09:00", close: "23:00" },
-    5..6 => { open: "09:00", close: "00:00" },
-    0..0 => { open: "09:00", close: "23:00" }
+    1..4 => { open: "09:00", close: "23:00" }, # Пн-Чт
+    5..6 => { open: "09:00", close: "00:00" }, # Пт-Сб
+    0..0 => { open: "09:00", close: "23:00" }  # Вс
   }.freeze
 
   def dashboard
+    # Получаем активные (текущие) бронирования
     @active_bookings = get_active_bookings
+    # Брони на сегодня со статусами "в ожидании" или "подтверждено"
     @today_bookings = Booking.includes(:user, :seats, :order)
                              .where(status: [ "pending", "confirmed" ])
                              .where("starts_at >= ? AND starts_at <= ?", Date.current.beginning_of_day, Date.current.end_of_day)
@@ -58,19 +68,23 @@ class ManagerController < ApplicationController
 
     @tables = Table.includes(:seats).active
     @individual_seats = Seat.where(table_id: nil)
+    # Текущие брони для подсчета занятости
     @current_bookings = Booking.includes(:user, :seats, :order)
                                .where(status: [ "pending", "confirmed" ])
                                .where("starts_at <= ? AND ends_at >= ?", Time.current, Time.current)
+    # Ближайшие 7 дней
     @upcoming_bookings = Booking.includes(:user, :seats, :order)
                                .where(status: [ "pending", "confirmed" ])
                                .where("starts_at > ? AND starts_at <= ?", Time.current, Time.current + 7.days)
                                .order(starts_at: :asc)
                                .limit(10)
 
+    # Считаем количество мест за каждым столом
     @table_seat_counts = Table.active.includes(:seats).group(:id).count("seats.id")
   end
 
   def calendar
+    # Загружаем брони в выбранный диапазон дат
     @bookings = Booking.includes(:user, :seats, :order)
                       .where(status: [ "pending", "confirmed" ])
                       .where("starts_at >= ? AND starts_at <= ?", @start_date, @end_date)
@@ -84,6 +98,7 @@ class ManagerController < ApplicationController
 
   def tables_view
     @tables = Table.includes(:seats).active
+    # Активные сейчас брони для отображения занятости на карте
     @current_bookings = Booking.includes(:user, :seats, :order)
                                .where(status: [ "pending", "confirmed" ])
                                .where("starts_at <= ? AND ends_at >= ?", Time.current, Time.current)
@@ -97,12 +112,14 @@ class ManagerController < ApplicationController
   end
 
   def show
+    # Подгружаем товары заказа, если он существует
     @order_items = @booking.order&.order_items&.includes(:dish) || []
     @special_requests = @booking.special_requests
   end
 
   def edit
     @categories = Category.where(active: true).order(:name)
+    # Создаем пустой заказ или загружаем существующий для привязки блюд
     @order = @booking.order || @booking.build_order(user: @booking.user)
     @order_items = @order.order_items.includes(:dish) || []
   end
@@ -110,6 +127,7 @@ class ManagerController < ApplicationController
   def update
     Rails.logger.info "Updating booking #{@booking.id} with params: #{booking_params.inspect}"
 
+    # Обновляем только статус, используя update_column для пропуска колбэков/валидаций модели
     if @booking.update_column(:status, booking_params[:status])
       @booking.touch(:updated_at)
       redirect_to manager_booking_path(@booking), notice: "Бронирование успешно обновлено"
@@ -123,6 +141,7 @@ class ManagerController < ApplicationController
       render :edit, status: :unprocessable_entity
     end
   rescue => e
+    # Логируем исключения для отладки непредвиденных ошибок
     Rails.logger.error "Exception in update: #{e.message}"
     Rails.logger.error e.backtrace.join("\n")
     flash[:alert] = "Произошла непредвиденная ошибка: #{e.message}"
@@ -135,10 +154,12 @@ class ManagerController < ApplicationController
   end
 
   def destroy
+    # Мягкое удаление (меняем статус) вместо физического удаления записи
     @booking.update(status: "cancelled")
     redirect_to manager_bookings_path, notice: "Бронирование отменено"
   end
 
+  # API метод для получения блюд категории (для выпадающего списка при добавлении в заказ)
   def dishes_by_category
     category_id = params[:category_id]
 
@@ -150,6 +171,7 @@ class ManagerController < ApplicationController
     category = Category.find(category_id)
     dishes = category.dishes.includes(:ingredients).active
 
+    # Формируем JSON с блюдами и их ингредиентами (включая цены и флаг default)
     render json: {
       success: true,
       dishes: dishes.map do |dish|
@@ -173,6 +195,7 @@ class ManagerController < ApplicationController
     render json: { success: false, message: "Ошибка при загрузке блюд: #{e.message}" }, status: :internal_server_error
   end
 
+  # API метод для получения деталей конкретной позиции заказа (для редактирования)
   def order_item
     order_item_id = params[:id]
 
@@ -183,6 +206,8 @@ class ManagerController < ApplicationController
 
     order_item = OrderItem.includes(:dish).find(order_item_id)
 
+    # Парсим сохраненные инструкции "Добавки: ..., Без: ..." обратно в ID ингредиентов
+    # Это нужно, чтобы восстановить состояние формы редактирования
     selected_ingredients = []
     removed_ingredients = []
 
@@ -229,17 +254,21 @@ class ManagerController < ApplicationController
     render json: { success: false, message: "Ошибка при загрузке элемента заказа: #{e.message}" }, status: :internal_server_error
   end
 
+  # Добавляет блюдо в существующий заказ бронирования
   def add_dish_to_order
     dish = Dish.find(params[:dish_id])
     selected, removed = normalize_ingredient_params(params)
     quantity = params[:quantity].to_i > 0 ? params[:quantity].to_i : 1
 
     ActiveRecord::Base.transaction do
+      # Создаем заказ, если его еще нет
       order = @booking.order || @booking.build_order(user: @booking.user)
       order.save! if order.new_record?
 
       special_instructions = generate_special_instructions_from_params(selected, removed)
+      # Пересчитываем цену с учетом добавленных ингредиентов
       unit_price = calculate_unit_price(dish, selected)
+      # Если блюдо с таким составом уже есть — увеличиваем количество, иначе создаем новое
       existing_item = find_existing_order_item(order, dish, special_instructions)
 
       if existing_item
@@ -254,6 +283,7 @@ class ManagerController < ApplicationController
         )
       end
 
+      # Пересчитываем общую сумму заказа
       update_order_total(order)
     end
 
@@ -282,6 +312,7 @@ class ManagerController < ApplicationController
     end
   end
 
+  # Обновляет блюдо в заказе (состав или количество)
   def update_order_item
     unless @booking.order
       render json: { success: false, message: "У этого бронирования нет заказа" }, status: :unprocessable_entity
@@ -330,6 +361,7 @@ class ManagerController < ApplicationController
     end
   end
 
+  # Удаляет блюдо из заказа и пересчитывает сумму
   def remove_order_item
     unless @booking.order
       render json: { success: false, message: "У этого бронирования нет заказа" }, status: :unprocessable_entity
@@ -374,9 +406,11 @@ class ManagerController < ApplicationController
     end
   end
 
+  # Список бронирований с поиском, фильтрацией и пагинацией
   def bookings
     @bookings = Booking.includes(:user, { seats: :table }, :order)
 
+    # Поиск по номеру брони, имени, фамилии, email или телефону
     if params[:search].present?
       search_term = "%#{params[:search]}%"
       @bookings = @bookings.joins(:user).where(
@@ -385,6 +419,8 @@ class ManagerController < ApplicationController
       )
     end
 
+    # Логика фильтрации статусов:
+    # для активных (pending/confirmed) показываем только будущие, остальные — все
     if params[:status].present?
       if [ "pending", "confirmed" ].include?(params[:status])
         @bookings = @bookings.where(status: params[:status]).where("ends_at > ?", Time.current)
@@ -393,18 +429,21 @@ class ManagerController < ApplicationController
       end
     end
 
+    # Безопасная сортировка: разрешены только колонки из списка allowed_columns
     allowed_columns = %w[booking_number starts_at total_price status created_at users.first_name users.last_name]
     sort_column = (params[:sort] && allowed_columns.include?(params[:sort])) ? params[:sort] : "starts_at"
     sort_direction = (params[:direction] == "asc") ? "asc" : "desc"
 
     @bookings = @bookings.order("#{sort_column} #{sort_direction}")
 
+    # Пагинация с ограничением кол-ва записей на страницу (от 10 до 100)
     per_page = params[:per_page].to_i > 0 ? params[:per_page].to_i : 20
     per_page = [ [ per_page, 10 ].max, 100 ].min
 
     @bookings = @bookings.page(params[:page]).per(per_page)
   end
 
+  # Быстрое обновление статуса (AJAX)
   def update_status
     booking = Booking.find(params[:id])
 
@@ -417,6 +456,7 @@ class ManagerController < ApplicationController
     render json: { success: false, message: "Бронирование не найдено" }, status: :not_found
   end
 
+  # Обновление списка активных бронирований (polling для "живого" интерфейса)
   def refresh_orders
     @active_bookings = get_active_bookings
 
@@ -429,6 +469,7 @@ class ManagerController < ApplicationController
 
   private
 
+  # Перевод статуса брони на русский язык
   def status_in_russian(status)
     {
       "pending"   => "В ожидании",
@@ -439,6 +480,7 @@ class ManagerController < ApplicationController
   end
 
   def set_booking
+    # Жаркая загрузка связей для минимизации запросов
     @booking = Booking.includes(:user, :seats, :order, :booking_seats).find(params[:id])
   end
 
@@ -458,6 +500,7 @@ class ManagerController < ApplicationController
     params.require(:booking).permit(:special_requests, :status)
   end
 
+  # Получение активных бронирований (для дашборда и автообновления)
   def get_active_bookings
     Booking.includes(:order, :booking_seats, :seats, :user)
         .where(status: [ "pending", "confirmed" ])
@@ -479,9 +522,11 @@ class ManagerController < ApplicationController
     end
   end
 
+  # Сериализует состав позиции корзины в строку для хранения в special_instructions
   def generate_special_instructions(cart_item)
     item_ingredients = cart_item.cart_item_ingredients
 
+    # Находим добавленные (не было в блюде) и убранные (были в блюде) ингредиенты
     added_names = item_ingredients.select { |cii| !cii.default_in_dish && cii.included? }
                                   .map { |cii| cii.ingredient.name }
 
@@ -500,6 +545,7 @@ class ManagerController < ApplicationController
     instructions.any? ? instructions.join("; ") : nil
   end
 
+  # Парсит параметры ингредиентов из запроса в строку инструкций
   def generate_special_instructions_from_params(selected_ids, removed_ids)
     added_names = Ingredient.where(id: selected_ids).pluck(:name)
     removed_names = Ingredient.where(id: removed_ids).pluck(:name)
@@ -516,6 +562,7 @@ class ManagerController < ApplicationController
     instructions.any? ? instructions.join("; ") : nil
   end
 
+  # Расчет стоимости блюда с учетом добавленных ингредиентов
   def calculate_unit_price(dish, selected_ids)
     base_price = dish.price
     additional_price = Ingredient.where(id: selected_ids).sum(:price)
@@ -523,10 +570,12 @@ class ManagerController < ApplicationController
     base_price + additional_price
   end
 
+  # Ищет дубликат товара в заказе с таким же составом ингредиентов
   def find_existing_order_item(order, dish, special_instructions)
     order.order_items.where(dish: dish, special_instructions: special_instructions).first
   end
 
+  # Форматирование телефона для отображения
   def format_phone_number(phone)
     return "Номер не указан" if phone.blank?
 
@@ -555,6 +604,7 @@ class ManagerController < ApplicationController
     phone
   end
 
+  # Приведение параметров ингредиентов к массиву целых чисел
   def normalize_ingredient_params(params_source)
     selected_raw = params_source[:selected_ingredient_ids]
     removed_raw  = params_source[:removed_ingredient_ids]
@@ -576,11 +626,13 @@ class ManagerController < ApplicationController
     [ selected, removed ]
   end
 
+  # Ручной пересчет суммы заказа (агрегация позиций)
   def update_order_total(order)
     total_amount = order.order_items.sum(:total_price)
     order.update!(total_amount: total_amount)
   end
 
+  # Вспомогательный метод для получения статуса (определен дважды, дубликат)
   def booking_status_in_russian(status)
     case status
     when "pending"
@@ -606,6 +658,7 @@ class ManagerController < ApplicationController
     }
   end
 
+  # Форматирование даты в формате "15 января"
   def russian_date(date)
     months = {
       1 => "января", 2 => "февраля", 3 => "марта", 4 => "апреля",
@@ -615,6 +668,7 @@ class ManagerController < ApplicationController
     "#{date.day} #{months[date.month]}"
   end
 
+  # Генерация ссылки для сортировки
   def sort_link(column, title = nil)
     title ||= column.titleize
     direction = column == params[:sort] && params[:direction] == "asc" ? "desc" : "asc"
@@ -629,6 +683,7 @@ class ManagerController < ApplicationController
     end
   end
 
+  # Экспорт методов в хелперы (Views)
   helper_method :booking_status_in_russian
   helper_method :russian_date
   helper_method :generate_special_instructions
@@ -637,6 +692,7 @@ class ManagerController < ApplicationController
   helper_method :get_status_info
   helper_method :format_phone_number
 
+  # Проверка роли: доступ разрешен только если роль 2 или 3 (Manager/Admin)
   def require_manager_role
     if current_user&.role&.to_s.in?([ "2", "3" ])
       redirect_to root_path, alert: "Доступ запрещен"

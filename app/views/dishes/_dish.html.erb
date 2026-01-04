@@ -1,4 +1,7 @@
+
 <% if new_category && dish_counter == 0 %>
+  <!-- Заголовок категории отображается только для первого блюда в категории (при пагинации/Infinite Scroll) -->
+  <!-- data-category-id используется JS для навигации по якорям -->
   <div class="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold text-center py-4 sm:py-6 lg:py-8 mb-2 border-b col-span-full mt-6 sm:mt-8" data-category-id="<%= category.id %>">
     <%= category.name.squish %>
 
@@ -8,13 +11,19 @@
   </div>
 <% end %>
 
+<!-- Карточка блюда с фиксированной высотой для аккуратности сетки -->
 <div class="card bg-base-100 shadow-md hover:shadow-lg transition-all duration-300 w-full h-auto sm:h-[400px] mx-auto">
+  <!-- Секция с изображениями блюда -->
   <% if dish.photos.attached? && dish.photos.any? %>
+
+    <!-- Если у блюда несколько фото (галерея) -->
     <% if dish.photos.length > 1 %>
       <figure class="w-full h-40 sm:h-48 overflow-hidden relative">
+        <!-- Скелетон-анимация загрузки (фоновый эффект) -->
         <div class="skeleton absolute inset-0 w-full h-full bg-gradient-to-r from-base-200 via-base-300 to-base-200 animate-pulse rounded-t-lg rounded-b-none z-10"></div>
-        
+
         <div class="hover-gallery">
+          <!-- Рендеринг всех фото. Вероятно, используется JS/CSS для создания слайдера при наведении -->
           <% dish.photos.each do |photo| %>
             <%= image_tag photo.variant(resize_to_limit: [300, 200]),
                           class: "w-full h-full object-cover rounded-t-lg relative z-20",
@@ -22,23 +31,29 @@
           <% end %>
         </div>
       </figure>
+
+    <!-- Если у блюда одно фото -->
     <% else %>
       <figure class="w-full h-40 sm:h-48 overflow-hidden relative">
         <div class="skeleton absolute inset-0 w-full h-full bg-gradient-to-r from-base-200 via-base-300 to-base-200 animate-pulse rounded-t-lg rounded-b-none z-10"></div>
-        
+
+        <!-- onload скрывает скелетон, когда картинка загрузилась -->
         <%= image_tag dish.photos.first.variant(resize_to_limit: [300, 200]),
                       class: "w-full h-full object-cover rounded-t-lg relative z-20",
                       loading: "lazy",
                       onload: "this.previousElementSibling.style.display='none'" %>
       </figure>
     <% end %>
+
+  <!-- Если фото нет, показываем плейсхолдер (SVG иконка) -->
   <% else %>
     <figure class="w-full h-40 sm:h-48 overflow-hidden flex items-center justify-center bg-gradient-to-r from-base-200 via-base-300 to-base-200 rounded-t-2xl rounded-b-none border border-base relative">
       <div class="w-full h-full flex items-center justify-center">
-        <svg xmlns="http://www.w3.org/2000/svg" 
-             class="w-10 h-10 sm:w-12 sm:h-12 text-base-content opacity-50" 
+        <svg xmlns="http://www.w3.org/2000/svg"
+             class="w-10 h-10 sm:w-12 sm:h-12 text-base-content opacity-50"
              fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-          <path stroke-linecap="round" stroke-linejoin="round" 
+          <!-- Иконка блюда (тарелка) -->
+          <path stroke-linecap="round" stroke-linejoin="round"
                 d="M3 7.5A2.5 2.5 0 015.5 5h2.086a1 1 0 00.707-.293l1.414-1.414A1 1 0 0110.414 3h3.172a1 1 0 01.707.293l1.414 1.414a1 1 0 00.707.293H18.5A2.5 2.5 0 0121 7.5v9a2.5 2.5 0 01-2.5 2.5h-13A2.5 2.5 0 013 16.5v-9z" />
           <circle cx="12" cy="12" r="3.5" />
         </svg>
@@ -46,29 +61,37 @@
     </figure>
   <% end %>
 
+  <!-- Основная часть карточки (текст, цена, описание) -->
   <div class="card-body p-3 sm:p-4 flex flex-col justify-between h-48">
     <div class="flex-grow">
       <h3 class="card-title flex justify-between items-start sm:items-center text-sm sm:text-base">
+        <!-- Название блюда -->
         <span class="pr-2"><%= dish.title %></span>
+        <!-- Цена блюда -->
         <span class="text-base sm:text-lg font-semibold text-primary whitespace-nowrap"><%= dish.price %> BYN</span>
       </h3>
+      <!-- Описание блюда, обрезанное до 50 символов -->
       <p class="text-xs sm:text-sm text-neutral-content mt-2 line-clamp-3">
         <%= truncate(dish.description, length: 50) %>
       </p>
     </div>
 
+    <!-- Нижняя часть карточки: вес и кнопка заказа -->
     <div class="flex justify-between items-center mt-3 sm:mt-4">
       <span class="text-xs sm:text-sm text-neutral-500">
         <%= dish.weight %> г
       </span>
 
+      <!-- Кнопка быстрого заказа (method: :post на путь блюда) -->
       <div class="card-actions flex flex-wrap gap-2">
-        <%= link_to "Заказать", dish_path(dish.slug), method: :post, class: "btn btn-primary btn-xs sm:btn-sm" %>
+        <%= link_to "Заказать", dish_path(dish.slug), class: "btn btn-primary btn-xs sm:btn-sm" %>
       </div>
     </div>
   </div>
 </div>
 
+<!-- Скрытый блок для обновления состояния пагинации (Infinite Scroll) -->
+<!-- Рендерится только после последнего блюда в списке -->
 <% if dish_counter == @dishes.size - 1 %>
   <div class="hidden state-updater"
        data-loaded-categories="<%= loaded_categories.join(',') %>"

@@ -12,7 +12,6 @@
 #
 require 'rails_helper'
 
-
 RSpec.describe CartItem, type: :model do
   let(:user) { create(:user) }
   let(:cart) { create(:cart, user: user) }
@@ -21,12 +20,14 @@ RSpec.describe CartItem, type: :model do
     subject { create(:cart_item) }
     it { should belong_to(:cart) }
     it { should belong_to(:dish) }
+    # dependent: :destroy гарантирует чистоту БД при удалении товара из корзины
     it { should have_many(:cart_item_ingredients).dependent(:destroy) }
   end
 
   describe 'validations' do
     subject { build(:cart_item, cart: cart) }
     it { should validate_presence_of(:cart) }
+    # Количество должно быть положительным целым числом
     it { should validate_numericality_of(:quantity).only_integer.is_greater_than(0) }
     it { should validate_inclusion_of(:active).in_array([ true, false ]) }
   end
@@ -35,6 +36,7 @@ RSpec.describe CartItem, type: :model do
     let!(:active_item) { create(:cart_item, cart: cart, active: true) }
     let!(:inactive_item) { create(:cart_item, cart: cart, active: false) }
 
+    # Фильтр для отображения только актуальных позиций в корзине
     it '.active returns only active items' do
       expect(CartItem.active).to include(active_item)
       expect(CartItem.active).not_to include(inactive_item)
@@ -52,6 +54,7 @@ RSpec.describe CartItem, type: :model do
       expect(cart_item.cart_item_ingredients.find_by(ingredient: test_ingredient)).to be_present
 
       cii = cart_item.cart_item_ingredients.find_by(ingredient: test_ingredient)
+      # Проверяет конвертацию цены: Ingredient price (Decimal) -> CartItem price (Integer cents)
       expect(cii.price).to eq(150)
     end
   end
@@ -60,28 +63,33 @@ RSpec.describe CartItem, type: :model do
     let!(:ingredient1) { create(:ingredient, price: 1.50, weight: 20) }
     let!(:ingredient2) { create(:ingredient, price: 2.00, weight: 30) }
     let!(:dish) { create(:dish, price: 10.00, weight: 300) }
+    # ingredient1 в блюде по умолчанию, ingredient2 — нет
     let!(:di1) { create(:dish_ingredient, dish: dish, ingredient: ingredient1, default: true) }
     let!(:di2) { create(:dish_ingredient, dish: dish, ingredient: ingredient2, default: false) }
     let!(:cart_item) { create(:cart_item, cart: cart, dish: dish, quantity: 2) }
 
     context '#subtotal_cents' do
       it 'calculates subtotal correctly' do
+        # Убираем ингредиент1 (вычитаем стоимость) и добавляем ингредиент2 (прибавляем)
         cart_item.cart_item_ingredients.find_by(ingredient: ingredient1).update!(included: false)
         cart_item.cart_item_ingredients.find_by(ingredient: ingredient2).update!(included: true)
+        # (10.00 - 1.50 + 2.00) * 2 * 100 = 2100 cents
         expect(cart_item.subtotal_cents).to eq(2100)
       end
     end
 
     context '#base_price_cents' do
       it 'returns dish price in cents' do
+        # Базовая цена блюда без учета модификаторов ингредиентов
         expect(cart_item.base_price_cents).to eq(1000)
       end
     end
 
     context '#ingredients_extra_cents' do
-      it 'calculates the sum of added and removed ingredients' do
+      it 'calculates sum of added and removed ingredients' do
         cart_item.cart_item_ingredients.find_by(ingredient: ingredient1).update!(included: false)
         cart_item.cart_item_ingredients.find_by(ingredient: ingredient2).update!(included: true)
+        # Добавили 2.00, убрали 1.50 -> итоговая надбавка/скидка 0.50
         expect(cart_item.ingredients_extra_cents).to eq(50)
       end
     end
@@ -104,6 +112,7 @@ RSpec.describe CartItem, type: :model do
       it 'returns true if composition matches' do
         cart_item.cart_item_ingredients.find_by(ingredient: ingredient1).update!(included: false)
         cart_item.cart_item_ingredients.find_by(ingredient: ingredient2).update!(included: true)
+        # Сравнение актуального состояния с переданным массивом ID
         expect(cart_item.matches_composition?([ ingredient2.id ], [ ingredient1.id ])).to be true
       end
 
@@ -116,14 +125,20 @@ RSpec.describe CartItem, type: :model do
       it 'calculates weight for a single item' do
         cart_item.cart_item_ingredients.find_by(ingredient: ingredient1).update!(included: false)
         cart_item.cart_item_ingredients.find_by(ingredient: ingredient2).update!(included: true)
+        # Вес блюда (300) - вес ingr1 (20) + вес ingr2 (30) = 310
         expect(cart_item.per_item_weight_g).to eq(310)
       end
     end
 
     context '#total_weight_g' do
-      it 'calculates total weight for all items' do
+      before do
+        # Подготовка данных: меняем состояние ингредиентов перед тестом
         cart_item.cart_item_ingredients.find_by(ingredient: ingredient1).update!(included: false)
         cart_item.cart_item_ingredients.find_by(ingredient: ingredient2).update!(included: true)
+      end
+
+      it 'calculates total weight correctly' do
+        # Вес одной позиции (310) * количество (2) = 620
         expect(cart_item.total_weight_g).to eq(620)
       end
     end

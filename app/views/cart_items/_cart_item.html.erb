@@ -1,14 +1,19 @@
+
 <div class="card bg-base-200 shadow-md hover:shadow-lg transition-all duration-300 relative" id="cart-item-<%= cart_item.id %>">
+  <!-- Основной контейнер карточки товара в корзине. ID используется для поиска элемента при AJAX-обновлении -->
   <div class="card-body p-4 md:p-6">
     <div class="flex flex-col gap-4">
+      <!-- Секция с изображением и основной информацией о блюде -->
       <div class="flex flex-col sm:flex-row gap-4">
         <div class="flex-shrink-0">
           <figure class="w-24 h-24 sm:w-32 sm:h-32 rounded-xl md:rounded-2xl overflow-hidden bg-base-300 shadow-md">
             <% if cart_item.dish.photos.attached? %>
+              <!-- Отображаем первое фото блюда, используя ActiveStorage вариант для подгонки под размер -->
               <%= image_tag url_for(cart_item.dish.photos.first.variant(resize_to_fill: [120, 120])),
                     class: "w-full h-full object-cover hover:scale-105 transition-transform duration-300",
                     alt: cart_item.dish.title %>
             <% else %>
+              <!-- Заглушка (плейсхолдер) в случае отсутствия фото -->
               <div class="w-full h-full flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-base-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -19,6 +24,7 @@
         </div>
 
         <div class="flex-1">
+          <!-- Название блюда и ссылка на страницу товара -->
           <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
             <div class="flex-1">
               <h3 class="text-lg md:text-xl font-semibold mb-2">
@@ -26,6 +32,7 @@
                     class: "text-primary hover:text-primary-focus transition-colors" %>
               </h3>
 
+              <!-- Бейджи с информацией о весе и времени готовки -->
               <div class="flex flex-wrap items-center gap-2">
                 <div class="flex items-center gap-2">
                   <span class="badge badge-primary badge-xs md:badge-sm">
@@ -44,6 +51,7 @@
               </div>
             </div>
 
+            <!-- Итоговая цена данной позиции товара (учитывая количество и модификаторы) -->
             <div class="flex items-center gap-2">
               <span class="text-lg md:text-xl font-bold text-primary">
                 <%= number_to_currency(cart_item.subtotal_cents / 100.0, unit: "BYN", format: "%n %u") %>
@@ -53,6 +61,8 @@
         </div>
       </div>
 
+      <!-- Секция отображения ингредиентов (добавки/исключения) -->
+      <!-- Определяем, какие ингредиенты были добавлены или убраны пользователем -->
       <% added_ingredients = cart_item.cart_item_ingredients.where(default_in_dish: false, included: true) %>
       <% removed_ingredients = cart_item.cart_item_ingredients.where(default_in_dish: true, included: false) %>
 
@@ -66,6 +76,7 @@
           </h4>
 
           <div class="flex flex-col gap-2">
+            <!-- Список ингредиентов, добавленных пользователем (дополнительная оплата) -->
             <% if added_ingredients.any? %>
               <div class="flex items-center flex-wrap">
                 <span class="text-xs font-medium text-base-content/70 mr-2">Добавки:</span>
@@ -75,6 +86,7 @@
               </div>
             <% end %>
 
+            <!-- Список ингредиентов, убранных пользователем (стандартный состав) -->
             <% if removed_ingredients.any? %>
               <div class="text-xs text-base-content/50 mt-1">
                 <span class="font-medium">Без:</span>
@@ -85,8 +97,10 @@
         </div>
       <% end %>
 
+      <!-- Кнопки управления количеством товара (+/-) -->
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div class="flex items-center gap-2">
+          <!-- Кнопка уменьшения количества. `data-cart-item-id` используется для отправки AJAX запроса -->
           <button type="button"
               class="btn btn-circle btn-sm btn-outline quantity-decrease hover:btn-primary"
               data-cart-item-id="<%= cart_item.id %>"
@@ -96,10 +110,12 @@
             </svg>
           </button>
 
+          <!-- Отображение текущего количества товара. ID используется для обновления числа через JS -->
           <div class="min-w-[3rem] text-center font-bold text-lg" id="quantity-<%= cart_item.id %>">
             <%= cart_item.quantity %>
           </div>
 
+          <!-- Кнопка увеличения количества -->
           <button type="button"
               class="btn btn-circle btn-sm btn-outline quantity-increase hover:btn-primary"
               data-cart-item-id="<%= cart_item.id %>"
@@ -112,6 +128,7 @@
       </div>
     </div>
 
+    <!-- Кнопка удаления товара из корзины. Абсолютное позиционирование внизу справа карточки. -->
     <div class="absolute right-4 bottom-4 flex items-center gap-2">
       <button type="button"
           class="btn btn-sm btn-error flex items-center gap-2 px-3 py-1 remove-item"

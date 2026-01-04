@@ -1,18 +1,35 @@
+
+<!-- Компонент карты (Leaflet Map) -->
+<!-- Контейнер с фиксированной высотой (style="height: 400px"), скругленные углы, ширина 100% -->
 <div id="map" class="h-full w-full rounded-lg" style="height: 400px;"></div>
 
+<!-- Скрипт инициализации карты Leaflet -->
 <script>
+  // Событие полной загрузки DOM документа
   document.addEventListener("DOMContentLoaded", function() {
+
+    // Координаты ресторана "Нежданчик"
+    // lat: широта (Minsk ~53.9), lng: долгота (Minsk ~27.5)
     var lat = 53.909249;
     var lng = 27.548249;
 
+    // Инициализация карты:
+    // 1. Привязка к div с id="map"
+    // 2. Установка вида (setView): [широта, долгота], zoom (уровень приближения)
     var map = L.map('map').setView([lat, lng], 16);
 
+    // Добавление слоя тайлов (план карты):
+    // Используются тайлы OpenStreetMap (бесплатно)
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
+    // Добавление маркера (Pin) на карте:
+    // Координаты совпадают с координатами центра
     L.marker([lat, lng]).addTo(map)
+      // Привязка всплывающего окна (Popup) с адресом
       .bindPopup("Просп. Победителей, 11, Минск")
+      // Автоматическое открытие popup при загрузке
       .openPopup();
   });
 </script>

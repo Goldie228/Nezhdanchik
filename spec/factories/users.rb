@@ -19,19 +19,24 @@
 #
 FactoryBot.define do
   factory :user do
+    # Стандартные данные для быстрого создания одного пользователя
     email { "user@example.com" }
     phone { "291234567" }
     first_name { "John" }
     last_name { "Doe" }
     password { "password123" }
     password_confirmation { "password123" }
+    # Роль по умолчанию (customer) соответствует значению 0 в enum
     role { 0 }
 
+    # Используйте этот трейт при создании списка пользователей (create_list),
+    # чтобы избежать ошибок уникальности email и телефона
     trait :with_sequence do
       sequence(:email) { |n| "user#{n}@example.com" }
       sequence(:phone) { |n| "29123456#{n}" }
     end
 
+    # Трэйт для создания администратора (role = 1)
     trait :admin do
       role { 1 }
     end

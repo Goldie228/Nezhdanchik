@@ -1,25 +1,35 @@
+
 class CartController < ApplicationController
   before_action :authenticate_user!
+  # Получает или создает корзину текущего пользователя
   before_action :set_cart
+  # Извлекает конкретный товар из корзины для операций удаления/обновления
   before_action :set_cart_item, only: [ :update, :remove ]
 
   def show
+    # Подготавливает данные корзины (товары, итоговая цена) с оптимизацией запросов
     prepare_cart_data
   end
 
   def add
     dish = Dish.find(params[:dish_id])
+    # Приводит параметры ингредиентов (массив или строку) к единому формату массива ID
     selected, removed = normalize_ingredient_params(params)
 
+    # Ищем товар в корзине с идентичным составом (учитывая добавленные/убранные ингредиенты)
     existing_cart_item = find_existing_cart_item(dish, selected, removed)
 
     if existing_cart_item
+      # Если товар с таким составом уже есть — увеличиваем количество
       existing_cart_item.increment!(:quantity)
     else
+      # Создаем новую позицию и кастомизируем ингредиенты в одной транзакции
       CartItem.transaction do
         cart_item = @cart.cart_items.create!(dish: dish)
         cart_item.reload
+        # Убираем ингредиенты, которые были в блюде по умолчанию, но пользователь их удалил
         apply_removed_ingredients!(cart_item, removed) if removed.any?
+        # Добавляем ингредиенты, которых не было в блюде, или возвращаем удаленные
         apply_selected_ingredients!(cart_item, selected) if selected.any?
       end
     end
@@ -35,6 +45,7 @@ class CartController < ApplicationController
     end
   end
 
+  # Проверяет количество конкретного блюда с выбранными ингредиентами в корзине (AJAX)
   def cart_info
     dish = Dish.find(params[:dish_id])
     selected, removed = normalize_ingredient_params(params)
@@ -47,6 +58,7 @@ class CartController < ApplicationController
     }
   end
 
+  # Увеличивает количество товара (аналогично add, но не создает новый, если нет)
   def increase
     dish = Dish.find(params[:dish_id])
     selected, removed = normalize_ingredient_params(params)
@@ -74,6 +86,7 @@ class CartController < ApplicationController
     end
   end
 
+  # Уменьшает количество товара или удаляет его, если количество было 1
   def decrease
     dish = Dish.find(params[:dish_id])
     selected, removed = normalize_ingredient_params(params)
@@ -98,6 +111,7 @@ class CartController < ApplicationController
     end
   end
 
+  # Обновляет количество товара (из корзины) или меняет его через +/- кнопки
   def update
     @cart_item = @cart.cart_items.find(params[:id])
 
@@ -119,6 +133,7 @@ class CartController < ApplicationController
         prepare_cart_data
 
         item_html = nil
+        # Рендерим HTML для товара только если он не был удален
         unless @cart_item.destroyed?
           item_html = render_to_string(partial: "cart_items/cart_item", locals: { cart_item: @cart_item.reload }, formats: [ :html ])
         end
@@ -166,6 +181,7 @@ class CartController < ApplicationController
   private
 
   def set_cart
+    # Использует сервис-метод модели для получения или создания корзины
     @cart = Cart.for_user!(current_user)
   end
 
@@ -173,12 +189,15 @@ class CartController < ApplicationController
     @cart_item = @cart.cart_items.find(params[:id])
   end
 
+  # Загружает товары с ингредиентами и считает итоги (избегает N+1 запросов)
   def prepare_cart_data
     @cart_items = @cart.cart_items.includes(:dish, cart_item_ingredients: :ingredient).active
+    # Переводим цену из центов в доллары/рубли для отображения
     @total_price = @cart.total_cents / 100.0
     @total_items = @cart.total_items_count
   end
 
+  # Нормализует параметры ингредиентов, приходящие как строка "1,2,3" или массив
   def normalize_ingredient_params(params_source)
     selected_raw = params_source[:selected_ingredient_ids]
     removed_raw  = params_source[:removed_ingredient_ids]
@@ -200,17 +219,20 @@ class CartController < ApplicationController
     [ selected, removed ]
   end
 
+  # Ищет товар в корзине, у которого совпадает состав (набор добавленных/убранных ингредиентов)
   def find_existing_cart_item(dish, selected_ingredient_ids, removed_ingredient_ids)
     @cart.cart_items.where(dish: dish).active.detect do |item|
       item.matches_composition?(selected_ingredient_ids, removed_ingredient_ids)
     end
   end
 
+  # Возвращает количество товара с конкретным составом
   def get_cart_item_quantity(dish, selected_ingredient_ids, removed_ingredient_ids)
     existing = find_existing_cart_item(dish, selected_ingredient_ids, removed_ingredient_ids)
     existing ? existing.quantity : 0
   end
 
+  # Помечает стандартные ингредиенты как убранные пользователем
   def apply_removed_ingredients!(cart_item, removed_ids)
     return if removed_ids.blank?
 
@@ -221,20 +243,25 @@ class CartController < ApplicationController
              end
   end
 
+  # Добавляет ингредиенты: создает новые записи или возвращает ранее убранные
   def apply_selected_ingredients!(cart_item, selected_ids)
     return if selected_ids.blank?
 
+    # find_each эффективен для обработки больших списков
     Ingredient.where(id: selected_ids).find_each do |ingredient|
       cii = cart_item.cart_item_ingredients.find_by(ingredient_id: ingredient.id)
 
       if cii.nil?
+        # Ингредиент добавлен впервые (не был в блюде по умолчанию)
         cart_item.cart_item_ingredients.create!(
           ingredient: ingredient,
           included: true,
           default_in_dish: false,
+          # Конвертируем цену Decimal (1.5) в Integer центов (150) для хранения
           price: (ingredient.price.to_d * 100).to_i
         )
       else
+        # Ингредиент вернули в состав (он был default, но его убрали)
         cii.update!(included: true) unless cii.included
       end
     end

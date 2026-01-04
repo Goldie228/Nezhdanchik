@@ -13,16 +13,16 @@
 #
 require "rails_helper"
 
-
 RSpec.describe Nutrition, type: :model do
   let(:category) { Category.create!(name: "Пиццы", slug: "pizzas") }
   let(:dish) { Dish.create!(title: "Маргарита", price: 10, slug: "margarita", category: category) }
 
   describe "validations" do
+    # Полиморфная связь: запись должна относиться либо к блюду, либо к ингредиенту
     it "is invalid without dish or ingredient" do
       nutrition = Nutrition.new(proteins: 10, fats: 5, carbohydrates: 20)
       expect(nutrition).not_to be_valid
-      expect(nutrition.errors[:base]).to include(I18n.t("errors.messages.must_have_parent"))
+      expect(nutrition.errors[:base]).to include(I18n.t("activerecord.errors.messages.must_have_parent"))
     end
 
     it "is valid with dish" do
@@ -30,11 +30,13 @@ RSpec.describe Nutrition, type: :model do
       expect(nutrition).to be_valid
     end
 
+    # Энергетическая ценность не может быть отрицательной
     it "is invalid with negative values" do
       nutrition = Nutrition.new(dish: dish, proteins: -1, fats: -2, carbohydrates: -3)
       expect(nutrition).not_to be_valid
     end
 
+    # Проверка соответствия типу данных decimal(5, 2): макс. значение 999.99
     it "is invalid with too large values" do
       nutrition = Nutrition.new(dish: dish, proteins: 2000, fats: 2000, carbohydrates: 2000)
       expect(nutrition).not_to be_valid

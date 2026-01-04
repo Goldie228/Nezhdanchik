@@ -15,16 +15,22 @@ class CartItemIngredient < ApplicationRecord
   belongs_to :cart_item
   belongs_to :ingredient
 
+  # Валидации обязательных связей
   validates :cart_item, :ingredient, presence: true
+  # Гарантирует, что булевы поля принимают только корректные значения
   validates :included, :default_in_dish, inclusion: { in: [ true, false ] }
+  # Цена хранится в копейках (integer) и должна быть неотрицательной
   validates :price, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
 
+  # Предотвращает дублирование ингредиентов в одной позиции корзины
   validates :ingredient_id, uniqueness: { scope: :cart_item_id }
 
+  # Определяет, добавил ли пользователь ингредиент, которого не было в стандартном рецепте
   def added_by_user?
     !default_in_dish && included
   end
 
+  # Определяет, убрал ли пользователь ингредиент, который был в блюде по умолчанию
   def removed_by_user?
     default_in_dish && !included
   end

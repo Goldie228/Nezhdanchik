@@ -13,8 +13,10 @@
 #
 FactoryBot.define do
   factory :ingredient do
+    # Используем sequence для генерации уникальных имен, так как валидация требует их уникальности
     sequence(:name) { |n| "My Ingredient #{n}" }
     price { 1.50 }
+    # Значение по умолчанию из схемы БД, но полезно указать явно для предсказуемости тестов
     weight { 10 }
   end
 end

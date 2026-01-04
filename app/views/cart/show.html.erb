@@ -1,6 +1,8 @@
+
 <div class="min-h-screen bg-base-200">
   <div class="container mx-auto px-4 py-4 md:py-8">
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 md:gap-8">
+      <!-- Левая колонка (2/3 ширины на больших экранах): Список товаров -->
       <div class="xl:col-span-2">
         <div class="card bg-base-100 shadow-xl md:shadow-2xl">
           <div class="card-body p-4 md:p-6">
@@ -8,8 +10,9 @@
               <h1 class="card-title text-2xl md:text-3xl font-bold text-primary">
                 Ваша корзина
               </h1>
+              <!-- Бейдж с количеством товаров и правильным склонением слова (русский язык) -->
               <div class="badge badge-primary badge-lg" id="cart-items-badge">
-                <%= @total_items %> 
+                <%= @total_items %>
                 <% if @total_items % 10 == 1 && @total_items % 100 != 11 %>
                   позиция
                 <% elsif [2, 3, 4].include?(@total_items % 10) && ![12, 13, 14].include?(@total_items % 100) %>
@@ -21,10 +24,12 @@
             </div>
 
             <% if @cart_items.any? %>
+              <!-- Контейнер для списка товаров. ID используется для JS-манипуляций -->
               <div class="space-y-4 md:space-y-6" id="cart-items-container">
                 <%= render @cart_items %>
               </div>
             <% else %>
+              <!-- Состояние пустой корзины: заглушка с иконкой и ссылкой в меню -->
               <div class="flex flex-col items-center justify-center py-12 md:py-16" id="cart-items-container">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 text-primary mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
@@ -38,6 +43,8 @@
         </div>
       </div>
 
+      <!-- Правая колонка (1/3 ширины): Прилипающая панель с итогами -->
+      <!-- xl:sticky top-4 фиксирует блок при скролле на больших экранах -->
       <div class="xl:col-span-1">
         <div class="sticky top-4 md:top-6 space-y-4 md:space-y-6">
           <div class="card from-primary/10 via-primary/5 to-secondary/10 shadow-xl md:shadow-2xl border border-primary/20">
@@ -48,7 +55,8 @@
                 </svg>
                 Итого
               </h2>
-              
+
+              <!-- Контейнер для частичного шаблона с итоговой ценой, обновляемый через JS -->
               <div id="cart-summary">
                 <%= render 'cart_summary' %>
               </div>
@@ -62,6 +70,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  // Получение CSRF токена из мета-тега для безопасных AJAX запросов (PATCH/POST/DELETE)
   function getCsrfToken() {
     const metaTag = document.querySelector('meta[name="csrf-token"]');
     return metaTag ? metaTag.getAttribute('content') : null;
@@ -69,6 +78,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   const csrfToken = getCsrfToken();
 
+  // Обновляет бейджи корзины (в шапке и на странице) с правильным склонением слова "позиция"
   function updateCartBadges(totalItems) {
     const headerBadge = document.getElementById('cart-count');
     if (headerBadge) {
@@ -82,10 +92,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  // Вспомогательная функция для склонения русских существительных
   function getRussianPluralize(number, one, few, many) {
     const lastDigit = number % 10;
     const lastTwoDigits = number % 100;
 
+    // Правило русского языка (1, 2-4, остальные)
     if (lastDigit === 1 && lastTwoDigits !== 11) {
       return one;
     } else if ([2, 3, 4].includes(lastDigit) && ![12, 13, 14].includes(lastTwoDigits)) {
@@ -95,10 +107,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  // Обновляет количество товара (удаление или добавление) через AJAX
   function updateCartItem(itemId, action) {
     const url = `/cart/update/${itemId}`;
     const data = { quantity_action: action };
-    
+
     fetch(url, {
       method: 'PATCH',
       headers: {
@@ -110,12 +123,14 @@ document.addEventListener('DOMContentLoaded', function() {
     })
     .then(response => response.json())
     .then(data => {
+      // Если товар удален (количество стало 0)
       if (data.item_removed_id) {
         const itemElement = document.getElementById(`cart-item-${data.item_removed_id}`);
         if (itemElement) {
           itemElement.remove();
         }
       } else if (data.item_html) {
+        // Если товар обновлен (изменилась цена или модификаторы), заменяем DOM элемент
         const itemElement = document.getElementById(`cart-item-${itemId}`);
         if (itemElement) {
           const tempDiv = document.createElement('div');
@@ -125,6 +140,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }
 
+      // Обновляем блок с итогами (итоговая цена)
       if (data.cart_summary_html) {
         const summaryElement = document.getElementById('cart-summary');
         if (summaryElement) {
@@ -132,10 +148,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }
 
+      // Обновляем счетчики в бейджах
       if (data.total_items !== undefined) {
         updateCartBadges(data.total_items);
       }
 
+      // Если корзина стала пустой, отрисовываем пустое состояние
       if (data.cart_empty) {
         const container = document.getElementById('cart-items-container');
         if (container) {
@@ -159,13 +177,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // Удаляет товар из корзины через AJAX
   function removeCartItem(itemId) {
     if (!confirm('Вы уверены, что хотите удалить этот товар из корзины?')) {
       return;
     }
 
     const url = `/cart/remove/${itemId}`;
-    
+
     fetch(url, {
       method: 'DELETE',
       headers: {
@@ -215,6 +234,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // Обработчик кнопки "Очистить корзину"
   const clearCartButton = document.getElementById('clear-cart-button');
   if (clearCartButton) {
     clearCartButton.addEventListener('click', function(e) {
@@ -224,7 +244,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
 
       const url = '/cart/clear';
-      
+
       fetch(url, {
         method: 'DELETE',
         headers: {
@@ -254,6 +274,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
           const summaryElement = document.getElementById('cart-summary');
           if (summaryElement) {
+            // Очищаем блок с ценой (вариант: убрать или оставить пустым)
             summaryElement.innerHTML = `
               <div class="flex flex-col items-center justify-center py-12 md:py-16">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 text-primary mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -275,18 +296,25 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // Делегирование событий на документ (Event Delegation)
+  // Позволяет обрабатывать клики на динамически добавляемых кнопках товаров без перепривязки
   document.addEventListener('click', function(e) {
+    // Обработка нажатия на кнопку "минус"
     if (e.target.closest('.quantity-decrease')) {
       e.preventDefault();
       const button = e.target.closest('.quantity-decrease');
       const cartItemId = button.dataset.cartItemId;
       updateCartItem(cartItemId, 'decrease');
-    } else if (e.target.closest('.quantity-increase')) {
+    }
+    // Обработка нажатия на кнопку "плюс"
+    else if (e.target.closest('.quantity-increase')) {
       e.preventDefault();
       const button = e.target.closest('.quantity-increase');
       const cartItemId = button.dataset.cartItemId;
       updateCartItem(cartItemId, 'increase');
-    } else if (e.target.closest('.remove-item')) {
+    }
+    // Обработка нажатия на кнопку "удалить"
+    else if (e.target.closest('.remove-item')) {
       e.preventDefault();
       const button = e.target.closest('.remove-item');
       const cartItemId = button.dataset.cartItemId;

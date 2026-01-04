@@ -14,7 +14,6 @@
 #
 require 'rails_helper'
 
-
 RSpec.describe OrderItem, type: :model do
   describe 'associations' do
     it { should belong_to(:order) }
@@ -23,6 +22,7 @@ RSpec.describe OrderItem, type: :model do
 
   describe 'callbacks' do
     context '#calculate_total_price' do
+      # Колбэк гарантирует, что итоговая цена всегда актуальна перед сохранением
       it 'calculates total_price before saving a new record' do
         order_item = build(:order_item, quantity: 2, unit_price: 10.00)
         order_item.save
@@ -30,6 +30,7 @@ RSpec.describe OrderItem, type: :model do
         expect(order_item.total_price).to eq(20.00)
       end
 
+      # Пересчет при обновлении важен для избежания рассинхрона цен при изменении количества
       it 'recalculates total_price before saving an updated record' do
         order_item = create(:order_item, quantity: 2, unit_price: 10.00)
         order_item.update(quantity: 3)

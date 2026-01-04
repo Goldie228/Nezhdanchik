@@ -12,7 +12,6 @@
 #
 require "rails_helper"
 
-
 RSpec.describe Category, type: :model do
   describe "associations" do
     it "can have many dishes" do
@@ -20,11 +19,13 @@ RSpec.describe Category, type: :model do
       dish1 = Dish.create!(title: "Маргарита", price: 10, slug: "margarita", category: category)
       dish2 = Dish.create!(title: "Пепперони", price: 12, slug: "pepperoni", category: category)
 
+      # Проверка наличия связи с блюдами
       expect(category.dishes).to include(dish1, dish2)
     end
 
     it "can have a photo attached" do
       category = Category.create!(name: "Пиццы", slug: "pizzas")
+      # Используем ActiveStorage для прикрепления файлов (например, изображение категории)
       category.photo.attach(
         io: StringIO.new("fake image content"),
         filename: "test.png",
@@ -62,10 +63,12 @@ RSpec.describe Category, type: :model do
     it "is invalid with duplicate slug" do
       Category.create!(name: "Пиццы", slug: "pizzas")
       dup = Category.new(name: "Суши", slug: "pizzas")
+      # Slug должен быть уникальным для формирования человекопонятных URL
       expect(dup).not_to be_valid
       expect(dup.errors[:slug]).to include("уже используется")
     end
 
+    # Проверки ограничений длины строк для соответствия лимитам базы данных
     it "is invalid if name is too long" do
       category = Category.new(name: "a" * 256, slug: "long-name")
       expect(category).not_to be_valid

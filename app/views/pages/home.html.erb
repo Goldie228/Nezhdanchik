@@ -1,13 +1,25 @@
+
+<!-- Основной контейнер страницы: минимальная высота экрана, белый фон, отступ внизу (для навбара) -->
 <div class="min-h-screen bg-base-100 pb-20">
+
+  <!-- ============================
+       НИЖНЕЕ МЕНЮ (MOBILE NAVBAR)
+       ============================ -->
+  <!-- id="bottom-nav": Фиксированная позиция (снизу), высокий z-index -->
+  <!-- backdrop-blur-md: Эффект матового стекла (размытие фона), bg-base-300/80: Полупрозрачный фон -->
   <nav id="bottom-nav" class="fixed bottom-0 left-0 right-0 z-50 bg-base-300/80 backdrop-blur-md border-t border-base-300 transition-transform duration-300">
+    <!-- Горизонтальное меню с иконками -->
     <ul class="menu menu-horizontal w-full justify-center gap-2 p-2">
+      <!-- Ссылки с якорями (#id) и всплывающими подсказками (tooltip) -->
       <li>
         <a href="#hero" class="tooltip tooltip-top" data-tip="Главная">
+          <!-- Иконка Дом -->
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
           </svg>
         </a>
       </li>
+      <!-- Иконка Молния (Особенности) -->
       <li>
         <a href="#features" class="tooltip tooltip-top" data-tip="Особенности">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -15,6 +27,7 @@
           </svg>
         </a>
       </li>
+      <!-- Иконка Знак вопроса (О нас) -->
       <li>
         <a href="#about" class="tooltip tooltip-top" data-tip="О нас">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -22,6 +35,7 @@
           </svg>
         </a>
       </li>
+      <!-- Иконка Бронирования (Бронирование) -->
       <li>
         <a href="#booking" class="tooltip tooltip-top" data-tip="Бронирование">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -29,6 +43,7 @@
           </svg>
         </a>
       </li>
+      <!-- Иконка Буквы (Отзывы) -->
       <li>
         <a href="#testimonials" class="tooltip tooltip-top" data-tip="Отзывы">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -36,6 +51,7 @@
           </svg>
         </a>
       </li>
+      <!-- Иконка Карта (Контакты) -->
       <li>
         <a href="#contact" class="tooltip tooltip-top" data-tip="Контакты">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -47,24 +63,37 @@
     </ul>
   </nav>
 
+  <!-- ============================
+       ГЛАВНЫЙ ЭКРАН (HERO SECTION)
+       ============================ -->
+  <!-- id="hero": Минимальная высота 80vh. Фоновая картинка задается через style (Rails asset_path) -->
   <div id="hero" class="hero min-h-[80vh] relative overflow-hidden" style="background-image: url('<%= asset_path('restaurant-outside.png') %>');">
+    <!-- Затемнение фона для читаемости текста -->
     <div class="hero-overlay bg-black/70 to-transparent"></div>
+
+    <!-- Контент поверх фона: центрирование текста, анимация появления -->
     <div class="hero-content text-center text-neutral-content relative z-10">
       <div class="max-w-2xl animate-fade-in-up">
         <div class="badge badge-warning badge-lg mb-4">Ресторан | ★★★★★ | 2025 года</div>
+
         <h1 class="mb-5 text-6xl md:text-7xl font-bold tracking-tight">
           Нежданчик
         </h1>
+
         <p class="mb-5 text-xl md:text-2xl font-light">
           Ресторан восточной кухни
         </p>
+
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <!-- Кнопка Забронировать (Primary) -->
           <%= link_to reservation_path, class: "btn btn-primary btn-lg" do %>
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             Забронировать столик
           <% end %>
+
+          <!-- Кнопка Меню (Outline/White) -->
           <%= link_to menu_path, class: "btn btn-outline btn-lg text-white border-white hover:bg-white hover:text-base-100" do %>
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
@@ -74,6 +103,8 @@
         </div>
       </div>
     </div>
+
+    <!-- Стрелка вниз с анимацией "отскока" (bounce) -->
     <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
       <a href="#features" title="Далее">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -83,9 +114,14 @@
     </div>
   </div>
 
+  <!-- ============================
+       ОСОБЕННОСТИ (STATS)
+       ============================ -->
   <div id="features" class="py-16 bg-base-100">
     <div class="container mx-auto px-4">
+      <!-- Сетка карточек статистики: 1 колонка на мобильном, 3 на десктопе -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <!-- Карточка 1: Блюда -->
         <div class="stat bg-base-200 rounded-lg shadow-lg">
           <div class="stat-figure text-primary">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -96,7 +132,8 @@
           <div class="stat-value text-primary">100+</div>
           <div class="stat-desc">блюд восточной кухни</div>
         </div>
-        
+
+        <!-- Карточка 2: Гости -->
         <div class="stat bg-base-200 rounded-lg shadow-lg">
           <div class="stat-figure text-primary">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -107,11 +144,12 @@
           <div class="stat-value text-primary">10K+</div>
           <div class="stat-desc">ежемесячно</div>
         </div>
-        
+
+        <!-- Карточка 3: Рейтинг -->
         <div class="stat bg-base-200 rounded-lg shadow-lg">
           <div class="stat-figure text-primary">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-1.838-.197-1.538-1.118l1.518-4.674z" />
             </svg>
           </div>
           <div class="stat-title">Рейтинг</div>
@@ -122,33 +160,42 @@
     </div>
   </div>
 
+  <!-- ============================
+       О НАС (ABOUT)
+       ============================ -->
   <div id="about" class="container mx-auto px-4 py-16">
     <div class="max-w-6xl mx-auto">
+      <!-- Заголовок раздела -->
       <div class="text-center mb-12">
         <h2 class="text-4xl font-bold mb-4">О нашем ресторане</h2>
         <div class="divider"></div>
       </div>
-      
+
+      <!-- Двухколоночный лейаут: Текст слева, Карточка справа -->
       <div class="grid md:grid-cols-2 gap-12 items-center">
         <div class="space-y-6">
+          <!-- Текстовое описание -->
           <p class="text-lg leading-relaxed">
-            Добро пожаловать в "Нежданчик" - место, где восточные традиции встречаются с современным комфортом. 
+            Добро пожаловать в "Нежданчик" - место, где восточные традиции встречаются с современным комфортом.
             Наша фирменная шаурма "Нежданчик" уже стала легендой!
           </p>
           <p class="text-lg leading-relaxed">
             Мы гордимся тем, что используем только свежие продукты и аутентичные рецепты, передаваемые из поколения в поколение.
           </p>
+          <!-- Бейджи (Халяль, Свежее, Авторское) -->
           <div class="flex flex-wrap gap-3">
             <div class="badge badge-outline badge-lg">Халяль</div>
             <div class="badge badge-outline badge-lg">Свежие продукты</div>
             <div class="badge badge-outline badge-lg">Авторские рецепты</div>
           </div>
         </div>
-        
+
+        <!-- Карточка фирменного блюда -->
         <div class="card bg-base-200 shadow-2xl">
           <figure class="px-10 pt-10">
             <div class="avatar">
               <div class="w-64 rounded-xl">
+                <!-- Логотип блюда -->
                 <%= image_tag 'logo.png', alt: 'Фирменная шаурма' %>
               </div>
             </div>
@@ -157,12 +204,13 @@
             <h3 class="card-title text-2xl">Фирменная шаурма "Нежданчик"</h3>
             <p class="text-base-content/70">Уникальный вкус, который вас приятно удивит!</p>
             <div class="card-actions">
+              <!-- Статичный рейтинг -->
               <div class="rating rating-lg">
-                <input type="radio" name="rating-1" class="mask mask-star-2 bg-orange-400" checked />
-                <input type="radio" name="rating-1" class="mask mask-star-2 bg-orange-400" checked />
-                <input type="radio" name="rating-1" class="mask mask-star-2 bg-orange-400" checked />
-                <input type="radio" name="rating-1" class="mask mask-star-2 bg-orange-400" checked />
-                <input type="radio" name="rating-1" class="mask mask-star-2 bg-orange-400" checked />
+                <input type="radio" name="rating-1" class="mask mask-star-2 bg-orange-400" checked>
+                <input type="radio" name="rating-1" class="mask mask-star-2 bg-orange-400" checked>
+                <input type="radio" name="rating-1" class="mask mask-star-2 bg-orange-400" checked>
+                <input type="radio" name="rating-1" class="mask mask-star-2 bg-orange-400" checked>
+                <input type="radio" name="rating-1" class="mask mask-star-2 bg-orange-400" checked>
               </div>
             </div>
           </div>
@@ -171,8 +219,12 @@
     </div>
   </div>
 
+  <!-- ============================
+       БРОНИРОВАНИЕ (BOOKING)
+       ============================ -->
   <div id="booking" class="bg-base-200 py-16">
     <div class="container mx-auto px-4">
+      <!-- Заголовок и подзаголовок -->
       <div class="text-center mb-12">
         <h2 class="text-4xl font-bold mb-4 text-white">Бронирование столика</h2>
         <p class="text-lg max-w-2xl mx-auto text-white/90">
@@ -180,8 +232,10 @@
           предзаказ наших блюд к вашему приходу!
         </p>
       </div>
-      
+
+      <!-- Сетка карточек: 3 колонки на больших экранах -->
       <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <!-- Карточка 1: Преимущества -->
         <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
           <div class="card-body">
             <div class="card-title justify-center">
@@ -198,7 +252,8 @@
             </ul>
           </div>
         </div>
-        
+
+        <!-- Карточка 2: Как это работает -->
         <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
           <div class="card-body">
             <div class="card-title justify-center">
@@ -215,7 +270,8 @@
             </ul>
           </div>
         </div>
-        
+
+        <!-- Карточка 3: Время работы -->
         <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
           <div class="card-body">
             <div class="card-title justify-center">
@@ -232,23 +288,32 @@
           </div>
         </div>
       </div>
-      
+
+      <!-- Кнопка CTA (Call To Action) -->
       <div class="text-center mt-12">
         <%= link_to "Забронировать сейчас", reservation_path, class: "btn btn-accent btn-lg" %>
       </div>
     </div>
   </div>
 
+  <!-- ============================
+       ОТЗЫВЫ (TESTIMONIALS)
+       ============================ -->
   <div id="testimonials" class="py-16 bg-base-200">
     <div class="container mx-auto px-4">
+      <!-- Заголовок -->
       <div class="text-center mb-12">
         <h2 class="text-4xl font-bold mb-4">Отзывы наших гостей</h2>
         <div class="divider"></div>
       </div>
+
+      <!-- Сетка отзывов: 3 колонки -->
       <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <!-- Отзыв 1 -->
         <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
           <div class="card-body">
             <div class="flex items-center mb-4">
+              <!-- Аватар с инициалами (плейсхолдер) -->
               <div class="avatar placeholder">
                 <div class="bg-neutral text-neutral-content rounded-full w-12 flex items-center justify-center">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -258,6 +323,7 @@
               </div>
               <div class="ml-4">
                 <h4 class="font-bold">Анна Петрова</h4>
+                <!-- Рейтинг -->
                 <div class="flex">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-orange-400" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
@@ -277,11 +343,13 @@
                 </div>
               </div>
             </div>
+            <!-- Текст отзыва -->
             <p class="text-base-content/80 italic">"Лучшая шаурма в городе! Атмосфера потрясающая, обслуживание на высоте."</p>
             <div class="mt-4 text-sm text-base-content/60">Посетила вчера с семьей</div>
           </div>
         </div>
-        
+
+        <!-- Отзыв 2 -->
         <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
           <div class="card-body">
             <div class="flex items-center mb-4">
@@ -317,7 +385,8 @@
             <div class="mt-4 text-sm text-base-content/60">Посещаю каждую неделю</div>
           </div>
         </div>
-        
+
+        <!-- Отзыв 3 -->
         <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
           <div class="card-body">
             <div class="flex items-center mb-4">
@@ -346,6 +415,12 @@
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-orange-400" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                   </svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-orange-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-orange-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
                 </div>
               </div>
             </div>
@@ -354,19 +429,24 @@
           </div>
         </div>
       </div>
-      </div>
     </div>
   </div>
 
+  <!-- ============================
+       КОНТАКТЫ (CONTACT)
+       ============================ -->
   <div id="contact" class="container mx-auto px-4 py-16">
     <div class="max-w-6xl mx-auto">
       <div class="text-center mb-12">
         <h2 class="text-4xl font-bold mb-4">Контакты</h2>
         <div class="divider"></div>
       </div>
-      
+
+      <!-- Двухколоночный лейаут -->
       <div class="grid md:grid-cols-2 gap-12">
+        <!-- Левая колонка: Карточки с контактной информацией -->
         <div class="space-y-8">
+          <!-- Адрес -->
           <div class="card bg-base-100 shadow-xl">
             <div class="card-body">
               <h3 class="card-title">
@@ -380,7 +460,8 @@
               <p>Минск, 220004</p>
             </div>
           </div>
-          
+
+          <!-- Часы работы -->
           <div class="card bg-base-100 shadow-xl">
             <div class="card-body">
               <h3 class="card-title">
@@ -405,7 +486,8 @@
               </div>
             </div>
           </div>
-          
+
+          <!-- Телефоны -->
           <div class="card bg-base-100 shadow-xl">
             <div class="card-body">
               <h3 class="card-title">
@@ -421,9 +503,11 @@
           </div>
         </div>
 
+        <!-- Правая колонка: Карта -->
         <div>
           <h3 class="text-2xl font-bold mb-6">Мы на карте</h3>
           <div class="h-96 bg-base-200 z-10 rounded-lg shadow-xl overflow-hidden relative">
+            <!-- Рендеринг партиала карты -->
             <%= render 'shared/map' %>
           </div>
         </div>
@@ -431,6 +515,9 @@
     </div>
   </div>
 
+  <!-- ============================
+       CTA СЕКЦИЯ (ГОТОВЫ ПОПРОБОВАТЬ?)
+       ============================ -->
   <div class="bg-base-100 text-primary py-16">
     <div class="container mx-auto px-4 text-center">
       <h2 class="text-4xl font-bold mb-4">Готовы попробовать?</h2>
@@ -444,7 +531,11 @@
   </div>
 </div>
 
+<!-- =========================================
+       СТИЛИ (CSS)
+       ========================================= -->
 <style>
+  <!-- Анимация появления снизу вверх (Fade In Up) -->
   @keyframes fade-in-up {
     from {
       opacity: 0;
@@ -455,68 +546,89 @@
       transform: translateY(0);
     }
   }
-  
+
   .animate-fade-in-up {
     animation: fade-in-up 1s ease-out;
   }
 
+  <!-- Плавная прокрутка (Smooth Scroll) для всего документа -->
   html {
     scroll-behavior: smooth;
   }
 
+  /* Подсветка активного пункта в нижнем меню */
   #bottom-nav .menu li a.active {
-    background-color: hsl(var(--p) / 0.2);
-    color: hsl(var(--p));
+    background-color: hsl(var(--p) / 0.2); /* Цвет фона подложки */
+    color: hsl(var(--p)); /* Цвет текста подложки */
   }
 </style>
 
+<!-- =========================================
+       СКРИПТ (JAVASCRIPT)
+       ========================================= -->
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    // Выборка всех секций (div с атрибутом id)
     const sections = document.querySelectorAll('div[id]');
+    // Выборка всех ссылок навигации
     const navLinks = document.querySelectorAll('#bottom-nav a');
+    // Элемент нижнего меню
     const bottomNav = document.getElementById('bottom-nav');
+    // Поиск футера (или его альтернативы)
     const footer = document.querySelector('footer') || document.querySelector('#contact').parentElement;
 
+    // Функция обновления активной ссылки в меню
     function updateActiveLink() {
       let current = '';
       const scrollY = window.pageYOffset;
 
+      // Перебор секций для нахождения той, которая сейчас видна
       sections.forEach(section => {
         const sectionHeight = section.offsetHeight;
+        // Верхняя граница секции (с небольшим отступом сверху)
         const sectionTop = section.offsetTop - 100;
         const sectionId = section.getAttribute('id');
 
-        if (scrollY > sectionTop && scrollY <= sectionTop + sectionHeight) {
+        // Если скролл внутри секции
+        if (scrollY >= sectionTop && scrollY <= sectionTop + sectionHeight) {
           current = sectionId;
         }
       });
 
+      // Обновление классов ссылок
       navLinks.forEach(link => {
-        link.classList.remove('active');
-        if (link.getAttribute('href') === `#${current}`) {
-          link.classList.add('active');
+        link.classList.remove('active'); // Убираем активность у всех
+        if (link.getAttribute('href') === `#${current}`) { // Если href совпадает с id секции
+          link.classList.add('active'); // Добавляем активность
         }
       });
     }
 
+    // IntersectionObserver (Наблюдатель пересечения)
+    // Используется для скрытия меню, когда достигнут футер
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
+          // Если футер виден - прячем меню вниз (translateY(100%))
           bottomNav.style.transform = 'translateY(100%)';
         } else {
+          // Если футер не виден - показываем меню (translateY(0))
           bottomNav.style.transform = 'translateY(0)';
         }
       });
     }, {
-      threshold: 0.1
+      threshold: 0.1 // Срабатывает, когда видно 10% элемента (футера)
     });
 
+    // Подписка футера на наблюдение
     if (footer) {
       observer.observe(footer);
     }
 
+    // Вызов функции при прокрутке
     window.addEventListener('scroll', updateActiveLink);
 
+    // Инициализация при загрузке страницы
     updateActiveLink();
   });
 </script>

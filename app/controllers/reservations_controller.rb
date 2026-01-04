@@ -1,20 +1,24 @@
 
 class ReservationsController < ApplicationController
   before_action :authenticate_user!
+  # Извлекаем бронирование для действий деталей, обновления или отмены
   before_action :set_reservation, only: [ :details, :update, :cancel ]
 
+  # Маппинг технических статусов для JS логики доступности мест
   STATUSES = {
     available: "available",
     reserved: "reserved",
     occupied: "occupied"
   }.freeze
 
+  # Цветовая индикация статусов для карты (DaisyUI CSS)
   STATUS_CLASSES = {
     available: "bg-success",
-    reserved:  "bg-warning",
+    reserved: "bg-warning",
     occupied: "bg-error"
   }.freeze
 
+  # Цветовые бейджи для статусов бронирования
   BOOKING_STATUS_CLASSES = {
     pending: "badge-warning",
     confirmed: "badge-success",
@@ -22,6 +26,7 @@ class ReservationsController < ApplicationController
     completed: "badge-info"
   }.freeze
 
+  # Координаты отдельных мест для интерактивной карты зала (в процентах)
   SEATS_COORDS = [
     { num: 1,  x_percent: 37,   y_percent: 29   },
     { num: 2,  x_percent: 46.4, y_percent: 29   },
@@ -45,6 +50,7 @@ class ReservationsController < ApplicationController
     { num: 20, x_percent: 46.3, y_percent: 69.0 }
   ]
 
+  # Координаты столов для визуализации на карте (в процентах)
   TABLE_COORDS = [
     { num: 1, x_percent: 38.5, y_percent: 38.5, width_percent: 10, height_percent: 5 },
     { num: 2, x_percent: 54.5, y_percent: 7.5,  width_percent: 21, height_percent: 5 },
@@ -53,6 +59,7 @@ class ReservationsController < ApplicationController
   ]
 
   def show
+    # Бизнес-правило: пользователь не может иметь две активные брони одновременно
     active_booking = Booking.where(user: current_user, status: [ "confirmed", "pending" ])
                            .where("ends_at > ?", Time.current)
                            .first
@@ -63,6 +70,7 @@ class ReservationsController < ApplicationController
       return
     end
 
+    # Инициализация данных для отображения формы брони
     set_seats
     set_working_hours
     set_cart
@@ -70,6 +78,7 @@ class ReservationsController < ApplicationController
     set_time_slots
   end
 
+  # API: Возвращает доступные слоты времени для выбранной даты
   def time_slots
     date = params[:date]
 
@@ -94,6 +103,7 @@ class ReservationsController < ApplicationController
     }
   end
 
+  # API: Проверяет занятость мест на выбранное время
   def check_availability
     date = params[:date]
     start_time = params[:start_time]
@@ -110,6 +120,7 @@ class ReservationsController < ApplicationController
       return render json: { error: "Неверный формат даты или времени" }, status: :bad_request
     end
 
+    # Хак для времени закрытия "00:00" (следующий день)
     if end_time == "00:00"
       end_datetime = end_datetime + 1.day
     end
@@ -122,6 +133,7 @@ class ReservationsController < ApplicationController
       return render json: { error: "Максимальная длительность бронирования - 5 часов" }, status: :bad_request
     end
 
+    # Проверка валидности времени относительно часов работы
     day_of_week = start_datetime.wday
     working_hours = working_hours_for(day_of_week)
 
@@ -133,15 +145,18 @@ class ReservationsController < ApplicationController
       return render json: { error: "Выбранное время вне часов работы заведения" }, status: :bad_request
     end
 
+    # Нельзя бронировать в прошлое
     if start_datetime < DateTime.now
       return render json: { error: "Нельзя забронировать столик на прошедшее время" }, status: :bad_request
     end
 
+    # Минимальное время для брони (15 мин) для подготовки официанта
     min_booking_time = DateTime.now + 15.minutes
     if start_datetime < min_booking_time
       return render json: { error: "Минимальное время для бронирования - через 15 минут" }, status: :bad_request
     end
 
+    # Поиск пересекающихся бронирований (Overlap logic: Starts A < Ends B AND Ends A > Starts B)
     overlapping_bookings = Booking.confirmed.where(
       "(starts_at <= ? AND ends_at > ?) OR (starts_at < ? AND ends_at >= ?)",
       end_datetime, start_datetime, end_datetime, start_datetime
@@ -151,6 +166,7 @@ class ReservationsController < ApplicationController
     booked_seats = Seat.where(id: booked_seat_ids)
     booked_table_ids = booked_seats.pluck(:table_id).compact.uniq
 
+    # Формируем массив статусов мест для карты
     seats_with_status = SEATS_COORDS.map do |coords|
       seat = Seat.find_by(number: coords[:num])
       next unless seat
@@ -167,6 +183,7 @@ class ReservationsController < ApplicationController
       }
     end.compact
 
+    # Формируем массив статусов столов для карты
     tables_with_status = TABLE_COORDS.map do |coords|
       table = Table.find_by(id: coords[:num])
       next unless table
@@ -190,6 +207,7 @@ class ReservationsController < ApplicationController
   end
 
   def create
+    # Повторная проверка активной брони
     active_booking = Booking.where(user: current_user, status: [ "confirmed", "pending" ])
                            .where("ends_at > ?", Time.current)
                            .first
@@ -217,6 +235,7 @@ class ReservationsController < ApplicationController
       return render json: { error: "Необходимо выбрать хотя бы одно место или стол" }, status: :bad_request
     end
 
+    # Определяем тип бронирования целиком или по местам
     if selected_table_ids.present?
       booking_type = "whole_table"
     else
@@ -250,6 +269,7 @@ class ReservationsController < ApplicationController
       return render json: { error: "Выбранное время вне часов работы заведения" }, status: :bad_request
     end
 
+    # Транзакция гарантирует целостность данных при создании брони и переносе заказа
     ActiveRecord::Base.transaction do
       booking = Booking.create!(
         user_id: current_user.id,
@@ -265,6 +285,7 @@ class ReservationsController < ApplicationController
       seat_ids_to_add = []
 
       if selected_table_ids.present?
+        # Если забронирован стол целиком, добавляем все его места
         selected_table_ids.each do |table_id|
           table = Table.find(table_id)
           seat_ids_to_add.concat(table.seats.pluck(:id))
@@ -275,12 +296,14 @@ class ReservationsController < ApplicationController
         seat_ids_to_add.concat(selected_seat_ids)
       end
 
+      # Привязываем места к брони
       seat_ids_to_add.uniq.each do |seat_id|
         BookingSeat.create!(booking_id: booking.id, seat_id: seat_id)
       end
 
       booking.save!
 
+      # Перенос товаров из корзины в заказ, привязанный к брони
       cart = Cart.for_user!(current_user)
 
       if cart.cart_items.active.any?
@@ -292,6 +315,7 @@ class ReservationsController < ApplicationController
 
         total_order_amount = 0
 
+        # Копируем позиции из корзины в заказ, сохраняя состав
         cart.cart_items.active.includes(:dish, cart_item_ingredients: :ingredient).find_each do |cart_item|
           special_instructions = generate_special_instructions(cart_item)
           unit_price = (cart_item.base_price_cents + cart_item.ingredients_extra_cents) / 100.0
@@ -306,6 +330,7 @@ class ReservationsController < ApplicationController
         end
 
         order.update!(total_amount: total_order_amount)
+        # Очищаем корзину после успешного заказа
         cart.cart_items.destroy_all
       end
 
@@ -322,6 +347,7 @@ class ReservationsController < ApplicationController
   end
 
   def details
+    # Защита доступа: пользователь может смотреть только свои брони
     unless current_user == @booking.user
       redirect_to root_path, alert: "Доступ запрещён!"
     end
@@ -336,6 +362,7 @@ class ReservationsController < ApplicationController
   end
 
   def cancel
+    # Отменяем бронь и связанный с ней заказ (если есть)
     ActiveRecord::Base.transaction do
       @booking.update!(status: "cancelled")
 
@@ -351,6 +378,7 @@ class ReservationsController < ApplicationController
 
   private
 
+  # Сериализация состава блюда (добавки/исключения) в строку для хранения в заказе
   def generate_special_instructions(cart_item)
     item_ingredients = cart_item.cart_item_ingredients
 
@@ -372,16 +400,19 @@ class ReservationsController < ApplicationController
     instructions.any? ? instructions.join("; ") : nil
   end
 
+  # Генерация слотов длительности (1-5 часов) с шагом 15 минут
   def generate_time_slots_for_date(date, working_hours)
     slots = []
     current_time = Time.parse("#{date} #{working_hours[:open]}")
     end_time = Time.parse("#{date} #{working_hours[:close]}")
 
+    # Обработка полуночи (переход на следующие сутки)
     if working_hours[:close] == "00:00"
       end_time = end_time + 1.day
     end
 
     while current_time < end_time
+      # Генерируем варианты для разной длительности
       (1..5).each do |duration|
         slot_end = current_time + duration.hours
 
@@ -410,6 +441,7 @@ class ReservationsController < ApplicationController
     params.require(:booking).permit(:special_requests)
   end
 
+  # Подготовка данных мест для JS-карты
   def set_seats
     seats = Seat.all
     @seats = SEATS_COORDS.map do |coords|
@@ -425,6 +457,7 @@ class ReservationsController < ApplicationController
     end.compact
   end
 
+  # Подготовка данных столов для JS-карты
   def set_tables
     tables = Table.order(:id)
     @tables = TABLE_COORDS.zip(tables).map do |coords, table|
@@ -472,13 +505,16 @@ class ReservationsController < ApplicationController
     @time_slots = generate_time_slots_for_date(@selected_date, working_hours)
   end
 
+  # Возвращает CSS класс цвета для статуса места/стола
   def status_class(status)
     STATUS_CLASSES[status.to_sym] || "bg-base-300"
   end
 
+  # Возвращает CSS класс бейджа для статуса брони
   def status_badge_class(status)
     BOOKING_STATUS_CLASSES[status.to_sym] || "badge-neutral"
   end
 
+  # Экспорт хелперов для использования в View
   helper_method :status_class, :status_badge_class, :working_hours_for
 end
