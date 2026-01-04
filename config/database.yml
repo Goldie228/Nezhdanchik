@@ -1,21 +1,30 @@
 
 default: &default
+  # Используем PostgreSQL как основную СУБД для надежности и поддержки сложных запросов
   adapter: postgresql
   encoding: unicode
+  # Размер пула соединений зависит от количества потоков (RAILS_MAX_THREADS)
+  # Это позволяет эффективно обрабатывать конкурентные запросы к БД
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  
+  # Чтение учетных данных из переменных окружения для безопасности (Credential Management)
+  # Значения по умолчанию используются для локальной разработки
   username: <%= ENV.fetch("PGUSER") { "postgres" } %>
   password: <%= ENV.fetch("PGPASSWORD") { "" } %>
   host: <%= ENV.fetch("PGHOST") { "localhost" } %>
   port: <%= ENV.fetch("PGPORT") { 5432 } %>
 
 development:
+  # Наследует настройки из default, но использует свою базу данных
   <<: *default
   database: nezhdanchik_development
 
 test:
+  # Отдельная база для тестов обеспечивает изоляцию и предсказуемость запуска тестов
   <<: *default
   database: nezhdanchik_test
 
 production:
+  # Настройки продакшена. Переменные окружения должны быть заданы в серверном окружении
   <<: *default
   database: nezhdanchik_production
