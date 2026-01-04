@@ -10,6 +10,8 @@
 #
 FactoryBot.define do
   factory :booking_seat do
+    # Явное указание ассоциаций гарантирует создание связанных записей в БД
+    # Это предотвращает ошибки "Foreign Key Violation" при тестировании
     association :booking
     association :seat
   end

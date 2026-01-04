@@ -12,13 +12,13 @@
 #
 require 'rails_helper'
 
-
 RSpec.describe Table, type: :model do
   let(:table) { create(:table) }
 
   describe '#available_seats_count' do
     let(:user) { create(:user) }
     let(:table) { create(:table, seats_count: 4) }
+    # Создаем физические места для стола
     let!(:seats) { create_list(:seat, 4, table: table) }
 
     it 'returns all seats when no bookings' do
@@ -26,6 +26,7 @@ RSpec.describe Table, type: :model do
     end
 
     it 'returns available seats excluding booked ones' do
+      # Создаем другой стол, чтобы проверить изоляцию данных (бронь другого стола не влияет на этот)
       other_table = create(:table)
       other_seats = create_list(:seat, 2, table: other_table)
 
@@ -38,8 +39,10 @@ RSpec.describe Table, type: :model do
       )
       booking1.seats << other_seats
 
+      # Все места текущего стола свободны, так как бронь была на другой стол
       expect(table.available_seats_count(Time.current + 1.day, Time.current + 1.day + 2.hours)).to eq(4)
 
+      # Бронируем 2 места на текущем столе
       booking2 = Booking.create!(
         user: user,
         starts_at: Time.current + 1.day,
@@ -49,6 +52,7 @@ RSpec.describe Table, type: :model do
       )
       booking2.seats << seats.first(2)
 
+      # Метод корректно вычисляет разницу: всего 4 - занято 2 = свободно 2
       expect(table.available_seats_count(Time.current + 1.day, Time.current + 1.day + 2.hours)).to eq(2)
     end
   end

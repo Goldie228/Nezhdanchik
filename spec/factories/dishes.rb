@@ -16,12 +16,14 @@
 #
 FactoryBot.define do
   factory :dish do
+    # sequence гарантирует уникальность title и slug, что требуется валидацией модели
     sequence(:title) { |n| "Блюдо #{n}" }
     description { "Вкусное блюдо" }
     price { 100.0 }
     sequence(:slug) { |n| "dish-#{n}" }
     active { true }
     weight { 100 }
+    # Явное создание категории, так как блюдо не может существовать без неё
     category { create(:category) }
   end
 end

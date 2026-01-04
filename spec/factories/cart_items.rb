@@ -12,9 +12,13 @@
 #
 FactoryBot.define do
   factory :cart_item do
+    # Связь с корзиной обязательна для группировки товаров пользователя
     association :cart
+    # Связь с блюдом обязательна для получения цены и названия
     association :dish
+
     quantity { 1 }
+    # Флаг active позволяет скрывать удаленные товары без физического удаления из БД
     active { true }
   end
 end

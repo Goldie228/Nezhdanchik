@@ -16,7 +16,6 @@
 #
 require "rails_helper"
 
-
 RSpec.describe Dish, type: :model do
   let(:category) { Category.create!(name: "Пиццы", slug: "pizzas") }
 
@@ -30,6 +29,7 @@ RSpec.describe Dish, type: :model do
   describe "validations for photos" do
     it "is valid with a proper image" do
       dish = Dish.new(title: "Маргарита", price: 10, slug: "margarita", category: category)
+      # Проверка прикрепления файлов через ActiveStorage (множественное число photos)
       dish.photos.attach(
         io: StringIO.new("fake image content"),
         filename: "ok.png",
@@ -64,6 +64,7 @@ RSpec.describe Dish, type: :model do
     it "is invalid with duplicate slug" do
       Dish.create!(title: "Маргарита", price: 10, slug: "margarita", category: category)
       dup = Dish.new(title: "Пепперони", price: 12, slug: "margarita", category: category)
+      # Slug используется для формирования URL, поэтому должен быть уникальным
       expect(dup).not_to be_valid
       expect(dup.errors[:slug]).to include("уже используется")
     end
@@ -84,6 +85,7 @@ RSpec.describe Dish, type: :model do
       expect(dish).not_to be_valid
     end
 
+    # Проверка ограничений на длину текстовых полей (text type имеет лимит в Postgres)
     it "is invalid if description is too long" do
       dish = Dish.new(title: "Маргарита", price: 10, slug: "margarita", category: category, description: "a" * 6000)
       expect(dish).not_to be_valid
@@ -92,6 +94,7 @@ RSpec.describe Dish, type: :model do
   end
 
   describe "scopes" do
+    # Фильтр для показа клиентам только доступных к заказу блюд
     it "returns only active dishes" do
       active_dish = Dish.create!(title: "Активная", price: 10, slug: "active", category: category, active: true)
       inactive_dish = Dish.create!(title: "Неактивная", price: 10, slug: "inactive", category: category, active: false)
@@ -108,6 +111,7 @@ RSpec.describe Dish, type: :model do
       expect(dish).to be_valid
     end
 
+    # Вес должен быть положительным числом для корректного расчета логистики и стоимости
     it "is invalid with zero weight" do
       dish = Dish.new(title: "Маргарита", price: 10, slug: "margarita", category: category, weight: 0)
       expect(dish).not_to be_valid

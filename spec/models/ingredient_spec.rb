@@ -13,7 +13,6 @@
 #
 require "rails_helper"
 
-
 RSpec.describe Ingredient, type: :model do
   it "is valid with valid attributes" do
     ingredient = Ingredient.new(name: "Cheese", price: 1.5, available: true, allergen: false)
@@ -26,12 +25,14 @@ RSpec.describe Ingredient, type: :model do
     expect(ingredient.errors[:name]).to include("не может быть пустым")
   end
 
+  # Имя ингредиента должно быть уникальным для однозначной идентификации на кухне и в меню
   it "is invalid with duplicate name" do
     Ingredient.create!(name: "Cheese", price: 1.5)
     duplicate = Ingredient.new(name: "Cheese", price: 2.0)
     expect(duplicate).not_to be_valid
   end
 
+  # Стоимость не может быть отрицательной для корректного расчета цены блюда
   it "is invalid with negative price" do
     ingredient = Ingredient.new(name: "Tomato", price: -1)
     expect(ingredient).not_to be_valid
@@ -54,6 +55,7 @@ RSpec.describe Ingredient, type: :model do
       expect(ingredient).to be_valid
     end
 
+    # Вес ингредиента важен для расчета итогового веса блюда и логистики
     it "is invalid with zero weight" do
       ingredient = Ingredient.new(name: "Cheese", price: 1.5, weight: 0)
       expect(ingredient).not_to be_valid
@@ -80,6 +82,7 @@ RSpec.describe Ingredient, type: :model do
   end
 
   describe "scopes" do
+    # Фильтр позволяет скрывать отсутствующие на складе ингредиенты
     it "returns only available ingredients" do
       available = Ingredient.create!(name: "Tomato", price: 1.0, available: true)
       unavailable = Ingredient.create!(name: "Onion", price: 0.5, available: false)
@@ -88,6 +91,7 @@ RSpec.describe Ingredient, type: :model do
       expect(Ingredient.available).not_to include(unavailable)
     end
 
+    # Позволяет выделить ингредиенты, способные вызвать аллергию, для предупреждения клиентов
     it "returns only allergens" do
       allergen = Ingredient.create!(name: "Peanut", price: 2.0, allergen: true)
       non_allergen = Ingredient.create!(name: "Cheese", price: 1.5, allergen: false)

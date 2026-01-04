@@ -20,18 +20,25 @@
 FactoryBot.define do
   factory :booking do
     user
+    # Явно задаем nil, чтобы избежать конфликта уникальности cart_id у пользователя
     cart { nil }
     order { nil }
+
+    # Используем будущее время, чтобы не нарушать логику валидации (начало > текущего момента)
     starts_at { Time.zone.now + 1.day }
     ends_at { Time.zone.now + 1.day + 2.hours }
+
     booking_type { :individual_seats }
     require_passport { false }
     status { 'pending' }
+
+    # Генерация уникального номера брони на основе timestamp и счетчика
     sequence(:booking_number) { |n| "BK#{Time.current.to_i}#{n}" }
     total_price { 0.0 }
 
     trait :with_seats do
       after(:create) do |booking|
+        # Создаем стол и места для имитации реальной структуры брони
         table = create(:table)
         seats = create_list(:seat, 2, table: table)
         booking.seats << seats
@@ -42,6 +49,7 @@ FactoryBot.define do
     trait :whole_table do
       booking_type { :whole_table }
       after(:create) do |booking|
+        # Создаем стол с фиксированной ценой для бронирования целиком
         table = create(:table, seats_count: 4, booking_price: 20.0)
         seats = create_list(:seat, 4, table: table)
         booking.seats << seats

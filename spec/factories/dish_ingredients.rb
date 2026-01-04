@@ -11,8 +11,12 @@
 #
 FactoryBot.define do
   factory :dish_ingredient do
+    # Обязательная связь с блюдом для формирования состава
     association :dish
+    # Обязательная связь с ингредиентом
     association :ingredient
+
+    # По умолчанию ингредиент включен в состав блюда при заказе
     default { true }
   end
 end

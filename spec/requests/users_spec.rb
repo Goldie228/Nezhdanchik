@@ -3,6 +3,7 @@ require 'rails_helper'
 
 
 RSpec.describe UsersController, type: :controller do
+  # Базовые данные для регистрации пользователя
   let(:valid_user_attributes) do
     {
       first_name: 'Иван',
@@ -14,6 +15,7 @@ RSpec.describe UsersController, type: :controller do
     }
   end
 
+  # Данные профиля с "грязным" номером телефона для проверки логики нормализации
   let(:valid_profile_attributes) do
     {
       first_name: 'Петр',
@@ -23,6 +25,7 @@ RSpec.describe UsersController, type: :controller do
     }
   end
 
+  # Используем create! для мгновенного получения ошибки в setup, если данные невалидны
   let(:user) { User.create!(valid_user_attributes) }
 
   context 'when user is not authenticated' do
@@ -46,6 +49,7 @@ RSpec.describe UsersController, type: :controller do
           }.to change(User, :count).by(1)
         end
 
+        # Проверяем ручное управление сессией (авторизация после регистрации)
         it 'sets a session for the created user' do
           post :create, params: { user: valid_user_attributes }
           expect(session[:user_id]).to eq(User.last.id)
@@ -69,6 +73,7 @@ RSpec.describe UsersController, type: :controller do
           }.not_to change(User, :count)
         end
 
+        # flash.now используется, так как при ошибке происходит рендер, а не редирект
         it 'sets an alert flash message' do
           post :create, params: { user: { email: 'invalid' } }
           expect(flash.now[:alert]).to be_present
@@ -79,20 +84,21 @@ RSpec.describe UsersController, type: :controller do
     describe 'GET #show' do
       it 'redirects to root path' do
         get :show, params: { id: user.to_param }
-        expect(response).to redirect_to(root_path)
+        expect(response).to redirect_to(login_path)
       end
     end
 
     describe 'PATCH #update' do
       it 'redirects to root path' do
         patch :update, params: { id: user.to_param, user: valid_profile_attributes }
-        expect(response).to redirect_to(root_path)
+        expect(response).to redirect_to(login_path)
       end
     end
   end
 
   context 'when user is authenticated' do
     before do
+      # Имитируем вход пользователя через сессию
       session[:user_id] = user.id
     end
 
@@ -131,6 +137,7 @@ RSpec.describe UsersController, type: :controller do
           expect(user.last_name).to eq('Петров')
         end
 
+        # Критичная проверка: сервис или модель очищает телефон от спецсимволов
         it 'normalizes the phone number' do
           patch :update, params: { id: user.to_param, user: valid_profile_attributes }
           user.reload

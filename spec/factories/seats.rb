@@ -11,7 +11,9 @@
 #
 FactoryBot.define do
   factory :seat do
+    # Связь со столом обязательна для корректной топологии ресторана
     table
+    # sequence гарантирует уникальность номеров мест в рамках одного стола при последовательном создании
     sequence(:number) { |n| n }
     active { true }
   end

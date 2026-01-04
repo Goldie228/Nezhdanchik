@@ -14,12 +14,14 @@
 FactoryBot.define do
   factory :order do
     user
+    # Генерация уникального номера на основе timestamp для избежания конфликтов
     sequence(:order_number) { |n| "ORD#{Time.current.to_i}#{n}" }
     total_amount { 0.0 }
     status { 'pending' }
 
     trait :with_items do
       after(:create) do |order|
+        # Создает 2 позиции заказа, чтобы протестировать расчет total_amount
         create_list(:order_item, 2, order: order)
       end
     end

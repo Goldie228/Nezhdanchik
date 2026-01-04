@@ -12,6 +12,8 @@
 #
 FactoryBot.define do
   factory :category do
+    # Используем sequence для генерации уникальных имен и slug,
+    # чтобы избежать ошибок валидации при создании нескольких категорий в тестах
     sequence(:name) { |n| "Категория #{n}" }
     sequence(:slug) { |n| "category-#{n}" }
     active { true }

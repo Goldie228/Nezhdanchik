@@ -12,8 +12,10 @@
 #
 FactoryBot.define do
   factory :table do
+    # sequence гарантирует уникальность имен столов
     sequence(:name) { |n| "Стол #{n}" }
     seats_count { 5 }
+    # Цена за бронь стола целиком (если применимо)
     booking_price { 10.00 }
     active { true }
   end

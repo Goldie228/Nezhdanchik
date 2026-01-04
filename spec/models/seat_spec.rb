@@ -11,11 +11,11 @@
 #
 require 'rails_helper'
 
-
 RSpec.describe Seat, type: :model do
   describe 'validations' do
     let(:table) { create(:table) }
 
+    # Гарантирует, что номера мест уникальны в рамках одного стола (например, "Место 1, Стол 5")
     it 'validates uniqueness of number scoped to table_id' do
       create(:seat, table: table, number: 1)
       duplicate_seat = build(:seat, table: table, number: 1)

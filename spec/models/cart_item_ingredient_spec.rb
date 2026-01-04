@@ -13,22 +13,26 @@
 #
 require 'rails_helper'
 
-
 RSpec.describe CartItemIngredient, type: :model do
   describe 'associations' do
     subject { create(:cart_item_ingredient) }
+    # Проверяет наличие связей с позицией корзины и ингредиентом
     it { should belong_to(:cart_item) }
     it { should belong_to(:ingredient) }
   end
 
   describe 'validations' do
     subject { build(:cart_item_ingredient) }
+    # Обязательность связей обеспечивает целостность данных корзины
     it { should validate_presence_of(:cart_item) }
     it { should validate_presence_of(:ingredient) }
+    # Гарантирует, что булевы поля принимают только корректные значения
     it { should validate_inclusion_of(:included).in_array([ true, false ]) }
     it { should validate_inclusion_of(:default_in_dish).in_array([ true, false ]) }
+    # Цена хранится в копейках/центах, поэтому должна быть целым неотрицательным числом
     it { should validate_numericality_of(:price).only_integer.is_greater_than_or_equal_to(0) }
 
+    # Комбинация cart_item + ingredient должна быть уникальна (нельзя дважды добавить один ингредиент в одну позицию)
     it do
       cii = create(:cart_item_ingredient)
       should validate_uniqueness_of(:ingredient_id).scoped_to(:cart_item_id)
@@ -37,6 +41,7 @@ RSpec.describe CartItemIngredient, type: :model do
 
   describe 'instance methods' do
     context '#added_by_user?' do
+      # Определяет, добавил ли пользователь ингредиент, которого не было в блюде по умолчанию
       it 'returns true if ingredient was not in dish by default and is included' do
         cii = build(:cart_item_ingredient, default_in_dish: false, included: true)
         expect(cii.added_by_user?).to be true
@@ -49,6 +54,7 @@ RSpec.describe CartItemIngredient, type: :model do
     end
 
     context '#removed_by_user?' do
+      # Определяет, убрал ли пользователь ингредиент, который был в блюде по умолчанию
       it 'returns true if ingredient was in dish by default and is not included' do
         cii = build(:cart_item_ingredient, default_in_dish: true, included: false)
         expect(cii.removed_by_user?).to be true
