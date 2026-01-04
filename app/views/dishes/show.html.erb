@@ -556,7 +556,7 @@
     const safeElement = (id, fallback = null) => {
       const element = document.getElementById(id);
       if (!element) {
-        // console.warn(`Element #${id} not found`); 
+        // console.warn(`Element #${id} not found`);
         return fallback;
       }
       return element;
@@ -618,7 +618,7 @@
     // Проверяем только элементы, которые нужны для расчета цены/веса (они есть всегда)
     if (!basePriceElement || !totalPriceElement) {
       console.error('Critical pricing elements missing');
-      return; 
+      return;
     }
 
     const basePrice = safeParseFloat(basePriceElement?.dataset?.basePrice, 0);
@@ -684,9 +684,9 @@
         orderForm.dataset.ingredientIds = selectedIngredientIds.join(',');
         orderForm.dataset.removedIngredientIds = removedIngredientIds.join(',');
       }
-      
+
       updateNutrition();
-      
+
       // Запрашиваем инфо о корзине ТОЛЬКО если залогинен
       if (isLoggedIn) {
         updateCartInfo();
@@ -745,18 +745,18 @@
 
     // Слушатели на инпутах (вешаются всегда, чтобы калькулятор работал)
     ingredientCheckboxes.forEach(checkbox => checkbox.addEventListener('change', updateTotals));
-    
+
     // Слушатели на кнопках +/- (вешаются безопасно)
     const incBtn = safeElement('increase-quantity');
     const decBtn = safeElement('decrease-quantity');
-    
+
     if (incBtn) incBtn.addEventListener('click', (e) => { e.preventDefault(); increaseQuantity(); });
     if (decBtn) decBtn.addEventListener('click', (e) => { e.preventDefault(); decreaseQuantity(); });
 
     // Инициализация (Запускаем всегда для гостей)
     updateTotals();
     // Проверка корзины (только для залогиненных)
-    if (isLoggedIn) updateCartInfo(); 
+    if (isLoggedIn) updateCartInfo();
 
     // --- ГАЛЕРЕЯ (Без изменений) ---
     const carouselContainer = document.getElementById('dish-carousel-container');

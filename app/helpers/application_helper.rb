@@ -2,7 +2,7 @@
 module ApplicationHelper
   # Возвращает текущую тему из куки или тему по умолчанию
   def current_site_theme
-    cookies[:site_theme].presence || 'coffee'
+    cookies[:site_theme].presence || "coffee"
   end
 
   # Форматирует строку телефона в стандартный вид (+375 (XX) XXX-XX-XX).
