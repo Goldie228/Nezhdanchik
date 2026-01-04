@@ -1,43 +1,70 @@
+
 <!DOCTYPE html>
-<html data-theme="<%= cookies[:site_theme].presence || nil %>">
+<!-- data-theme берет значение из cookies.
+     Если куки нет (новый пользователь), ставим тему 'coffee' (или любую другую из вашего списка по умолчанию).
+     Это гарантирует, что тема будет правильной даже на странице входа (где нет шапки). -->
+<html data-theme="<%= cookies[:site_theme].presence || 'coffee' %>">
   <head>
     <title>Нежданчик</title>
+    <!-- Мета-тег для адаптивности на мобильных устройствах -->
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <!-- Мета-тег для режима веб-приложения в iOS Safari -->
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <!-- Генерация мета-тегов для защиты от CSRF (Cross-Site Request Forgery) -->
     <%= csrf_meta_tags %>
+    <!-- Генерация мета-тега для Content Security Policy (защита от XSS) -->
     <%= csp_meta_tag %>
 
+    <!-- Место для подключения специфичных для страниц тегов в <head> -->
     <%= yield :head %>
 
+    <!-- PWA Manifest файл (для установки приложения на устройство) -->
     <link rel="manifest" href="/manifest.json">
+
+    <!-- Иконки сайта (Favicon и Apple Touch Icon) -->
     <%= favicon_link_tag "logo.png", rel: "icon", type: "image/png" %>
     <%= tag.link rel: "apple-touch-icon", href: asset_path("logo.png") %>
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
 
+    <!-- Подключение CSS фреймворка DaisyUI (через CDN) -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css">
+
+    <!-- Подключение основного файла стилей Tailwind -->
+    <!-- data-turbo-track="reload" обеспечивает перезагрузку стилей при Turbo Hotwire -->
     <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+
+    <!-- Загрузка движка Tailwind CSS для JIT компиляции в браузере -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Подключение библиотеки Leaflet (карты) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+    <!-- Генерация тега <script type="importmap"> для управления JavaScript зависимостями (Importmap) -->
     <%= javascript_importmap_tags %>
   </head>
 
+  <!-- Основная область контента. bg-base-100 устанавливает цвет фона страницы -->
   <body class="bg-base-100">
-    <% unless (controller_name.in?(%w[sessions users email password]) && 
-      action_name.in?(%w[new create verification confirmation change_status confirm resend_confirmation change update forgot reset success])) ||
-      controller_name == "two_factor" 
-    %>
+    <!-- Условное отображение ШАПКИ сайта (Header):
+         Скрывает шапку на страницах авторизации, регистрации, восстановления пароля и 2FA,
+         чтобы интерфейс был чистым и не отвлекал пользователя. -->
+    <% unless (controller_name.in?(%w[sessions users email password]) &&
+              action_name.in?(%w[new create verification confirmation change_status confirm resend_confirmation change update forgot reset success])) ||
+              controller_name == "two_factor" %>
       <%= render "shared/header" %>
     <% end %>
 
+    <!-- Основной контейнер страницы -->
     <main class="container mx-auto px-5">
+      <!-- Контейнер вида: фоновый цвет, отступы и минимальная высота экрана -->
       <div class="bg-base-200 p-8 min-h-screen my-0">
+
+        <!-- Отображение флеш-сообщений (notice, alert) -->
         <% flash.each do |type, message| %>
           <% css_class =
               case type.to_sym
-              when :notice then "alert alert-success"
-              when :alert  then "alert alert-error"
+              when :notice then "alert alert-success"  # Успех
+              when :alert  then "alert alert-error"    # Ошибка
               else "alert"
               end %>
           <div class="<%= css_class %> mb-4">
@@ -45,14 +72,16 @@
           </div>
         <% end %>
 
+        <!-- Вставка контента конкретной страницы (yield) -->
         <%= yield %>
       </div>
     </main>
 
-    <% unless (controller_name.in?(%w[sessions users email password]) && 
-      action_name.in?(%w[new create verification confirmation change_status confirm resend_confirmation change update forgot reset success])) ||
-      controller_name == "two_factor"
-    %>
+    <!-- Условное отображение ПОДВАЛА (Footer):
+         Аналогично шапке, скрывает футер на страницах авторизации. -->
+    <% unless (controller_name.in?(%w[sessions users email password]) &&
+              action_name.in?(%w[new create verification confirmation change_status confirm resend_confirmation change update forgot reset success])) ||
+              controller_name == "two_factor" %>
       <%= render "shared/footer" %>
     <% end %>
   </body>

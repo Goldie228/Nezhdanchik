@@ -1,59 +1,74 @@
+
 <% if bookings.total_pages > 1 %>
+  <!-- Контейнер DaisyUI 'join' для группировки кнопок пагинации в единую строку -->
   <div class="join">
+    <!-- Кнопка перехода на предыдущую страницу -->
     <% if bookings.prev_page %>
-      <%= link_to "←", 
-                  request.params.merge(page: bookings.prev_page), 
+      <!-- Активная ссылка: передает текущие параметры запроса (фильтры, сортировку) и номер страницы -->
+      <%= link_to "←",
+                  request.params.merge(page: bookings.prev_page),
                   class: "join-item btn btn-sm" %>
     <% else %>
+      <!-- Неактивная кнопка, если мы на первой странице -->
       <button class="join-item btn btn-sm" disabled>←</button>
     <% end %>
 
     <%
+      # Логика "скользящего окна" (Sliding Window) для отображения номеров страниц
       current_page = bookings.current_page
       total_pages = bookings.total_pages
-      window = 2
-      
+      window = 2  # Количество страниц слева и справа от текущей
+
+      # Вычисление диапазона отображаемых страниц, чтобы он не выходил за границы [1, total_pages]
       start_page = [current_page - window, 1].max
       end_page = [current_page + window, total_pages].min
 
+      # Если диапазон не начинается с 1, отображаем ссылку на первую страницу (1)
       if start_page > 1
-        %>
-        <%= link_to "1", 
-                    request.params.merge(page: 1), 
+    %>
+        <%= link_to "1",
+                    request.params.merge(page: 1),
                     class: "join-item btn btn-sm #{'btn-active' if current_page == 1}" %>
+        <!-- Если между 1 и start_page есть пропущенные страницы, показываем многоточие (...) -->
         <% if start_page > 2 %>
           <button class="join-item btn btn-sm btn-disabled">...</button>
         <% end %>
       <%
       end
 
+      # Отображение номеров страниц в вычисленном диапазоне [start_page .. end_page]
       (start_page..end_page).each do |page|
-        %>
-        <%= link_to page, 
-                    request.params.merge(page: page), 
+      %>
+        <%= link_to page,
+                    request.params.merge(page: page),
                     class: "join-item btn btn-sm #{'btn-active' if page == current_page}" %>
       <%
       end
 
+      # Если диапазон не заканчивается на последней странице, отображаем многоточие и ссылку на последнюю страницу
       if end_page < total_pages
+        # Если между end_page и последней страницей есть пропущенные страницы, показываем многоточие
         if end_page < total_pages - 1
-          %>
+      %>
           <button class="join-item btn btn-sm btn-disabled">...</button>
           <%
         end
-        %>
-        <%= link_to total_pages, 
-                    request.params.merge(page: total_pages), 
+        # Ссылка на самую последнюю страницу (total_pages)
+          %>
+        <%= link_to total_pages,
+                    request.params.merge(page: total_pages),
                     class: "join-item btn btn-sm #{'btn-active' if current_page == total_pages}" %>
       <%
       end
-    %>
+      %>
 
+    <!-- Кнопка перехода на следующую страницу -->
     <% if bookings.next_page %>
-      <%= link_to "→", 
-                  request.params.merge(page: bookings.next_page), 
+      <%= link_to "→",
+                  request.params.merge(page: bookings.next_page),
                   class: "join-item btn btn-sm" %>
     <% else %>
+      <!-- Неактивная кнопка, если мы на последней странице -->
       <button class="join-item btn btn-sm" disabled>→</button>
     <% end %>
   </div>

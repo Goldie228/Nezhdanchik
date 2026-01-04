@@ -1,9 +1,12 @@
+
 <div class="min-h-screen bg-base-200">
+  <!-- Навигационная панель менеджера (общая для всех страниц менеджера) -->
   <div class="navbar bg-base-100 shadow-lg">
     <div class="flex-1">
       <a class="btn btn-ghost normal-case text-xl">Панель менеджера</a>
     </div>
     <div class="flex-none">
+      <!-- Меню разделов (Столы активен) -->
       <ul class="menu menu-horizontal p-0">
         <li><%= link_to "Обзор", manager_dashboard_path %></li>
         <li><%= link_to "Календарь", manager_calendar_path %></li>
@@ -14,12 +17,14 @@
   </div>
 
   <div class="container mx-auto px-4 py-6">
+    <!-- Заголовок страницы и панель управления фильтрами -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
       <div>
         <h1 class="text-3xl font-bold">План зала</h1>
         <p class="text-base-content/70">Просмотр состояния столов и их бронирований</p>
       </div>
       <div class="flex gap-2">
+        <!-- Выбор временного фильтра: Сейчас, Сегодня, Завтра, На неделю -->
         <div class="form-control">
           <select id="time-filter" class="select select-bordered select-sm">
             <option value="now">Сейчас</option>
@@ -28,6 +33,7 @@
             <option value="week">На неделю</option>
           </select>
         </div>
+        <!-- Кнопка обновления данных (ручная перезагрузка) -->
         <button id="refresh-button" class="btn btn-outline">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -37,55 +43,65 @@
       </div>
     </div>
 
+    <!-- Статистика (бейджи с количеством столов) -->
     <div class="stats shadow mb-6">
       <div class="stat">
         <div class="stat-title">Всего столов</div>
         <div class="stat-value text-primary"><%= @tables.count %></div>
       </div>
-      
+
       <div class="stat">
         <div class="stat-title">Свободно сейчас</div>
+        <!-- ID используется JS для обновления при смене фильтра -->
         <div class="stat-value text-success" id="free-count"><%= @tables.count - @current_bookings.count %></div>
       </div>
-      
+
       <div class="stat">
         <div class="stat-title">Занято сейчас</div>
         <div class="stat-value text-warning" id="busy-count"><%= @current_bookings.count %></div>
       </div>
-      
+
       <div class="stat">
         <div class="stat-title">Бронирований сегодня</div>
         <div class="stat-value text-info"><%= @today_bookings.count %></div>
       </div>
     </div>
 
+    <!-- Визуальная карта зала (Mockup Window) -->
     <div class="bg-base-100 rounded-lg shadow-lg p-6 mb-6">
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-bold">План зала</h2>
+        <!-- Часы в режиме реального времени -->
         <div class="text-sm" id="current-time-display">Текущее время: <%= Time.current.strftime('%H:%M') %></div>
       </div>
-      
+
+      <!-- Контейнер карты с наложением слоев поверх фонового изображения -->
       <div class="mockup-window border bg-base-300">
         <div class="flex justify-center px-4 py-16 bg-base-200">
           <div id="seat-map-container" class="relative w-full bg-white overflow-hidden rounded-xl shadow-2xl">
+            <!-- Фоновое изображение плана (map.png) -->
             <%= image_tag 'map.png', alt: 'План зала', class: 'w-full h-auto block' %>
 
+            <!-- КООРДИНАТЫ СТОЛОВ: Прямоугольники, отображающиеся поверх карты -->
+            <!-- table_coords - массив с координатами для абсолютного позиционирования (%) -->
             <% table_coords = [
               { id: 1, x_percent: 38.5, y_percent: 38.5, width_percent: 10, height_percent: 5 },
-              { id: 2, x_percent: 54.5, y_percent: 7.5, width_percent: 21, height_percent: 5 },
+              { id: 2, x_percent: 54.5, y_percent: 7.5,  width_percent: 21, height_percent: 5 },
               { id: 3, x_percent: 82.5, y_percent: 38.5, width_percent: 10, height_percent: 5 },
-              { id: 4, x_percent: 54, y_percent: 68.5, width_percent: 21, height_percent: 5 }
+              { id: 4, x_percent: 54,   y_percent: 68.5, width_percent: 21, height_percent: 5 }
             ] %>
-            
+
             <% table_coords.each do |table_coord| %>
               <%
+                # Поиск модели стола по координатам
                 table = @tables.find { |t| t.id == table_coord[:id] }
                 next unless table
 
+                # Проверка занятости (есть ли бронь с этим столом прямо сейчас)
                 current_booking = @current_bookings.find { |b| b.seats.any? { |s| s.table_id == table.id } }
                 status = current_booking ? 'occupied' : 'available'
               %>
-              
+              <!-- Прямоугольный блок, представляющий стол -->
               <div
                 class="absolute table-rect border-2 border-base-300 transition-all duration-200 z-10 rounded-lg cursor-pointer hover:scale-105"
                 style="top: <%= table_coord[:y_percent] %>%; left: <%= table_coord[:x_percent] %>%; width: <%= table_coord[:width_percent] %>%; height: <%= table_coord[:height_percent] %>%;"
@@ -93,8 +109,8 @@
                 data-status="<%= status %>"
                 data-seats-count="<%= table.seats_count %>"
                 data-booking-price="<%= number_with_precision(table.booking_price, precision: 2, separator: '.') %>"
-                title="Стол <%= table.name %> - <%= status == 'occupied' ? 'Занят' : 'Свободен' %>"
-              >
+                title="Стол <%= table.name %> - <%= status == 'occupied' ? 'Занят' : 'Свободен' %>">
+                <!-- Внутри блока: название стола и цена -->
                 <div class="flex flex-col items-center justify-center h-full p-1">
                   <span class="text-xs font-bold bg-base-100 px-2 py-1 rounded-lg shadow-lg whitespace-nowrap mb-1">
                     <%= table.name %>
@@ -102,6 +118,7 @@
                   <span class="text-[10px] bg-base-100 px-1 rounded shadow whitespace-nowrap">
                     <%= number_to_currency(table.booking_price, unit: "BYN", format: "%n %u") %>
                   </span>
+                  <!-- Если занят: имя клиента и время окончания -->
                   <% if current_booking %>
                     <div class="text-xs mt-1">
                       <%= current_booking.user&.full_name&.split&.first %><br>
@@ -114,6 +131,7 @@
               </div>
             <% end %>
 
+            <!-- КООРДИНАТЫ ОТДЕЛЬНЫХ МЕСТ: Точки, отображаемые поверх карты -->
             <% seat_coords = [
               { id: 1,  x_percent: 37,   y_percent: 29   },
               { id: 2,  x_percent: 46.4, y_percent: 29   },
@@ -136,15 +154,18 @@
               { id: 19, x_percent: 50.0, y_percent: 59.0 },
               { id: 20, x_percent: 46.3, y_percent: 69.0 }
             ] %>
-            
+
             <% seat_coords.each do |seat_coord| %>
               <%
+                # Поиск модели места
                 seat = @seats.find { |s| s.id == seat_coord[:id] }
                 next unless seat
 
+                # Проверка занятости места (по броням, включающим это место)
                 current_booking = @current_bookings.find { |b| b.seats.include?(seat) }
                 status = current_booking ? 'occupied' : 'available'
 
+                # Формирование тултипа (всплывающей подсказки)
                 tooltip_title = "Место #{seat.id} - #{status == 'occupied' ? 'Занято' : 'Свободно'}"
                 if current_booking
                   tooltip_title += "\nКлиент: #{current_booking.user&.full_name}"
@@ -152,15 +173,14 @@
                   tooltip_title += "\nВремя: #{current_booking.starts_at.strftime('%H:%M')} - #{current_booking.ends_at.strftime('%H:%M')}"
                 end
               %>
-              
+              <!-- Круглая метка места -->
               <div
                 class="absolute seat-circle w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-base-100 transition-all duration-200 z-20 shadow-md cursor-pointer hover:scale-110"
                 style="top: <%= seat_coord[:y_percent] %>%; left: <%= seat_coord[:x_percent] %>%;"
                 data-seat-id="<%= seat.id %>"
                 data-status="<%= status %>"
                 data-table-id="<%= seat.table_id %>"
-                title="<%= tooltip_title %>"
-              >
+                title="<%= tooltip_title %>">
                 <span class="absolute -top-8 left-1/2 transform -translate-x-1/2 text-xs font-bold bg-base-100 px-2 py-1 rounded shadow-lg whitespace-nowrap">
                   <%= seat.id %>
                 </span>
@@ -170,6 +190,7 @@
         </div>
       </div>
 
+      <!-- Легенда цветов карты -->
       <div class="flex justify-center gap-6 mt-4">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-full bg-success"></div>
@@ -186,6 +207,7 @@
       </div>
     </div>
 
+    <!-- Списочная информация о столах -->
     <div class="bg-base-100 rounded-lg shadow-lg p-6">
       <h2 class="text-xl font-bold mb-4">Информация о столах</h2>
       <div class="overflow-x-auto">
@@ -202,13 +224,15 @@
           </thead>
           <tbody>
             <% @tables.each do |table| %>
+              <!-- Находим текущую и следующую бронь для каждого стола -->
               <% current_booking = @current_bookings.find { |b| b.seats.any? { |s| s.table_id == table.id } } %>
               <% next_booking = @today_bookings.select { |b| b.seats.any? { |s| s.table_id == table.id } && b.starts_at > Time.current }.sort_by(&:starts_at).first %>
-              
+
               <tr>
                 <td class="font-bold">Стол <%= table.name %></td>
                 <td><%= table.seats_count %></td>
                 <td>
+                  <!-- Статус с цветом -->
                   <% if current_booking %>
                     <div class="badge badge-warning">Занят</div>
                   <% else %>
@@ -216,6 +240,7 @@
                   <% end %>
                 </td>
                 <td>
+                  <!-- Текущее бронь -->
                   <% if current_booking %>
                     <%= link_to current_booking.booking_number, manager_booking_path(current_booking), class: "link link-primary" %><br>
                     <span class="text-sm text-base-content/70">
@@ -227,6 +252,7 @@
                   <% end %>
                 </td>
                 <td>
+                  <!-- Следующее бронь (если есть сегодня) -->
                   <% if next_booking %>
                     <%= link_to next_booking.booking_number, manager_booking_path(next_booking), class: "link link-primary" %><br>
                     <span class="text-sm text-base-content/70">
@@ -238,6 +264,7 @@
                   <% end %>
                 </td>
                 <td>
+                  <!-- Кнопка "Детали" -->
                   <div class="flex gap-1">
                     <% if current_booking %>
                       <%= link_to "Детали", manager_booking_path(current_booking), class: "btn btn-ghost btn-xs" %>
@@ -253,9 +280,11 @@
   </div>
 </div>
 
+<!-- Модальное окно для деталей стола -->
 <dialog id="table-details-modal" class="modal">
   <div class="modal-box w-11/12 max-w-5xl">
     <h3 class="font-bold text-lg" id="modal-title">Детали стола</h3>
+    <!-- Контейнер для контента модального окна (заполняется JS) -->
     <div class="py-4" id="modal-content">
     </div>
     <div class="modal-action">
@@ -267,7 +296,9 @@
 </dialog>
 
 <script>
+// Основная логика управления картой и фильтрами на клиенте
 document.addEventListener('DOMContentLoaded', () => {
+    // Ссылки на DOM элементы
     const seatMapContainer = document.getElementById('seat-map-container');
     const timeFilter = document.getElementById('time-filter');
     const freeCount = document.getElementById('free-count');
@@ -276,20 +307,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const tableDetailsModal = document.getElementById('table-details-modal');
     const modalTitle = document.getElementById('modal-title');
     const modalContent = document.getElementById('modal-content');
-    
+
     let currentFilter = 'now';
+
+    // Инициализация данных столов и бронирований из Rails (@tables, @current_bookings)
+    // Это позволяет работать с данными на клиенте без повторных запросов
     let tablesData = [];
     let bookingsData = [];
 
+    // Перенос данных столов в JS массив
     <% @tables.each do |table| %>
       tablesData.push({
-        id: <%= table.id %>,
-        name: '<%= table.name %>',
-        seatsCount: <%= table.seats_count %>,
-        bookingPrice: <%= table.booking_price %>
-      });
+          id: <%= table.id %>,
+          name: '<%= table.name %>',
+          seatsCount: <%= table.seats_count %>,
+          bookingPrice: <%= table.booking_price %>
+        });
     <% end %>
 
+    // Перенос данных бронирований в JS массив
     <% @current_bookings.each do |booking| %>
       bookingsData.push({
         id: <%= booking.id %>,
@@ -302,69 +338,80 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     <% end %>
 
+    // Функция обновления времени в шапке карты
     function updateCurrentTime() {
       const now = new Date();
       currentTimeDisplay.textContent = `Текущее время: ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
     }
-    
-    setInterval(updateCurrentTime, 60000);
 
+    // Обновление часов каждую минуту
+    setInterval(updateCurrentTime, 60000);
     updateCurrentTime();
 
+    // Функция применения CSS классов для стола (цвет статуса)
     function applyTableStyles(tableElement, status) {
+      // Сначала убираем все возможные статусы
       tableElement.classList.remove('bg-success', 'bg-warning', 'bg-info', 'bg-primary', 'ring-4', 'ring-primary', 'ring-offset-2', 'bg-white', 'cursor-not-allowed', 'opacity-90');
 
+      // Добавляем класс в зависимости от статуса (заливка с прозрачностью для сохранения картинки под ним)
       switch (status) {
-        case 'available': 
-          tableElement.classList.add('bg-success', 'bg-opacity-30'); 
+        case 'available':
+          tableElement.classList.add('bg-success', 'bg-opacity-30');
           break;
-        case 'occupied': 
-          tableElement.classList.add('bg-warning', 'bg-opacity-30'); 
+        case 'occupied':
+          tableElement.classList.add('bg-warning', 'bg-opacity-30');
           break;
-        case 'reserved': 
-          tableElement.classList.add('bg-info', 'bg-opacity-30'); 
+        case 'reserved':
+          tableElement.classList.add('bg-info', 'bg-opacity-30');
           break;
-        default: 
+        default:
           tableElement.classList.add('bg-white', 'bg-opacity-30');
       }
     }
 
+    // Функция применения CSS классов для места (круг)
     function applySeatStyles(seatElement, status) {
       seatElement.classList.remove('bg-success', 'bg-warning', 'bg-info', 'bg-primary', 'ring-4', 'ring-primary', 'ring-offset-2', 'bg-white', 'cursor-not-allowed', 'opacity-90');
 
       switch (status) {
-        case 'available': 
-          seatElement.classList.add('bg-success'); 
+        case 'available':
+          seatElement.classList.add('bg-success');
           break;
-        case 'occupied': 
-          seatElement.classList.add('bg-warning'); 
+        case 'occupied':
+          seatElement.classList.add('bg-warning');
           break;
-        case 'reserved': 
-          seatElement.classList.add('bg-info'); 
+        case 'reserved':
+          seatElement.classList.add('bg-info');
           break;
-        default: 
+        default:
           seatElement.classList.add('bg-white');
       }
     }
 
+    // Главная логика: проверка занятости в зависимости от выбранного фильтра
     function checkAvailability(filter) {
       let filterStartTime, filterEndTime;
       const now = new Date();
-      
+
+      // Определение временного окна
       switch (filter) {
         case 'now':
+          // Сейчас и ближайшие 5 минут
           filterStartTime = now;
           filterEndTime = new Date(now.getTime() + 5 * 60000);
           break;
         case 'today':
+          // Весь день (00:00 - 23:59)
           filterStartTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
           filterEndTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
           break;
         case 'tomorrow':
+          // Завтра весь день
           filterStartTime = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
           filterEndTime = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 23, 59, 59);
           break;
         case 'week':
+          // Следующие 7 дней
           filterStartTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
           filterEndTime = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7, 23, 59, 59);
           break;
@@ -372,95 +419,108 @@ document.addEventListener('DOMContentLoaded', () => {
           filterStartTime = now;
           filterEndTime = new Date(now.getTime() + 5 * 60000);
       }
-      
+
       let freeTablesCount = 0;
       let busyTablesCount = 0;
 
+      // Обновление столов на карте
       document.querySelectorAll('.table-rect').forEach(tableElement => {
         const tableId = parseInt(tableElement.dataset.tableId);
-        const tableBookings = bookingsData.filter(booking => 
-          booking.tableIds.includes(tableId) && 
-          new Date(booking.startsAt) < filterEndTime && 
+
+        // Поиск броней для этого стола, пересекающихся с временным окном
+        const tableBookings = bookingsData.filter(booking =>
+          booking.tableIds.includes(tableId) &&
+          new Date(booking.startsAt) < filterEndTime &&
           new Date(booking.endsAt) > filterStartTime
         );
-        
+
         const status = tableBookings.length > 0 ? 'occupied' : 'available';
         tableElement.dataset.status = status;
         applyTableStyles(tableElement, status);
-        
+
         if (status === 'available') {
           freeTablesCount++;
         } else {
           busyTablesCount++;
         }
 
+        // Обновление тултипа и информации внутри блока стола
         const table = tablesData.find(t => t.id === tableId);
         const booking = tableBookings[0];
-        const title = booking 
+        const title = booking
           ? `Стол ${table.name} - Занят (${booking.userName}) до ${new Date(booking.endsAt).toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'})}`
           : `Стол ${table.name} - Свободен`;
         tableElement.title = title;
       });
 
+      // Обновление мест на карте
       document.querySelectorAll('.seat-circle').forEach(seatElement => {
         const seatId = parseInt(seatElement.dataset.seatId);
-        const seatBookings = bookingsData.filter(booking => 
-          booking.seatIds.includes(seatId) && 
-          new Date(booking.startsAt) < filterEndTime && 
+
+        // Поиск броней для этого места
+        const seatBookings = bookingsData.filter(booking =>
+          booking.seatIds.includes(seatId) &&
+          new Date(booking.startsAt) < filterEndTime &&
           new Date(booking.endsAt) > filterStartTime
         );
-        
+
         const status = seatBookings.length > 0 ? 'occupied' : 'available';
         seatElement.dataset.status = status;
         applySeatStyles(seatElement, status);
 
+        // Обновление тултипа места
         const booking = seatBookings[0];
-        const title = booking 
-          ? `Место ${seatId} - Занято (${booking.userName})\nБронь №${booking.id}\nВремя: ${new Date(booking.startsAt).toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'})} - ${new Date(booking.endsAt).toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'})}`
+        const title = booking
+          ? `Место ${seatId} - Занято (${booking.userName})\nБронь №${booking.id}\nВремя: ${new Date(booking.startsAt).toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2digit'})} - ${new Date(booking.endsAt).toLocaleTimeString('ru-RU', {hour: '2digit', minute:'2digit'})}`
           : `Место ${seatId} - Свободно`;
         seatElement.title = title;
       });
 
+      // Обновление статистики сверху
       freeCount.textContent = freeTablesCount;
       busyCount.textContent = busyTablesCount;
     }
 
+    // Функция отображения модального окна с деталями стола
     function showTableDetails(tableId) {
       const table = tablesData.find(t => t.id === tableId);
       if (!table) return;
-      
-      const tableBookings = bookingsData.filter(booking => 
+
+      // Находим все брони для этого стола
+      const tableBookings = bookingsData.filter(booking =>
         booking.tableIds.includes(tableId)
       );
-      
+
       modalTitle.textContent = `Стол ${table.name}`;
-      
+
       let bookingsHtml = '';
       if (tableBookings.length > 0) {
+        // Рендеринг таблицы броней
         bookingsHtml = '<div class="overflow-x-auto"><table class="table table-compact w-full"><thead><tr><th>Клиент</th><th>Время</th><th>Статус</th><th>Действия</th></tr></thead><tbody>';
-        
+
         tableBookings.forEach(booking => {
           const startTime = new Date(booking.startsAt);
           const endTime = new Date(booking.endsAt);
           const isNow = new Date() >= startTime && new Date() <= endTime;
           const statusClass = isNow ? 'badge-warning' : 'badge-info';
           const statusText = isNow ? 'Сейчас' : 'Предстоящее';
-          
+
           bookingsHtml += `
             <tr>
               <td>${booking.userName}</td>
-              <td>${startTime.toLocaleDateString('ru-RU')} ${startTime.toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'})} - ${endTime.toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'})}</td>
+              <td>${startTime.toLocaleDateString('ru-RU')} ${startTime.toLocaleTimeString('ru-RU', {hour: '2digit', minute:'2digit'})} - ${endTime.toLocaleTimeString('ru-RU', {hour: '2digit', minute:'2digit'})}</td>
               <td><div class="badge ${statusClass}">${statusText}</div></td>
               <td><a href="/manager/bookings/${booking.id}" class="btn btn-ghost btn-xs">Детали</a></td>
             </tr>
           `;
         });
-        
+
         bookingsHtml += '</tbody></table></div>';
       } else {
         bookingsHtml = '<div class="text-center py-4"><p class="text-base-content/70">У этого стола нет бронирований</p></div>';
       }
-      
+
+      // Заполнение контента модального окна
       modalContent.innerHTML = `
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
@@ -480,19 +540,21 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="font-semibold" id="modal-table-status">Загрузка...</div>
           </div>
         </div>
-        
+
         <div class="mb-4">
           <h4 class="font-semibold mb-2">Бронирования</h4>
           ${bookingsHtml}
         </div>
       `;
 
+      // Определение статуса в модалке
       const tableElement = document.querySelector(`[data-table-id="${tableId}"]`);
       const status = tableElement.dataset.status;
       const statusText = status === 'available' ? 'Свободен' : 'Занят';
       const statusClass = status === 'available' ? 'text-success' : 'text-warning';
       document.getElementById('modal-table-status').innerHTML = `<span class="${statusClass}">${statusText}</span>`;
 
+      // Показ модального окна
       if (typeof tableDetailsModal.showModal === 'function') {
         tableDetailsModal.showModal();
       } else {
@@ -501,11 +563,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    // Слушатель изменения фильтра времени
     timeFilter.addEventListener('change', (e) => {
       currentFilter = e.target.value;
       checkAvailability(currentFilter);
     });
 
+    // Добавление кликов на столы для открытия модального окна
     document.querySelectorAll('.table-rect').forEach(tableElement => {
       tableElement.addEventListener('click', () => {
         const tableId = parseInt(tableElement.dataset.tableId);
@@ -513,6 +577,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
+    // Обновление страницы при клике на кнопку "Обновить"
     function refreshData() {
       location.reload();
     }
@@ -522,11 +587,14 @@ document.addEventListener('DOMContentLoaded', () => {
       refreshButton.addEventListener('click', refreshData);
     }
 
+    // Инициализация состояния при загрузке
     checkAvailability(currentFilter);
   });
 </script>
 
+<!-- Дополнительные стили для визуализации карты и эффектов ховера -->
 <style>
+  /* Прямоугольники столов с анимацией и тенью */
   .table-rect {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     backdrop-filter: blur(2px);
@@ -537,6 +605,7 @@ document.addEventListener('DOMContentLoaded', () => {
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
   }
 
+  /* Кружки мест */
   .seat-circle {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     backdrop-filter: blur(2px);
@@ -553,6 +622,7 @@ document.addEventListener('DOMContentLoaded', () => {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
   }
 
+  /* Пользовательский тултип для мест на чистом CSS */
   .seat-circle[title]:hover::after {
     content: attr(title);
     position: absolute;
@@ -564,7 +634,7 @@ document.addEventListener('DOMContentLoaded', () => {
     padding: 8px 12px;
     border-radius: 6px;
     font-size: 12px;
-    white-space: pre-line;
+    white-space: pre;
     z-index: 1000;
     pointer-events: none;
     margin-bottom: 10px;

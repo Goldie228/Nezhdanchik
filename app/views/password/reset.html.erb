@@ -1,7 +1,16 @@
+
+<!-- Страница "Сброс пароля" (Password Reset). -->
+<!-- Флекс-контейнер центрирует карточку вертикально и горизонтально -->
 <div class="min-h-screen bg-base-200 flex items-center justify-center p-4">
+  <!-- Карточка формы: максимальная ширина (max-w-md), белая тема, большая тень -->
   <div class="card w-full max-w-md bg-base-100 shadow-2xl border border-base-300">
     <div class="card-body p-8">
+
+      <!-- ============================
+           ЗАГОЛОВОК И ЛОГОТИП
+           ============================ -->
       <div class="text-center mb-8">
+        <!-- Логотип: иконка замка/ключа в желтом плашке (bg-warning/10) -->
         <div class="inline-flex items-center justify-center w-20 h-20 bg-warning/10 rounded-2xl mb-4 transition-all duration-300 hover:scale-105 hover:shadow-lg">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
@@ -11,6 +20,10 @@
         <p class="text-base-content/50 text-sm">Введите ваш новый пароль</p>
       </div>
 
+      <!-- ============================
+           СООБЩЕНИЕ ОБ ОШИБКЕ (FLASH ALERT)
+           ============================ -->
+      <!-- Если в контроллере был передан flash[:alert] (например, токен истек), показываем красный алерт -->
       <% if flash[:alert] %>
         <div class="alert alert-error shadow-lg mb-6">
           <div>
@@ -20,18 +33,29 @@
         </div>
       <% end %>
 
+      <!-- ============================
+           ФОРМА СБРОСА ПАРОЛЯ
+           ============================ -->
+      <!-- Форма отправляет PATCH запрос на password_reset_path с токеном в URL -->
       <%= form_with url: password_reset_path(token: @token), method: :patch, local: true, class: "space-y-6" do |f| %>
-        <div class="form-control w-full">
+
+        <!-- Поле 1: Новый пароль -->
+        <div class="form-control w-full relative">
           <label class="label">
             <span class="label-text font-medium text-base-content/70">Новый пароль</span>
-            <span class="label-text-alt text-error">*</span>
+            <span class="label-text-alt text-error">*</span> <!-- Красная звездочка (обязательно) -->
           </label>
           <div class="relative">
+            <!-- ID="new_password" используется JS для нахождения конкретного поля -->
             <%= f.password_field :new_password, id: "new_password", class: "input input-bordered input-lg w-full pr-10 focus:ring-2 focus:ring-primary/20 transition-all", required: true, placeholder: "Минимум 8 символов" %>
+
+            <!-- Кнопка "глаз" (togglePassword(this) передает контекст кнопки) -->
             <button type="button" class="absolute top-3 right-3 p-1 text-base-content/50 hover:text-base-content transition-colors z-10" onclick="togglePassword('new_password')" aria-label="Показать/скрыть пароль">
+              <!-- Иконка "Открытый глаз" (по умолчанию скрыта через .hidden) -->
               <svg id="eye-open-new_password" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden text-base-content/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
               </svg>
+              <!-- Иконка "Закрытый глаз" (по умолчанию видна) -->
               <svg id="eye-closed-new_password" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-base-content/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -39,15 +63,20 @@
             </button>
           </div>
         </div>
-        
-        <div class="form-control w-full">
+
+        <!-- Поле 2: Подтверждение пароля -->
+        <div class="form-control w-full relative">
           <label class="label">
             <span class="label-text font-medium text-base-content/70">Подтвердите новый пароль</span>
             <span class="label-text-alt text-error">*</span>
           </label>
           <div class="relative">
+            <!-- ID="password_confirmation" используется JS для нахождения конкретного поля -->
             <%= f.password_field :password_confirmation, id: "password_confirmation", class: "input input-bordered input-lg w-full pr-10 focus:ring-2 focus:ring-primary/20 transition-all", required: true, placeholder: "Повторите новый пароль" %>
+
+            <!-- Кнопка "глаз" -->
             <button type="button" class="absolute top-3 right-3 p-1 text-base-content/50 hover:text-base-content transition-colors z-10" onclick="togglePassword('password_confirmation')" aria-label="Показать/скрыть пароль">
+              <!-- Иконки глаз (аналогично первому полю) -->
               <svg id="eye-open-password_confirmation" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden text-base-content/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
               </svg>
@@ -59,6 +88,7 @@
           </div>
         </div>
 
+        <!-- Кнопка отправки формы -->
         <div class="flex justify-center">
           <%= f.submit "Установить новый пароль",
             class: "btn btn-primary btn-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] w-full" %>
@@ -68,28 +98,53 @@
   </div>
 </div>
 
+<!-- =========================================
+       JAVASCRIPT (ЛОГИКА ИНТЕРФЕЙСА)
+       ========================================= -->
 <script>
+  /**
+   * Функция переключения видимости пароля (Show/Hide).
+   * Принимает ID поля ввода (fieldId), чтобы найти конкретное поле.
+   */
   function togglePassword(fieldId) {
+    // Находим инпут по ID
     const input = document.getElementById(fieldId);
+
+    // Находим иконки глаз по составным ID (eye-open-{fieldId} и eye-closed-{fieldId})
     const eyeOpen = document.getElementById("eye-open-" + fieldId);
     const eyeClosed = document.getElementById("eye-closed-" + fieldId);
-    
+
+    // Если тип ввода - password (символы скрыты)
     if (input.type === "password") {
+      // Меняем на text (символы становятся видны)
       input.type = "text";
+      // Скрываем иконку закрытого глаза, показываем открытый
       eyeOpen.classList.remove("hidden");
       eyeClosed.classList.add("hidden");
     } else {
+      // Иначе меняем обратно на password
       input.type = "password";
+      // Скрываем иконку открытого глаза, показываем закрытый
       eyeOpen.classList.add("hidden");
       eyeClosed.classList.remove("hidden");
     }
   }
 
+  /**
+   * Автоматическое скрытие Flash-сообщений (Alert).
+   * Запускается с задержкой в 5 секунд после загрузки страницы.
+   */
   setTimeout(() => {
+    // Находим все элементы с классом .alert
     const alerts = document.querySelectorAll('.alert');
+
+    // Перебираем их
     alerts.forEach(alert => {
+      // Добавляем CSS переход для плавного исчезновения
       alert.style.transition = 'opacity 0.5s';
+      // Устанавливаем прозрачность 0
       alert.style.opacity = '0';
+      // Удаляем элемент из DOM через 500мс (после завершения перехода)
       setTimeout(() => alert.remove(), 500);
     });
   }, 5000);

@@ -1,9 +1,12 @@
+
 <div class="min-h-screen bg-base-200">
+  <!-- Навигационная панель менеджера (общая для админки) -->
   <div class="navbar bg-base-100 shadow-lg">
     <div class="flex-1">
       <a class="btn btn-ghost normal-case text-xl">Панель менеджера</a>
     </div>
     <div class="flex-none">
+      <!-- Горизонтальное меню основных разделов -->
       <ul class="menu menu-horizontal p-0">
         <li><%= link_to "Обзор", manager_dashboard_path %></li>
         <li><%= link_to "Календарь", manager_calendar_path %></li>
@@ -15,8 +18,10 @@
 
   <div class="container mx-auto px-4 py-6">
     <div class="max-w-6xl mx-auto">
+      <!-- Заголовок страницы -->
       <h1 class="text-3xl font-bold mb-6">Редактирование бронирования №<%= @booking.booking_number %></h1>
-      
+
+      <!-- Блок отображения ошибок (Flash) -->
       <% if flash[:alert] %>
         <div class="alert alert-error">
           <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
@@ -25,17 +30,21 @@
           <span><%= flash[:alert] %></span>
         </div>
       <% end %>
-      
+
+      <!-- Двухколоночный layout: Редактирование брони (слева) и Управление заказом (справа) -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- ЛЕВАЯ КОЛОНКА: Редактирование статуса бронирования -->
         <div class="lg:col-span-1">
           <%= form_with(model: [:manager, @booking], local: true, class: "bg-base-100 rounded-lg shadow-lg p-6", id: "booking-form") do |form| %>
             <div class="form-control">
               <label class="label">
                 <span class="label-text">Статус</span>
               </label>
+              <!-- Выпадающий список статусов (Pending -> Confirmed -> Cancelled -> Completed) -->
               <%= form.select :status, options_for_select(get_statuses_list.map { |s| [s[:text], s[:value]] }, @booking.status), {}, class: "select select-bordered w-full" %>
             </div>
-            
+
             <div class="flex justify-between mt-6">
               <%= link_to "Отмена", manager_booking_path(@booking), class: "btn btn-ghost" %>
               <%= form.submit "Сохранить изменения", class: "btn btn-primary" %>
@@ -43,13 +52,15 @@
           <% end %>
         </div>
 
+        <!-- ПРАВАЯ КОЛОНКА: Расширенное управление заказом (добавление/удаление блюд) -->
         <div class="lg:col-span-2">
           <div class="bg-base-100 rounded-lg shadow-lg p-6 mb-6">
             <h2 class="text-xl font-bold mb-4">Заказ</h2>
 
+            <!-- Секция списка текущих блюд -->
             <div class="mb-6">
               <h3 class="text-lg font-semibold mb-3">Текущие блюда в заказе</h3>
-              
+
               <% if @order_items && @order_items.any? %>
                 <div class="overflow-x-auto">
                   <table class="table table-compact w-full">
@@ -64,23 +75,29 @@
                     </thead>
                     <tbody>
                       <% @order_items.each do |item| %>
+                        <!-- id используется для динамического удаления строк -->
                         <tr id="order-item-<%= item.id %>">
                           <td>
                             <div class="font-bold"><%= item.dish.title %></div>
+                            <!-- Специальные инструкции (например, "Добавки: Сыр; Без: Лук") -->
                             <% if item.special_instructions.present? %>
                               <div class="text-xs opacity-70"><%= item.special_instructions %></div>
                             <% end %>
                           </td>
                           <td><%= item.quantity %></td>
+                          <!-- Цена за единицу (может отличаться от цены блюда из-за ингредиентов) -->
                           <td><%= number_to_currency(item.unit_price, unit: "BYN", format: "%n %u") %></td>
+                          <!-- Сумма позиции (цена * кол-во) -->
                           <td><%= number_to_currency(item.total_price, unit: "BYN", format: "%n %u") %></td>
                           <td>
                             <div class="flex gap-1">
+                              <!-- Кнопка редактирования состава/количества -->
                               <button class="btn btn-ghost btn-xs" onclick="editOrderItem(<%= item.id %>)">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                 </svg>
                               </button>
+                              <!-- Кнопка удаления позиции -->
                               <button class="btn btn-ghost btn-xs text-error" onclick="removeOrderItem(<%= item.id %>)">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -93,6 +110,7 @@
                     </tbody>
                     <tfoot>
                       <tr>
+                        <!-- Итоговая сумма заказа -->
                         <th colspan="3">Итого:</th>
                         <th><%= number_to_currency(@order.total_amount, unit: "BYN", format: "%n %u") %></th>
                         <th></th>
@@ -101,15 +119,18 @@
                   </table>
                 </div>
               <% else %>
+                <!-- Заглушка, если заказ пуст -->
                 <div class="text-center py-8">
                   <p class="text-base-content/70">В заказе нет блюд.</p>
                 </div>
               <% end %>
             </div>
 
+            <!-- Секция добавления нового блюда (Cascade Dropdowns: Category -> Dish -> Details) -->
             <div>
               <h3 class="text-lg font-semibold mb-3">Добавить блюдо</h3>
-              
+
+              <!-- Выбор категории -->
               <% if @categories && @categories.any? %>
                 <div class="form-control">
                   <label class="label">
@@ -130,7 +151,8 @@
                   <span>Нет доступных категорий блюд</span>
                 </div>
               <% end %>
-              
+
+              <!-- Выбор блюда (изначально отключен, пока не выбрана категория) -->
               <div class="form-control mt-4">
                 <label class="label">
                   <span class="label-text">Блюдо</span>
@@ -139,13 +161,14 @@
                   <option value="">Выберите блюдо</option>
                 </select>
               </div>
-              
+
+              <!-- Скрытый блок с деталями блюда (ингредиенты, расчет цены) -->
               <div id="dish-details" class="hidden mt-6 p-4 bg-base-200 rounded-lg">
                 <div class="card-body p-0">
                   <h4 id="dish-title" class="card-title text-lg mb-2"></h4>
                   <p id="dish-description" class="mb-4 text-sm opacity-80"></p>
-                  
-                  <!-- Детали цены -->
+
+                  <!-- Калькулятор цены -->
                   <div class="bg-base-100 p-3 rounded-lg mb-4">
                     <div class="text-sm font-semibold">Расчет цены:</div>
                     <div class="flex justify-between items-center">
@@ -163,6 +186,7 @@
                     </div>
                   </div>
 
+                  <!-- Чекбоксы ингредиентов -->
                   <div id="ingredients-container" class="mb-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
@@ -175,14 +199,16 @@
                       </div>
                     </div>
                   </div>
-                  
+
+                  <!-- Поле ввода количества -->
                   <div class="form-control">
                     <label class="label">
                       <span class="label-text">Количество</span>
                     </label>
-                    <input type="number" id="dish-quantity" class="input input-bordered" value="1" min="1">
+                    <input type="number" id="dish-quantity" class="input input-bordered" value="1" min="1" autocomplete="off">
                   </div>
-                  
+
+                  <!-- Кнопка добавления -->
                   <div class="card-actions justify-end mt-4">
                     <button id="add-dish-btn" class="btn btn-primary">Добавить в заказ</button>
                   </div>
@@ -196,17 +222,20 @@
   </div>
 </div>
 
+<!-- Модальное окно для редактирования состава блюда (количество/ингредиенты) -->
 <div id="edit-dish-modal" class="modal">
   <div class="modal-box w-11/12 max-w-3xl">
     <h3 class="font-bold text-lg mb-4">Редактировать блюдо</h3>
-    
+
+    <!-- Поле количества -->
     <div class="form-control mb-4">
       <label class="label">
         <span class="label-text">Количество</span>
       </label>
-      <input type="number" id="edit-dish-quantity" class="input input-bordered" value="1" min="1">
+      <input type="number" id="edit-dish-quantity" class="input input-bordered" value="1" min="1" autocomplete="off">
     </div>
-    
+
+    <!-- Список ингредиентов для редактирования -->
     <div id="edit-ingredients-container" class="mb-4">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
@@ -219,7 +248,7 @@
         </div>
       </div>
     </div>
-    
+
     <div class="modal-action">
       <button id="save-dish-btn" class="btn btn-primary">Сохранить</button>
       <button id="cancel-edit-btn" class="btn">Отмена</button>
@@ -227,16 +256,21 @@
   </div>
 </div>
 
+<!-- Скрытый контейнер для CSRF токена (для JS доступа) -->
 <div id="csrf-token-container" class="hidden">
   <%= form_authenticity_token %>
 </div>
 
 <script>
-  let dishes = {};
-  let currentEditingItemId = null;
-  let selectedIngredients = [];
-  let removedIngredients = [];
+  // --- Глобальные переменные состояния ---
+  let dishes = {}; // Кэш объектов блюд по категориям
+  let currentEditingItemId = null; // ID редактируемой позиции заказа (для модального окна)
+  let selectedIngredients = []; // Список ID добавленных ингредиентов
+  let removedIngredients = []; // Список ID убранных ингредиентов
 
+  // --- Вспомогательные функции ---
+
+  // Безопасное получение CSRF токена (проверяет скрытый div или мета-тег)
   function getCsrfToken() {
     const tokenContainer = document.getElementById('csrf-token-container');
     if (tokenContainer && tokenContainer.textContent.trim()) {
@@ -247,7 +281,7 @@
     if (token) {
       return token.getAttribute('content');
     }
-    
+
     console.error("CSRF token not found. Please ensure either meta tag or hidden field is present.");
     return null;
   }
@@ -255,28 +289,31 @@
   document.addEventListener('DOMContentLoaded', function() {
     console.log("Initializing edit booking page...");
 
+    // Инициализация ссылок на DOM элементы
     const categorySelect = document.getElementById('category-select');
     const dishSelect = document.getElementById('dish-select');
     const addDishBtn = document.getElementById('add-dish-btn');
     const saveDishBtn = document.getElementById('save-dish-btn');
     const cancelEditBtn = document.getElementById('cancel-edit-btn');
-    
+
     if (!categorySelect || !dishSelect || !addDishBtn || !saveDishBtn) {
       console.error("One or more required elements not found");
       return;
     }
 
+    // Обработчик изменения категории: загрузка блюд категории
     categorySelect.addEventListener('change', function() {
       const categoryId = this.value;
-      
+
       if (categoryId) {
+        // AJAX запрос к серверу за блюдами категории
         fetch(`/manager/dishes_by_category?category_id=${categoryId}`)
           .then(response => {
             if (!response.ok) throw new Error('Network response was not ok');
             return response.json();
           })
           .then(data => {
-            dishes = {};
+            dishes = {}; // Сброс кэша
 
             if (data.dishes && Array.isArray(data.dishes)) {
               data.dishes.forEach(dish => {
@@ -290,15 +327,17 @@
             showToast('Ошибка при загрузке блюд: ' + error.message, 'error');
           });
       } else {
+        // Сброс выпадающего списка блюда, если категория не выбрана
         dishSelect.innerHTML = '<option value="">Выберите блюдо</option>';
         dishSelect.disabled = true;
         document.getElementById('dish-details').classList.add('hidden');
       }
     });
 
+    // Обработчик изменения блюда: показ деталей и ингредиентов
     dishSelect.addEventListener('change', function() {
       const dishId = this.value;
-      
+
       if (dishId && dishes[dishId]) {
         displayDishDetails(dishes[dishId]);
       } else {
@@ -313,37 +352,18 @@
       cancelEditBtn.addEventListener('click', closeEditModal);
     }
 
+    // Закрытие модального окна по клику на фон
     document.getElementById('edit-dish-modal').addEventListener('click', function(e) {
       if (e.target === this) {
         closeEditModal();
       }
     });
-    
+
     console.log("Edit booking page initialized successfully");
   });
 
-  function showToast(message, type = 'info') {
-    const toast = document.createElement('div');
-    toast.className = `toast toast-top toast-end`;
-    
-    const alertClass = type === 'error' ? 'alert-error' : 
-                       type === 'success' ? 'alert-success' : 'alert-info';
-    
-    toast.innerHTML = `
-      <div class="${alertClass} alert">
-        <div>
-          <span>${message}</span>
-        </div>
-      </div>
-    `;
-    
-    document.body.appendChild(toast);
+  // --- Логика добавления блюда в заказ ---
 
-    setTimeout(() => {
-      toast.remove();
-    }, 3000);
-  }
-  
   function addDishToOrder() {
     const dishId = document.getElementById('dish-select').value;
     const quantity = document.getElementById('dish-quantity').value;
@@ -353,11 +373,12 @@
       showToast('Пожалуйста, выберите блюдо', 'error');
       return;
     }
-    
+
     const formData = new FormData();
     formData.append('dish_id', dishId);
     formData.append('quantity', quantity);
 
+    // Добавляем массивы ID ингредиентов
     selectedIngredients.forEach(id => formData.append('selected_ingredient_ids[]', id));
     removedIngredients.forEach(id => formData.append('removed_ingredient_ids[]', id));
 
@@ -365,7 +386,7 @@
     const originalText = addBtn.textContent;
     addBtn.disabled = true;
     addBtn.innerHTML = '<span class="loading loading-spinner"></span> Добавление...';
-    
+
     fetch(`/manager/bookings/${<%= @booking.id %>}/add_dish_to_order`, {
       method: 'POST',
       headers: { 'X-CSRF-Token': token },
@@ -382,10 +403,11 @@
     .then(data => {
       addBtn.disabled = false;
       addBtn.textContent = originalText;
-      
+
       if (data.success) {
         showToast('Блюдо успешно добавлено в заказ', 'success');
 
+        // Обновление итоговой суммы в футере таблицы
         if (data.order_total) {
           const totalElement = document.querySelector('tfoot th:nth-child(4)');
           if (totalElement) {
@@ -394,6 +416,7 @@
         }
         resetDishForm();
 
+        // Перезагрузка страницы через секунду для отображения изменений
         setTimeout(() => {
           location.reload();
         }, 1000);
@@ -410,9 +433,11 @@
     });
   }
 
+  // --- Логика редактирования существующей позиции заказа ---
+
   function saveEditedDish() {
     if (!currentEditingItemId) return;
-    
+
     const quantity = document.getElementById('edit-dish-quantity').value;
     const token = getCsrfToken();
     if (!token) return;
@@ -420,6 +445,7 @@
     const formData = new FormData();
     formData.append('quantity', quantity);
 
+    // Состояние ингредиентов из модального окна
     selectedIngredients.forEach(id => formData.append('selected_ingredient_ids[]', id));
     removedIngredients.forEach(id => formData.append('removed_ingredient_ids[]', id));
 
@@ -427,7 +453,7 @@
     const originalText = saveBtn.textContent;
     saveBtn.disabled = true;
     saveBtn.innerHTML = '<span class="loading loading-spinner"></span> Сохранение...';
-    
+
     fetch(`/manager/bookings/${<%= @booking.id %>}/update_order_item/${currentEditingItemId}`, {
       method: 'PATCH',
       headers: { 'X-CSRF-Token': token },
@@ -444,7 +470,7 @@
     .then(data => {
       saveBtn.disabled = false;
       saveBtn.textContent = originalText;
-      
+
       if (data.success) {
         showToast('Блюдо успешно обновлено', 'success');
         closeEditModal();
@@ -471,13 +497,15 @@
       saveBtn.textContent = originalText;
     });
   }
-  
+
   function closeEditModal() {
     const modal = document.getElementById('edit-dish-modal');
     modal.classList.remove('modal-open');
     currentEditingItemId = null;
   }
-  
+
+  // --- Управление формой добавления ---
+
   function resetDishForm() {
     document.getElementById('dish-select').value = '';
     document.getElementById('dish-select').disabled = true;
@@ -487,21 +515,23 @@
     selectedIngredients = [];
     removedIngredients = [];
   }
-  
+
   function populateDishSelect() {
     const dishSelect = document.getElementById('dish-select');
     dishSelect.innerHTML = '<option value="">Выберите блюдо</option>';
-    
+
     Object.values(dishes).forEach(dish => {
       const option = document.createElement('option');
       option.value = dish.id;
       option.textContent = `${dish.title} - ${dish.price} BYN`;
       dishSelect.appendChild(option);
     });
-    
+
     dishSelect.disabled = false;
   }
-  
+
+  // --- Рендеринг деталей блюда (интерфейс добавления) ---
+
   function displayDishDetails(dish) {
     selectedIngredients = [];
     removedIngredients = [];
@@ -511,9 +541,10 @@
     const basePrice = parseFloat(dish.price);
     document.getElementById('base-price').textContent = `${basePrice.toFixed(2)} BYN`;
 
+    // Разделение ингредиентов на основные и доп.
     const baseIngredients = [];
     const addOnIngredients = [];
-    
+
     if (dish.ingredients && Array.isArray(dish.ingredients)) {
       dish.ingredients.forEach(ing => {
         if (ing.default) baseIngredients.push(ing);
@@ -521,6 +552,7 @@
       });
     }
 
+    // Рендеринг списков чекбоксов
     const baseList = document.getElementById('base-ingredients-list');
     baseList.innerHTML = '';
     if (baseIngredients.length > 0) {
@@ -528,7 +560,7 @@
     } else {
       baseList.innerHTML = '<p class="text-sm opacity-70">Нет основных ингредиентов</p>';
     }
-    
+
     const addOnList = document.getElementById('add-on-ingredients-list');
     addOnList.innerHTML = '';
     if (addOnIngredients.length > 0) {
@@ -541,21 +573,22 @@
     document.getElementById('dish-details').classList.remove('hidden');
   }
 
+  // Создание чекбокса ингредиента (для формы добавления)
   function createIngredientCheckbox(container, ingredient, isDefault) {
     const div = document.createElement('div');
     div.className = 'form-control';
-    
+
     const label = document.createElement('label');
     label.className = 'label cursor-pointer justify-start gap-2';
-    
+
     const input = document.createElement('input');
     input.type = 'checkbox';
     input.className = 'checkbox checkbox-sm';
-    input.checked = isDefault;
+    input.checked = isDefault; // Основные выбраны по умолчанию
     input.dataset.ingredientId = ingredient.id;
     input.dataset.default = isDefault;
     input.dataset.price = ingredient.price;
-    
+
     const span = document.createElement('span');
     span.className = 'label-text';
     span.textContent = ingredient.name;
@@ -564,18 +597,22 @@
     }
 
     input.addEventListener('change', handleIngredientChange);
-    
+
     label.appendChild(input);
     label.appendChild(span);
     div.appendChild(label);
     container.appendChild(div);
   }
 
+  // --- Обработка изменений ингредиентов (цена/состояние) ---
+
   function handleIngredientChange(event) {
     const ingredientId = parseInt(event.target.dataset.ingredientId);
     const isDefault = event.target.dataset.default === 'true';
     const isChecked = event.target.checked;
-    
+
+    // Логика: если основной и сняли галочку -> removedIngredients
+    // Если доп. и поставили галочку -> selectedIngredients
     if (isDefault && !isChecked) {
       if (!removedIngredients.includes(ingredientId)) removedIngredients.push(ingredientId);
       selectedIngredients = selectedIngredients.filter(id => id !== ingredientId);
@@ -587,31 +624,36 @@
     } else if (!isDefault && !isChecked) {
       selectedIngredients = selectedIngredients.filter(id => id !== ingredientId);
     }
-    
+
     updateDishPrice();
   }
-  
+
   function updateDishPrice() {
     const dishId = document.getElementById('dish-select').value;
     if (!dishId || !dishes[dishId]) return;
-    
+
     const dish = dishes[dishId];
     const basePrice = parseFloat(dish.price);
     let addOnsPrice = 0;
 
+    // Суммируем цены выбранных доп. ингредиентов
     if (dish.ingredients && Array.isArray(dish.ingredients)) {
       selectedIngredients.forEach(id => {
         const ingredient = dish.ingredients.find(ing => ing.id == id);
         if (ingredient) addOnsPrice += parseFloat(ingredient.price);
       });
     }
-    
+
     const totalPrice = basePrice + addOnsPrice;
-    
+
+    // Обновление UI цен
     document.getElementById('add-ons-price').textContent = `+ ${addOnsPrice.toFixed(2)} BYN`;
     document.getElementById('dish-price').textContent = `${totalPrice.toFixed(2)} BYN`;
   }
-  
+
+  // --- Логика редактирования (модальное окно) ---
+
+  // Открытие модального окна и загрузка данных позиции
   function editOrderItem(itemId) {
     currentEditingItemId = itemId;
     selectedIngredients = [];
@@ -623,7 +665,7 @@
     const modalBody = modal.querySelector('.modal-box');
     const originalContent = modalBody.innerHTML;
     modalBody.innerHTML = '<div class="flex justify-center items-center h-64"><span class="loading loading-spinner loading-lg"></span></div>';
-    
+
     fetch(`/manager/order_item/${itemId}`)
       .then(response => {
         if (!response.ok) {
@@ -634,12 +676,13 @@
       })
       .then(data => {
         modalBody.innerHTML = originalContent;
-        
+
         if (!data.success) throw new Error(data.message);
-        
+
         const item = data.order_item;
         document.getElementById('edit-dish-quantity').value = item.quantity;
 
+        // Подготовка ингредиентов блюда
         const baseIngredients = [];
         const addOnIngredients = [];
         if (item.dish.ingredients && Array.isArray(item.dish.ingredients)) {
@@ -649,18 +692,21 @@
           });
         }
 
+        // Рендеринг чекбоксов с учетом текущего состояния (item.removed_ingredients, item.selected_ingredients)
         const baseList = document.getElementById('edit-base-ingredients-list');
         const addOnList = document.getElementById('edit-add-on-ingredients-list');
-        baseList.innerHTML = ''; 
+        baseList.innerHTML = '';
         addOnList.innerHTML = '';
-        
+
         if (baseIngredients.length > 0) {
           baseIngredients.forEach(ing => {
             let isChecked = ing.default;
+            // Если ингредиент был убран клиентом -> unchecked
             if (item.removed_ingredients && item.removed_ingredients.includes(ing.id)) isChecked = false;
+            // Логика обновления массивов состояния
             if (isChecked) removedIngredients = removedIngredients.filter(id => id !== ing.id);
             else if (!removedIngredients.includes(ing.id)) removedIngredients.push(ing.id);
-            
+
             const elem = createIngredientCheckboxForEdit(baseList, ing, true, isChecked);
             elem.addEventListener('change', handleIngredientChange);
           });
@@ -671,9 +717,10 @@
         if (addOnIngredients.length > 0) {
           addOnIngredients.forEach(ing => {
             let isChecked = false;
+            // Если ингредиент был добавлен клиентом -> checked
             if (item.selected_ingredients && item.selected_ingredients.includes(ing.id)) isChecked = true;
             if (isChecked) selectedIngredients.push(ing.id);
-            
+
             const elem = createIngredientCheckboxForEdit(addOnList, ing, false, isChecked);
             elem.addEventListener('change', handleIngredientChange);
           });
@@ -681,6 +728,7 @@
           addOnList.innerHTML = '<p class="text-sm opacity-70">Нет дополнительных ингредиентов</p>';
         }
 
+        // Перезаписываем обработчиков кнопок, чтобы не дублировались при повторном открытии
         document.getElementById('save-dish-btn').addEventListener('click', saveEditedDish);
         document.getElementById('cancel-edit-btn').addEventListener('click', closeEditModal);
 
@@ -697,13 +745,14 @@
       });
   }
 
+  // Создание чекбокса для модального окна редактирования
   function createIngredientCheckboxForEdit(container, ingredient, isDefault, isChecked) {
     const div = document.createElement('div');
     div.className = 'form-control';
-    
+
     const label = document.createElement('label');
     label.className = 'label cursor-pointer justify-start gap-2';
-    
+
     const input = document.createElement('input');
     input.type = 'checkbox';
     input.className = 'checkbox checkbox-sm';
@@ -711,7 +760,7 @@
     input.dataset.ingredientId = ingredient.id;
     input.dataset.default = isDefault;
     input.dataset.price = ingredient.price;
-    
+
     const span = document.createElement('span');
     span.className = 'label-text';
     span.textContent = ingredient.name;
@@ -723,13 +772,15 @@
     label.appendChild(span);
     div.appendChild(label);
     container.appendChild(div);
-    
+
     return input;
   }
-  
+
+  // --- Удаление позиции заказа ---
+
   function removeOrderItem(itemId) {
     if (!confirm('Вы уверены, что хотите удалить это блюдо из заказа?')) return;
-    
+
     const token = getCsrfToken();
     if (!token) return;
 
@@ -752,6 +803,7 @@
       if (data.success) {
         showToast('Блюдо успешно удалено из заказа', 'success');
 
+        // Обновление итоговой суммы в футере
         if (data.order_total) {
           const totalElement = document.querySelector('tfoot th:nth-child(4)');
           if (totalElement) {
@@ -759,6 +811,7 @@
           }
         }
 
+        // Удаление строки и отображение "Нет блюд", если таблица пуста
         row.remove();
         const tbody = document.querySelector('tbody');
         if (!tbody.querySelector('tr')) {

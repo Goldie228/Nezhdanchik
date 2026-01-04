@@ -1,13 +1,26 @@
+
+<!-- Шапка сайта (Header) -->
+<!-- bg-neutral: Использование нейтральной (темной) темы для шапки. -->
+<!-- text-neutral-content: Установка цвета текста (светлый) для контраста на темном фоне. -->
 <header class="bg-neutral text-neutral-content shadow-sm m-0 p-0">
+  <!-- Контейнер navbar (max-w-7xl): Ограничивает ширину содержимого на больших экранах. -->
   <div class="navbar max-w-7xl mx-auto">
+
+    <!-- =========================================
+         МОБИЛЬНОЕ МЕНЮ (HAMBURGER)
+         ========================================= -->
+    <!-- lg:hidden: Скрываем гамбургер на десктопе. navbar-start: прижимает к левому краю. -->
     <div class="navbar-start lg:hidden">
       <div class="dropdown">
+        <!-- Кнопка гамбургер (иконка с тремя полосками) -->
         <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </div>
+        <!-- Выпадающий список ссылок для мобильной версии -->
         <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+          <!-- Ссылки на основные страницы -->
           <li><%= link_to "Главная", root_path %></li>
           <li><%= link_to "Меню", menu_path %></li>
           <li><%= link_to "Бронирование", reservation_path %></li>
@@ -15,14 +28,27 @@
       </div>
     </div>
 
+    <!-- =========================================
+         ЛОГОТИП И БРЕНД (LOGO)
+         ========================================= -->
+    <!-- Отображается на всех устройствах (в левой части) -->
     <div class="navbar-start">
+      <!-- Ссылка на главную стилизованная как текстовая кнопка -->
       <%= link_to root_path, class: "btn btn-ghost text-xl normal-case" do %>
+        <!-- Логотип ресторана (PNG) -->
         <%= image_tag "logo.png", alt: "НЕЖДАНЧИК", class: "h-8 w-8 mr-2" %>
+        <!-- Название ресторана -->
         НЕЖДАНЧИК
       <% end %>
     </div>
 
+    <!-- =========================================
+         ДЕСКТОПНАЯ НАВИГАЦИЯ (CENTER NAV)
+         ========================================= -->
+    <!-- hidden lg:flex: Скрыто на мобильном, показано на десктопе (Flex). -->
+    <!-- mx-auto: Центрирование меню по горизонтали. -->
     <div class="navbar-center hidden lg:flex mx-auto">
+      <!-- Горизонтальное меню (menu-horizontal) -->
       <ul class="menu menu-horizontal px-1">
         <li><%= link_to "Главная", root_path %></li>
         <li><%= link_to "Меню", menu_path %></li>
@@ -30,24 +56,40 @@
       </ul>
     </div>
 
+    <!-- =========================================
+         ПРАВАЯ ЧАСТЬ (AUTH, CART, PROFILE)
+         ========================================= -->
+    <!-- Логика отображения в зависимости от статуса авторизации (current_user) -->
     <% if current_user %>
+
+      <!-- БЛОК ДЛЯ АВТОРИЗОВАННОГО ПОЛЬЗОВАТЕЛЯ -->
       <div class="navbar-end gap-2">
+
+        <!-- 1. Переключатель темы (Светлая/Темная) -->
         <%= render "shared/theme_picker" %>
 
+        <!-- 2. Кнопка корзины с индикатором (Badge) -->
         <div class="indicator">
+          <!-- Кнопка корзины (круглая, прозрачная на фоне, с иконкой) -->
+          <!-- tooltip-bottom: всплывающая подсказка снизу -->
           <%= link_to cart_path, class: "btn btn-ghost btn-circle tooltip tooltip-bottom", data: { tip: "Корзина" } do %>
+            <!-- Иконка корзины (SVG) -->
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17
                        m0 0a2 2 0 100 4 2 2 0 000-4
                        m-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
+            <!-- Партиал для рендеринга счетчика товаров (бейдж) -->
             <%= render 'shared/cart_badge' %>
           <% end %>
         </div>
 
+        <!-- 3. Дропдаун меню профиля пользователя (Аватар) -->
         <div class="dropdown dropdown-end">
+          <!-- Триггер дропдауна: кнопка-аватар с placeholder-иконкой -->
           <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar tooltip tooltip-bottom" data-tip="Профиль">
+            <!-- Placeholder для аватара пользователя (иконка "человек"), если нет фото -->
             <div class="w-8 rounded-full bg-neutral-focus text-neutral-content flex items-center justify-center">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -56,7 +98,10 @@
               </svg>
             </div>
           </div>
+
+          <!-- Содержимое дропдауна -->
           <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-64 space-y-1">
+            <!-- Заголовок дропдауна (имя и email) -->
             <div class="px-4 py-2 border-b border-base-300 cursor-default select-none">
               <div class="text-sm font-semibold text-base-content">
                 <%= current_user.first_name %> <%= current_user.last_name %>
@@ -66,40 +111,52 @@
               </div>
             </div>
 
+            <!-- Ссылка: Мой профиль -->
             <li>
               <%= link_to "Мой профиль", profile_path, class: "flex items-center gap-3 p-2 hover:bg-base-200 rounded-lg transition-colors" %>
             </li>
-            
+
+            <!-- Ссылка: История заказов -->
             <li>
               <%= link_to "История заказов", orders_history_path, class: "flex items-center gap-3 p-2 hover:bg-base-200 rounded-lg transition-colors" %>
             </li>
 
+            <!-- Ссылка: Админ панель (только для админов) -->
             <% if current_user.admin? %>
               <li class="border-t border-base-300 mt-1 pt-1">
                 <%= link_to "Админ панель", "/admin", class: "flex items-center gap-3 p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors" %>
               </li>
             <% end %>
 
+            <!-- Ссылка: Панель менеджера (только для менеджеров) -->
             <% if current_user.manager? %>
               <li class="border-t border-base-300 mt-1 pt-1">
                 <%= link_to "Панель менеджера", manager_path, class: "flex items-center gap-3 p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors" %>
               </li>
             <% end %>
 
+            <!-- Кнопка: Выйти (Разделитель сверху) -->
             <li class="border-t border-base-300 mt-1 pt-1">
+              <!-- button_to для отправки DELETE запроса на логаут -->
               <%= button_to "Выйти", logout_path,
-                method: :delete,
-                class: "w-full text-left flex items-center gap-3 p-2 text-error hover:bg-error/10 rounded-lg transition-colors" %>
+                    method: :delete,
+                    class: "w-full text-left flex items-center gap-3 p-2 text-error hover:bg-error/10 rounded-lg transition-colors" %>
             </li>
           </ul>
         </div>
       </div>
+
+    <!-- БЛОК ДЛЯ ГОСТЯ (НЕ АВТОРИЗОВАН) -->
     <% else %>
       <div class="navbar-end gap-2">
+
+        <!-- 1. Переключатель темы -->
         <%= render "shared/theme_picker" %>
 
+        <!-- 2. Кнопки входа и регистрации -->
         <%= link_to "Вход", login_path, class: "btn btn-sm btn-ghost" %>
         <%= link_to "Регистрация", signup_path, class: "btn btn-sm btn-primary" %>
+
       </div>
     <% end %>
   </div>

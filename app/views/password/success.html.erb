@@ -1,21 +1,42 @@
+
+<!-- Страница успешного завершения действия (Success Page) -->
+<!-- Контейнер занимает весь экран (min-h-screen) и центрирует контент -->
 <div class="min-h-screen bg-base-200 flex items-center justify-center p-4">
+  <!-- Карточка: максимальная ширина (max-w-md), белый фон, большая тень -->
   <div class="card w-full max-w-md bg-base-100 shadow-xl">
+    <!-- Тело карточки с центрированным текстом -->
     <div class="card-body text-center">
+
+      <!-- ============================
+           ИКОНКА УСПЕХА (SUCCESS ICON)
+           ============================ -->
       <div class="flex justify-center mb-4">
+        <!-- Круглая плашка зеленого цвета (bg-success/20 - прозрачный успех) -->
         <div class="w-16 h-16 bg-success/20 rounded-full flex items-center justify-center">
+          <!-- Иконка "Галочка" (Checkmark) зеленого цвета -->
           <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
       </div>
 
+      <!-- ============================
+           ЗАГОЛОВОК И ТЕКСТ
+           ============================ -->
+      <!-- Заголовок: "Готово!" -->
       <h2 class="card-title justify-center text-2xl font-bold mb-2">Готово!</h2>
 
+      <!-- Текст сообщения: Подтверждение успешной смены пароля -->
       <p class="text-base-content/70 mb-6">
         Ваш пароль был успешно изменен. Теперь вы можете использовать его для входа в аккаунт.
       </p>
 
+      <!-- ============================
+           КНОПКА ДЕЙСТВИЯ (CTA)
+           ============================ -->
+      <!-- Область действий карточки (card-actions) -->
       <div class="card-actions justify-center w-full">
+        <!-- Кнопка на всю ширину (w-full), ведущая в профиль пользователя -->
         <%= link_to "Перейти в профиль", profile_path, class: "btn btn-primary w-full" %>
       </div>
     </div>

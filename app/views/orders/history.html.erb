@@ -1,5 +1,8 @@
+
 <div class="min-h-screen bg-base-200">
+  <!-- Адаптивный контейнер страницы -->
   <div class="container mx-auto px-4 py-4 md:py-8">
+    <!-- Хлебные крошки навигации -->
     <div class="text-sm breadcrumbs mb-4 md:mb-6">
       <ul>
         <li><a href="/" class="text-primary hover:text-primary-focus">Главная</a></li>
@@ -7,6 +10,7 @@
       </ul>
     </div>
 
+    <!-- Карточка заголовка и статистики -->
     <div class="card bg-base-100 shadow-xl mb-6 md:mb-8">
       <div class="card-body">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -18,6 +22,7 @@
               Здесь вы можете просмотреть все ваши предыдущие бронирования и заказы
             </p>
           </div>
+          <!-- Статистика: общее количество бронирований -->
           <div class="stats shadow">
             <div class="stat">
               <div class="stat-title">Всего бронирований</div>
@@ -29,16 +34,20 @@
       </div>
     </div>
 
+    <!-- Список бронирований -->
     <% if @all_bookings.any? %>
       <div class="space-y-6">
         <% @all_bookings.each do |booking| %>
+          <!-- Карточка отдельного бронирования -->
           <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300">
             <div class="card-body p-4 md:p-6">
+              <!-- Верхняя часть карточки: Номер, Дата/Время, Места, Статус -->
               <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
                 <div class="flex items-center gap-4">
                   <div class="flex flex-col">
                     <span class="text-sm text-base-content/60">Номер брони</span>
                     <span class="text-lg font-bold text-primary"><%= booking.booking_number %></span>
+                    <!-- Ссылка на заказ, если он оформлен -->
                     <% if booking.order %>
                       <span class="text-xs text-base-content/50">(Заказ №<%= booking.order.order_number %>)</span>
                     <% end %>
@@ -46,42 +55,49 @@
                   <div class="flex flex-col">
                     <span class="text-sm text-base-content/60">Дата и время</span>
                     <span class="font-semibold">
-                      <%= booking.starts_at.strftime('%d.%m.%Y') %> с 
-                      <%= booking.starts_at.strftime('%H:%M') %> до 
+                      <%= booking.starts_at.strftime('%d.%m.%Y') %> с
+                      <%= booking.starts_at.strftime('%H:%M') %> до
                       <%= booking.ends_at.strftime('%H:%M') %>
                     </span>
                   </div>
                 </div>
-                
+
                 <div class="flex items-center gap-4">
                   <div class="flex flex-col text-right">
                     <span class="text-sm text-base-content/60">Места</span>
+                    <!-- Логика группировки мест по столам для отображения -->
                     <span class="font-semibold">
                       <% seats_by_table = booking.seats.group_by(&:table_id) %>
-                      
+
                       <% seats_by_table.each_with_index do |(table_id, seats), index| %>
                         <% if index > 0 %>, <% end %>
-                        
+
                         <% if table_id.present? %>
+                          <!-- Если место привязано к столу -->
                           Стол <%= seats.first.table.name %>
+                          <!-- Показываем конкретные номера мест только если стол забран не полностью -->
                           <span class="text-xs text-base-content/60">
                             (<%= seats.map(&:number).join(', ') %>)
                           </span>
                         <% else %>
+                          <!-- Если место индивидуальное -->
                           <%= seats.map(&:number).join(', ') %>
                         <% end %>
                       <% end %>
                     </span>
                   </div>
+                  <!-- Статус бронирования (цветной бейдж) -->
                   <div class="badge badge-lg <%= status_badge_class(booking.status) %>">
                     <%= status_in_russian(booking.status) %>
                   </div>
                 </div>
               </div>
 
+              <!-- Особые пожелания клиента (если есть) -->
               <% if booking.special_requests.present? %>
                 <div class="bg-base-200 border border-base-300 rounded-lg p-3 mb-4">
                   <div class="flex items-start gap-2">
+                    <!-- Иконка информации -->
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -97,15 +113,21 @@
 
               <div class="divider my-2"></div>
 
+              <!-- Секция состава заказа (Заказанные блюда или Товары в корзине) -->
+
+              <!-- Случай 1: Есть оформленный заказ (Order) -->
               <% if booking.order && booking.order.order_items.any? %>
                 <h4 class="text-sm font-semibold text-base-content/70 mb-3">Состав заказа:</h4>
                 <div class="space-y-3">
+                  <!-- Отображаем первые 3 товара -->
                   <% booking.order.order_items.includes(:dish).limit(3).each do |item| %>
                     <div class="flex items-center gap-4 p-3 bg-base-200 rounded-xl">
+                      <!-- Фото блюда -->
                       <figure class="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-base-300 flex items-center justify-center">
                         <% if item.dish.photos.attached? %>
                           <%= image_tag url_for(item.dish.photos.first), class: "w-full h-full object-cover" %>
                         <% else %>
+                          <!-- Заглушка фото -->
                           <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-base-content/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                           </svg>
@@ -113,6 +135,7 @@
                       </figure>
                       <div class="flex-1 min-w-0">
                         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                          <!-- Название и инструкции -->
                           <div>
                             <h3 class="font-semibold text-base truncate"><%= item.dish.title %></h3>
                             <% if item.special_instructions.present? %>
@@ -121,6 +144,7 @@
                               </div>
                             <% end %>
                           </div>
+                          <!-- Цена и кол-во (используем данные из OrderItem) -->
                           <div class="flex items-center gap-4">
                             <span class="text-base-content/70">
                               <%= item.quantity %> × <%= number_to_currency(item.unit_price, unit: "BYN", format: "%n %u") %>
@@ -133,10 +157,13 @@
                       </div>
                     </div>
                   <% end %>
+                  <!-- Ссылка на остальные товары -->
                   <% if booking.order.order_items.count > 3 %>
                     <div class="text-center text-base-content/60">... и еще <%= booking.order.order_items.count - 3 %> товаров</div>
                   <% end %>
                 </div>
+
+              <!-- Случай 2: Есть корзина (Cart), но заказа еще нет -->
               <% elsif booking.cart && booking.cart.cart_items.any? %>
                 <h4 class="text-sm font-semibold text-base-content/70 mb-3">Товары в корзине:</h4>
                 <div class="space-y-3">
@@ -155,12 +182,14 @@
                         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                           <div>
                             <h3 class="font-semibold text-base truncate"><%= item.dish.title %></h3>
+                            <!-- Генерация инструкций через хелпер generate_special_instructions -->
                             <% if generate_special_instructions(item).present? %>
                               <div class="text-xs text-base-content/60 mt-1">
                                 <%= generate_special_instructions(item) %>
                               </div>
                             <% end %>
                           </div>
+                          <!-- Расчет цены на основе базовой цены блюда (так как заказ еще не создан) -->
                           <div class="flex items-center gap-4">
                             <span class="text-base-content/70">
                               <%= item.quantity %> × <%= number_to_currency(item.dish.price, unit: "BYN", format: "%n %u") %>
@@ -173,27 +202,33 @@
                       </div>
                     </div>
                   <% end %>
+                  <!-- Ссылка на остальные товары -->
                   <% if booking.cart.cart_items.count > 3 %>
                     <div class="text-center text-base-content/60">... и еще <%= booking.cart.cart_items.count - 3 %> товаров</div>
                   <% end %>
                 </div>
+
+              <!-- Случай 3: Нет товаров -->
               <% else %>
                 <p class="text-center text-base-content/70 py-4">К этому бронированию не добавлено товаров.</p>
               <% end %>
 
+              <!-- Кнопки действий (детали, отмена) -->
               <div class="card-actions justify-end mt-4">
                 <%= link_to "Детали", order_path(booking.id), class: "btn btn-outline btn-sm" %>
+                <!-- Кнопка отмены доступна только если статус 'confirmed' -->
                 <% if booking.status == 'confirmed' %>
-                  <%= link_to "Отменить", cancel_reservation_path(booking), 
-                      method: :delete, 
-                      data: { confirm: "Вы уверены, что хотите отменить бронирование?" },
-                      class: "btn btn-error btn-sm" %>
+                  <%= link_to "Отменить", cancel_reservation_path(booking),
+                        method: :delete,
+                        data: { confirm: "Вы уверены, что хотите отменить бронирование?" },
+                        class: "btn btn-error btn-sm" %>
                 <% end %>
               </div>
             </div>
           </div>
         <% end %>
       </div>
+    <!-- Состояние "История пуста" -->
     <% else %>
       <div class="card bg-base-100 shadow-xl">
         <div class="card-body text-center py-12">

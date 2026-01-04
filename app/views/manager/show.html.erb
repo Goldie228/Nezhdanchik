@@ -1,8 +1,11 @@
+
 <div class="min-h-screen bg-base-200">
+  <!-- Навигационная панель менеджера (общая для всех страниц админки) -->
   <div class="navbar bg-base-100 shadow-lg no-print">
     <div class="flex-1">
       <a class="btn btn-ghost normal-case text-xl">Панель менеджера</a>
     </div>
+    <!-- Горизонтальное меню разделов менеджера -->
     <div class="flex-none">
       <ul class="menu menu-horizontal p-0">
         <li><%= link_to "Обзор", manager_dashboard_path %></li>
@@ -14,6 +17,7 @@
   </div>
 
   <div class="container mx-auto px-4 py-6">
+    <!-- Заголовок страницы -->
     <div class="flex justify-between items-center mb-6">
       <div>
         <h1 class="text-3xl font-bold">Бронирование №<%= @booking.booking_number %></h1>
@@ -21,19 +25,25 @@
       </div>
     </div>
 
+    <!-- Адаптивная сетка: 2 колонки для основной информации справа, 1 колонка для боковой панели действий -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Левая часть (2/3 ширины): Информация о брони и заказе -->
       <div class="lg:col-span-2">
+        <!-- Карточка с основной информацией о бронировании -->
         <div class="bg-base-100 rounded-lg shadow-lg p-6 mb-6">
           <h2 class="text-xl font-bold mb-4">Информация о бронировании</h2>
-          
+
+          <!-- Сетка полей для компактного отображения (Клиент, Статус, Дата и т.д.) -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <div class="text-sm text-base-content/70">Клиент</div>
+              <!-- Полное ФИО клиента -->
               <div class="font-semibold"><%= @booking.user&.last_name %> <%= @booking.user&.first_name %> <%= @booking.user&.middle_name %></div>
             </div>
-            
+
             <div>
               <div class="text-sm text-base-content/70">Статус</div>
+              <!-- Статус с цветным бейджем -->
               <div class="mt-1">
                 <% status_info = get_status_info(@booking.status) %>
                 <div class="badge <%= status_info[:color] %>">
@@ -44,6 +54,7 @@
 
             <div>
               <div class="text-sm text-base-content/70">Требуется паспорт</div>
+              <!-- Проверка флага require_passport -->
               <div class="mt-1">
                 <% if @booking.require_passport? %>
                   <div class="badge badge-warning">Да, требуется</div>
@@ -52,17 +63,19 @@
                 <% end %>
               </div>
             </div>
-            
+
             <div>
               <div class="text-sm text-base-content/70">Дата и время</div>
               <div class="font-semibold">
+                <!-- Дата и временной интервал -->
                 <%= @booking.starts_at.strftime('%d %B %Y') %><br>
                 с <%= @booking.starts_at.strftime('%H:%M') %> до <%= @booking.ends_at.strftime('%H:%M') %>
               </div>
             </div>
-            
+
             <div>
               <div class="text-sm text-base-content/70">Длительность</div>
+              <!-- Логика расчета длительности в человекопонятном формате -->
               <div class="font-semibold">
                 <% duration_in_minutes = ((@booking.ends_at - @booking.starts_at) / 1.minute).round %>
                 <% if duration_in_minutes < 60 %>
@@ -74,19 +87,23 @@
                 <% end %>
               </div>
             </div>
-            
+
             <div>
               <div class="text-sm text-base-content/70">Стол</div>
+              <!-- Сложное отображение мест/столов -->
               <div class="font-semibold">
                 <% if @booking.seats.any? %>
                   <% seats_by_table = @booking.seats.includes(:table).group_by(&:table) %>
                   <% seats_by_table.each do |table, seats| %>
                     <% if table %>
+                      <!-- Если занят весь стол -->
                       <% if seats.count == table.seats.count %>
                         <span class="badge badge-outline badge-lg">Стол <%= table.name %></span>
+                      <!-- Если занята часть мест -->
                       <% else %>
                         <span class="badge badge-outline badge-lg">Стол <%= table.name %> (места: <%= seats.map(&:number).join(', ') %>)</span>
                       <% end %>
+                    <!-- Отдельные места без стола -->
                     <% else %>
                       <% seats.each do |seat| %>
                         <span class="badge badge-outline">М<%= seat.number %></span>
@@ -98,15 +115,17 @@
                 <% end %>
               </div>
             </div>
-            
+
             <div>
               <div class="text-sm text-base-content/70">Сумма бронирования</div>
               <div class="font-semibold">
+                <!-- Стоимость самого стола/мест (без еды) -->
                 <%= number_to_currency(@booking.total_price, unit: "BYN", format: "%n %u") %>
               </div>
             </div>
           </div>
-          
+
+          <!-- Особые пожелания клиента (если есть) -->
           <% if @booking.special_requests.present? %>
             <div class="mt-4">
               <div class="text-sm text-base-content/70">Особые запросы</div>
@@ -119,6 +138,7 @@
           <% end %>
         </div>
 
+        <!-- Секция заказа блюд (Order Items) -->
         <% if @order_items.any? %>
           <div class="bg-base-100 rounded-lg shadow-lg p-6" id="order-items-section">
             <h2 class="text-xl font-bold mb-4">Заказанные блюда</h2>
@@ -137,11 +157,13 @@
                     <tr>
                       <td>
                         <div class="flex items-center gap-3">
+                          <!-- Аватарка блюда (фото) -->
                           <div class="avatar print-hidden">
                             <div class="w-12 h-12 rounded">
                               <% if item.dish.photos.attached? %>
                                 <%= image_tag url_for(item.dish.photos.first), class: "w-full h-full object-cover" %>
                               <% else %>
+                                <!-- Заглушка, если фото нет -->
                                 <div class="w-full h-full bg-base-300 flex items-center justify-center">
                                   <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-base-content/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -152,24 +174,30 @@
                           </div>
                           <div>
                             <div class="font-bold"><%= item.dish.title %></div>
+                            <!-- Особые инструкции (ингредиенты) -->
                             <% if item.special_instructions.present? %>
                               <div class="text-xs text-base-content/60"><%= item.special_instructions %></div>
                             <% end %>
                           </div>
                         </div>
                       </td>
+                      <!-- Стоимость единицы -->
                       <td><%= number_to_currency(item.unit_price, unit: "BYN", format: "%n %u") %></td>
+                      <!-- Количество -->
                       <td><%= item.quantity %></td>
+                      <!-- Сумма позиции -->
                       <td><%= number_to_currency(item.total_price, unit: "BYN", format: "%n %u") %></td>
                     </tr>
                   <% end %>
                 </tbody>
                 <tfoot>
                   <tr>
+                    <!-- Итог по еде -->
                     <th colspan="3">Итого по заказу:</th>
                     <th><%= number_to_currency(@order_items.sum(&:total_price), unit: "BYN", format: "%n %u") %></th>
                   </tr>
                   <tr>
+                    <!-- Общий итог (Бронь + Еда) -->
                     <th colspan="3">Общая сумма (бронирование + заказ):</th>
                     <th><%= number_to_currency(@booking.total_price + @order_items.sum(&:total_price), unit: "BYN", format: "%n %u") %></th>
                   </tr>
@@ -178,6 +206,7 @@
             </div>
           </div>
         <% else %>
+          <!-- Если заказа нет -->
           <div class="bg-base-100 rounded-lg shadow-lg p-6">
             <h2 class="text-xl font-bold mb-4">Заказанные блюда</h2>
             <div class="text-center py-8">
@@ -187,7 +216,9 @@
         <% end %>
       </div>
 
+      <!-- Правая часть (1/3 ширины): Информация о клиенте и кнопки действий -->
       <div class="lg:col-span-1">
+        <!-- Карточка информации о клиенте -->
         <div class="bg-base-100 rounded-lg shadow-lg p-6 mb-6">
           <h2 class="text-xl font-bold mb-4">Информация о клиенте</h2>
           <div class="space-y-4">
@@ -195,21 +226,21 @@
               <div class="text-sm text-base-content/70">Фамилия Имя</div>
               <div class="font-semibold"><%= @booking.user&.last_name %> <%= @booking.user&.first_name %></div>
             </div>
-            
+
             <% if @booking.user&.phone %>
               <div>
                 <div class="text-sm text-base-content/70">Телефон</div>
                 <div class="font-semibold"><%= format_phone_number(@booking.user.phone) %></div>
               </div>
             <% end %>
-            
+
             <% if @booking.user&.email %>
               <div>
                 <div class="text-sm text-base-content/70">Email</div>
                 <div class="font-semibold"><%= @booking.user.email %></div>
               </div>
             <% end %>
-            
+
             <div>
               <div class="text-sm text-base-content/70">Всего бронирований</div>
               <div class="font-semibold"><%= @booking.user.bookings.count %></div>
@@ -217,16 +248,19 @@
           </div>
         </div>
 
+        <!-- Карточка действий (кнопки управления брони) -->
         <div class="bg-base-100 rounded-lg shadow-lg p-6 no-print">
           <h2 class="text-xl font-bold mb-4">Действия</h2>
           <div class="space-y-2">
+            <!-- Кнопка печати чека -->
             <button class="btn btn-primary btn-block w-full" onclick="printReceipt()">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
               </svg>
               Распечатать чек
             </button>
-            
+
+            <!-- Ссылка на звонок клиенту -->
             <% if @booking.user&.phone %>
               <a href="tel:<%= @booking.user.phone %>" class="btn btn-outline btn-block w-full">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -235,14 +269,16 @@
                 Позвонить клиенту
               </a>
             <% end %>
-            
+
+            <!-- Редактирование -->
             <%= link_to "Редактировать", edit_manager_booking_path(@booking), class: "btn btn-outline btn-block w-full" %>
-            
+
+            <!-- Отмена брони (только если статус позволяет) -->
             <% if @booking.status.in?(['pending', 'confirmed']) %>
-              <%= link_to "Отменить бронирование", cancel_reservation_path(@booking), 
-                  method: :delete, 
-                  data: { confirm: "Вы уверены, что хотите отменить это бронирование?" },
-                  class: "btn btn-error btn-block w-full" %>
+              <%= link_to "Отменить бронирование", cancel_reservation_path(@booking),
+                    method: :delete,
+                    data: { confirm: "Вы уверены, что хотите отменить это бронирование?" },
+                    class: "btn btn-error btn-block w-full" %>
             <% end %>
           </div>
         </div>
@@ -251,24 +287,28 @@
   </div>
 </div>
 
+<!-- CSS стили, применяемые только при печати (@media print) -->
+<!-- Переопределяет Tailwind/DaisyUI классы для создания аккуратного чека (удаляет фоны, навбару, кнопки) -->
 <style media="print">
   .no-print {
     display: none !important;
   }
-  
+
   .print-only {
     display: block !important;
   }
-  
+
   body {
     font-size: 12pt;
     line-height: 1.4;
   }
-  
+
+  /* Скрываем элементы интерфейса при печати */
   .bg-base-200, .navbar, .btn, .no-print-section {
     display: none !important;
   }
-  
+
+  /* Сбрасываем стили карточек для чистого белого фона */
   .bg-base-100 {
     background: white !important;
     box-shadow: none !important;
@@ -276,61 +316,65 @@
     margin-bottom: 20px !important;
     page-break-inside: avoid;
   }
-  
+
+  /* Сбрасываем Grid на блочное отображение */
   .grid {
     display: block !important;
   }
-  
-  .lg\\:col-span-2, .lg\\:col-span-1 {
+
+  /* Колонки занимают всю ширину */
+  .lg\:col-span-2, .lg\:col-span-1 {
     width: 100% !important;
   }
-  
+
   table {
     width: 100% !important;
     border-collapse: collapse !important;
     margin-bottom: 20px !important;
   }
-  
+
   th, td {
     border: 1px solid #ddd !important;
     padding: 8px !important;
     text-align: left !important;
   }
-  
+
   th {
     background-color: #f2f2f2 !important;
     font-weight: bold !important;
   }
-  
+
   .text-3xl {
     font-size: 24pt !important;
     margin-bottom: 10px !important;
   }
-  
+
   .text-xl {
     font-size: 18pt !important;
     margin-bottom: 8px !important;
   }
-  
+
   .text-sm {
     font-size: 10pt !important;
   }
-  
+
   .font-bold, .font-semibold {
     font-weight: bold !important;
   }
-  
+
   .badge {
     border: 1px solid #ddd !important;
     padding: 2px 6px !important;
     background: white !important;
     color: black !important;
   }
-  
+
+  /* Скрываем фото блюд при печати, если нужно (класс .avatar) */
   .avatar {
     display: none !important;
   }
 
+  /* Шапка для печатной версии (обычно скрыта на экране) */
   .print-header {
     display: block !important;
     text-align: center;
@@ -340,6 +384,8 @@
   }
 </style>
 
+<!-- Шаблон для печати чека. По умолчанию скрыт (`display: none`).
+     JS берет этот HTML и вставляет в новое окно. -->
 <div id="receipt-template" class="print-only" style="display: none;">
   <div style="text-align: center; margin-bottom: 20px;">
     <h2 style="font-size: 18pt; font-weight: bold;">ЧЕК</h2>
@@ -347,7 +393,7 @@
     <p style="font-size: 12pt;">Дата: <%= @booking.starts_at.strftime('%d.%m.%Y') %></p>
     <p style="font-size: 12pt;">Время: с <%= @booking.starts_at.strftime('%H:%M') %> до <%= @booking.ends_at.strftime('%H:%M') %></p>
   </div>
-  
+
   <div style="margin-bottom: 20px;">
     <h3 style="font-size: 14pt; font-weight: bold; margin-bottom: 10px;">Клиент</h3>
     <p style="font-size: 12pt;"><%= @booking.user&.last_name %> <%= @booking.user&.first_name %></p>
@@ -366,7 +412,7 @@
       <% end %>
     </p>
   </div>
-  
+
   <div style="margin-bottom: 20px;">
     <h3 style="font-size: 14pt; font-weight: bold; margin-bottom: 10px;">Стол</h3>
     <p style="font-size: 12pt;">
@@ -390,7 +436,8 @@
       <% end %>
     </p>
   </div>
-  
+
+  <!-- Таблица блюд для чека -->
   <% if @order_items.any? %>
     <div style="margin-bottom: 20px;">
       <h3 style="font-size: 14pt; font-weight: bold; margin-bottom: 10px;">Заказанные блюда</h3>
@@ -426,17 +473,23 @@
       </table>
     </div>
   <% end %>
-  
+
   <div style="margin-top: 30px; text-align: center;">
     <p style="font-size: 10pt;">Спасибо за посещение нашего ресторана!</p>
   </div>
 </div>
 
 <script>
+  // Функция печати чека
   function printReceipt() {
+    // Открываем новое пустое окно
     const printWindow = window.open('', '_blank');
+
+    // Извлекаем HTML содержимое из скрытого шаблона
     const receiptContent = document.getElementById('receipt-template').innerHTML;
 
+    // Формируем полный HTML документ для нового окна
+    // Включаем базовые стили для аккуратного отображения текста
     const printHTML = `
       <!DOCTYPE html>
       <html>
@@ -479,11 +532,15 @@
       </html>
     `;
 
+    // Записываем HTML в новое окно
     printWindow.document.write(printHTML);
+    // Закрываем поток записи документа
     printWindow.document.close();
 
+    // Ждем загрузки содержимого, затем вызываем диалог печати
     printWindow.onload = function() {
       printWindow.print();
+      // Закрываем окно после печати или отмены
       printWindow.close();
     };
   }

@@ -1,8 +1,12 @@
+
+<!-- Страница менеджера: Календарь бронирований (визуальное планирование на день) -->
 <div class="min-h-screen bg-base-200">
+  <!-- Навигационная панель менеджера -->
   <div class="navbar bg-base-100 shadow-lg">
     <div class="flex-1">
       <a class="btn btn-ghost normal-case text-xl">Панель менеджера</a>
     </div>
+    <!-- Меню разделов (Календарь активен) -->
     <div class="flex-none">
       <ul class="menu menu-horizontal p-0">
         <li><%= link_to "Обзор", manager_dashboard_path %></li>
@@ -14,35 +18,42 @@
   </div>
 
   <div class="container mx-auto px-4 py-6">
+    <!-- Заголовок и управление датой (День назад, Дата, День вперед) -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
       <div>
         <h1 class="text-3xl font-bold">Календарь бронирований</h1>
         <p class="text-base-content/70">Просмотр и управление бронированиями</p>
       </div>
+      <!-- Кнопки навигации по датам -->
       <div class="flex gap-2 items-center">
         <%= link_to manager_calendar_path(date: @selected_date - 1.day), class: "btn btn-outline" do %>
+          <!-- Стрелка влево (Пред. день) -->
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
           </svg>
         <% end %>
-        
+
+        <!-- Инпут выбора даты. При изменении JS вызывает перезагрузку страницы -->
         <div class="form-control">
-          <input type="date" id="date-picker" class="input input-bordered" value="<%= @selected_date.strftime('%Y-%m-%d') %>">
+          <input type="date" id="date-picker" class="input input-bordered" value="<%= @selected_date.strftime('%Y-%m-%d') %>" autocomplete="off">
         </div>
-        
+
         <%= link_to manager_calendar_path(date: @selected_date + 1.day), class: "btn btn-outline" do %>
+          <!-- Стрелка вправо (След. день) -->
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
           </svg>
         <% end %>
-        
+
         <%= link_to "Сегодня", manager_calendar_path, class: "btn btn-primary" %>
       </div>
     </div>
 
+    <!-- ВИЗУАЛЬНАЯ ТАБЛИЦА (Сетка Время vs Ресурсы) -->
     <div class="bg-base-100 rounded-lg shadow-lg p-6 mb-6">
       <h2 class="text-xl font-bold mb-4">Бронирования на <%= russian_date(@selected_date) %></h2>
 
+      <!-- Легенда статусов -->
       <div class="flex flex-wrap gap-4 mb-4">
         <% get_statuses_list.each do |status| %>
           <div class="flex items-center gap-2">
@@ -52,54 +63,69 @@
         <% end %>
       </div>
 
+      <!-- Сетка расписания -->
       <div class="overflow-x-auto">
         <table class="table table-compact w-full">
           <thead>
             <tr>
+              <!-- Заголовок столбца времени -->
               <th>Время</th>
+              <!-- Заголовки столов -->
               <% @tables.each do |table| %>
                 <th class="text-center">Стол <%= table.name %></th>
               <% end %>
+              <!-- Заголовки отдельных мест -->
               <% @individual_seats.each do |seat| %>
                 <th class="text-center">Место <%= seat.number %></th>
               <% end %>
             </tr>
           </thead>
           <tbody>
+            <!-- Итерация по часам (с 9:00 до 23:00) -->
             <% (9..23).each do |hour| %>
+              <!-- Итерация по минутам (00 и 30) -->
               <% [0, 30].each do |minute| %>
                 <% time_slot = Time.zone.parse("#{@selected_date.strftime('%Y-%m-%d')} #{hour.to_s.rjust(2, '0')}:#{minute.to_s.rjust(2, '0')}:00") %>
                 <tr>
+                  <!-- Ячейка времени (например, "09:30") -->
                   <td class="font-semibold">
                     <%= time_slot.strftime('%H:%M') %>
                   </td>
 
+                  <!-- Перебор столов -->
                   <% @tables.each do |table| %>
-                    <% booking = @bookings.find { |b| b.seats.any? { |s| s.table_id == table.id } && b.starts_at <= time_slot && b.ends_at > time_slot } %>
                     <td class="text-center p-1">
-                      <% if booking %>
-                        <% status_info = get_status_info(booking.status) %>
-                        <% tooltip_content = [
-                              booking.user&.full_name,
-                              "Бронь №#{booking.booking_number}",
-                              "до #{booking.ends_at.strftime('%H:%M')}"
-                            ].join("\n") %>
-                        <%= link_to manager_booking_path(booking), class: "block w-full h-full p-1 rounded", target: "_blank", rel: "noopener noreferrer" do %>
-                          <div class="tooltip" data-tip="<%= tooltip_content %>">
+                      <!-- Проверяем, занят ли стол в этот слот -->
+                      <% booking = @bookings.find { |b| b.seats.any? { |s| s.table_id == table.id } && b.starts_at <= time_slot && b.ends_at > time_slot } %>
+                      <td class="text-center p-1">
+                        <% if booking %>
+                          <!-- Если есть бронь: показываем цветную ячейку с данными клиента -->
+                          <% status_info = get_status_info(booking.status) %>
+                          <% tooltip_content = [
+                                booking.user&.full_name,
+                                "Бронь №#{booking.booking_number}",
+                                "до #{booking.ends_at.strftime('%H:%M')}"
+                              ].join("\n") %>
+                          <!-- Кликабельная ссылка на детали бронирования -->
+                          <%= link_to manager_booking_path(booking), class: "block w-full h-full p-1 rounded", target: "_blank", rel: "noopener noreferrer" do %>
+                            <!-- Стилизация зависит от статуса (data-tip для тултипа DaisyUI) -->
                             <div class="w-full h-full <%= status_info[:color] %> rounded text-xs text-white p-1">
                               <%= booking.user&.full_name&.split&.first %>
                             </div>
-                          </div>
+                          <% end %>
+                        <% else %>
+                          <!-- Если свободно: зеленый квадрат -->
+                          <div class="w-full h-full bg-success rounded"></div>
                         <% end %>
-                      <% else %>
-                        <div class="w-full h-full bg-success rounded"></div>
-                      <% end %>
-                    </td>
+                      </td>
+                    <% end %>
                   <% end %>
 
+                  <!-- Перебор отдельных мест -->
                   <% @individual_seats.each do |seat| %>
-                    <% booking = @bookings.find { |b| b.seats.include?(seat) && b.starts_at <= time_slot && b.ends_at > time_slot } %>
                     <td class="text-center p-1">
+                      <!-- Аналогичная логика для отдельных мест -->
+                      <% booking = @bookings.find { |b| b.seats.include?(seat) && b.starts_at <= time_slot && b.ends_at > time_slot } %>
                       <% if booking %>
                         <% status_info = get_status_info(booking.status) %>
                         <% tooltip_content = [
@@ -108,10 +134,8 @@
                               "до #{booking.ends_at.strftime('%H:%M')}"
                             ].join("\n") %>
                         <%= link_to manager_booking_path(booking), class: "block w-full h-full p-1 rounded", target: "_blank", rel: "noopener noreferrer" do %>
-                          <div class="tooltip" data-tip="<%= tooltip_content %>">
-                            <div class="w-full h-full <%= status_info[:color] %> rounded text-xs text-white p-1">
-                              <%= booking.user&.full_name&.split&.first %>
-                            </div>
+                          <div class="w-full h-full <%= status_info[:color] %> rounded text-xs text-white p-1">
+                            <%= booking.user&.full_name&.split&.first %>
                           </div>
                         <% end %>
                       <% else %>
@@ -127,6 +151,7 @@
       </div>
     </div>
 
+    <!-- СПИСОК БРОНИРОВАНИЙ (Текстовый вид списка под графиком) -->
     <div class="bg-base-100 rounded-lg shadow-lg p-6">
       <h2 class="text-xl font-bold mb-4">Бронирования на <%= russian_date(@selected_date) %></h2>
       <div class="overflow-x-auto">
@@ -147,18 +172,20 @@
                 <td><%= booking.booking_number %></td>
                 <td><%= booking.user&.full_name || "Неизвестный" %></td>
                 <td>
+                  <!-- Группировка мест для отображения -->
                   <% if booking.seats.any? %>
                     <% seats_by_table = booking.seats.includes(:table).group_by(&:table) %>
                     <% seats_by_table.each do |table, seats| %>
                       <% if table %>
-                        <% total_seats_at_table = @table_seat_counts[table.id] || 0 %>
-
-                        <% if seats.count == total_seats_at_table && total_seats_at_table > 0 %>
+                        <!-- Весь стол -->
+                        <% if seats.count == table.seats.count %>
                           <span>Стол <%= table.name %></span>
                         <% else %>
+                          <!-- Часть стола -->
                           <span>Стол <%= table.name %> (места: <%= seats.map(&:number).join(', ') %>)</span>
                         <% end %>
                       <% else %>
+                        <!-- Отдельные места -->
                         <% seats.each do |seat| %>
                           <span>М<%= seat.number %></span>
                         <% end %>
@@ -168,15 +195,18 @@
                     <span>Нет данных</span>
                   <% end %>
                 </td>
+                <!-- Время -->
                 <td>
                   <%= booking.starts_at.strftime('%H:%M') %> - <%= booking.ends_at.strftime('%H:%M') %>
                 </td>
+                <!-- Статус -->
                 <td>
                   <% status_info = get_status_info(booking.status) %>
                   <div class="badge <%= status_info[:color] %>">
                     <%= status_info[:text] %>
                   </div>
                 </td>
+                <!-- Действие -->
                 <td>
                   <%= link_to "Детали", manager_booking_path(booking), class: "btn btn-ghost btn-xs", target: "_blank", rel: "noopener noreferrer" %>
                 </td>
@@ -189,12 +219,15 @@
   </div>
 </div>
 
+<!-- Скрипт для обработки выбора даты -->
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    // Обработчик изменения поля даты
     const datePicker = document.getElementById('date-picker');
-    
+
     datePicker.addEventListener('change', function() {
       const selectedDate = this.value;
+      // Редирект на тот же путь, но с параметром ?date=YYYY-MM-DD
       window.location.href = `/manager/calendar?date=${selectedDate}`;
     });
   });

@@ -1,9 +1,12 @@
+
 <div class="min-h-screen bg-base-200">
+  <!-- Навигационная панель менеджера -->
   <div class="navbar bg-base-100 shadow-lg">
     <div class="flex-1">
       <a class="btn btn-ghost normal-case text-xl">Панель менеджера</a>
     </div>
     <div class="flex-none">
+      <!-- Меню разделов админки (Обзор активен) -->
       <ul class="menu menu-horizontal p-0">
         <li><%= link_to "Обзор", manager_dashboard_path, class: "active" %></li>
         <li><%= link_to "Календарь", manager_calendar_path %></li>
@@ -14,12 +17,14 @@
   </div>
 
   <div class="container mx-auto px-4 py-6">
+    <!-- Заголовок страницы и кнопка обновления данных -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
       <div>
         <h1 class="text-3xl font-bold">Панель управления</h1>
         <p class="text-base-content/70">Управление бронированиями и столиками</p>
       </div>
       <div class="flex gap-2">
+        <!-- Кнопка вызывает простую перезагрузку страницы (polling) -->
         <button class="btn btn-outline" onclick="refreshData()">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -29,7 +34,9 @@
       </div>
     </div>
 
+    <!-- Основные метрики (Stats) -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <!-- Активные бронирования прямо сейчас -->
       <div class="stat bg-base-100 rounded-lg shadow">
         <div class="stat-figure text-primary">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -41,6 +48,7 @@
         <div class="stat-desc">Сейчас в заведении</div>
       </div>
 
+      <!-- Бронирования, ожидающие подтверждения (Pending) -->
       <div class="stat bg-base-100 rounded-lg shadow">
         <div class="stat-figure text-warning">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -52,6 +60,7 @@
         <div class="stat-desc">Требуют внимания</div>
       </div>
 
+      <!-- Бронирования на сегодня -->
       <div class="stat bg-base-100 rounded-lg shadow">
         <div class="stat-figure text-info">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -63,6 +72,7 @@
         <div class="stat-desc">На <%= russian_date(Date.current) %></div>
       </div>
 
+      <!-- Свободные столы (Разница между общим числом и занятыми сейчас) -->
       <div class="stat bg-base-100 rounded-lg shadow">
         <div class="stat-figure text-success">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -70,12 +80,15 @@
           </svg>
         </div>
         <div class="stat-title">Свободных столов</div>
+        <!-- Вычисляем занятость в рантайме: Всего - Текущие -->
         <div class="stat-value text-success"><%= @tables.count - @current_bookings.count %></div>
         <div class="stat-desc">Из <%= @tables.count %> всего</div>
       </div>
     </div>
 
+    <!-- Раздел на две колонки: Текущие бронирования (таблица) и Ближайшие (список) -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Левая колонка: Таблица текущих бронирований -->
       <div class="bg-base-100 rounded-lg shadow-lg p-6">
         <div class="flex justify-between items-center mb-4">
           <h2 class="text-xl font-bold">Текущие бронирования</h2>
@@ -95,17 +108,17 @@
             <tbody>
               <% @active_bookings.each do |booking| %>
                 <tr>
+                  <!-- Логика отображения места/стола аналогична списку бронирований -->
                   <td>
                     <% if booking.seats.any? %>
                       <% seats_by_table = booking.seats.includes(:table).group_by(&:table) %>
                       <% seats_by_table.each do |table, seats| %>
                         <% if table %>
                           <% total_seats_at_table = @table_seat_counts[table.id] || 0 %>
-
                           <% if seats.count == total_seats_at_table && total_seats_at_table > 0 %>
                             <span>Стол <%= table.name %></span>
                           <% else %>
-                            <span>Стол <%= table.name %> (<%= seats.map(&:number).join(', ') %>)</span>
+                            <span>Стол <%= table.name %> (места: <%= seats.map(&:number).join(', ') %>)</span>
                           <% end %>
                         <% else %>
                           <% seats.each do |seat| %>
@@ -117,19 +130,23 @@
                       <span>Нет данных</span>
                     <% end %>
                   </td>
+                  <!-- Данные клиента -->
                   <td><%= booking.user&.full_name || "Неизвестный" %></td>
+                  <!-- Время -->
                   <td>
                     <%= booking.starts_at.strftime('%H:%M') %> - <%= booking.ends_at.strftime('%H:%M') %>
                   </td>
+                  <!-- Статус (цветной бейдж) -->
                   <td>
-                    <div class="badge <%= 
-                      booking.status == 'pending' ? 'badge-warning' : 
-                      booking.status == 'confirmed' ? 'badge-info' : 
-                      'badge-success' 
-                    %>">
+                    <div class="badge <%=
+                      booking.status == 'pending' ? 'badge-warning' :
+                      booking.status == 'confirmed' ? 'badge-info' :
+                      'badge-success'
+                                      %>">
                       <%= booking_status_in_russian(booking.status) %>
                     </div>
                   </td>
+                  <!-- Ссылка на детали -->
                   <td>
                     <%= link_to "Детали", manager_booking_path(booking), class: "btn btn-ghost btn-xs" %>
                   </td>
@@ -140,31 +157,34 @@
         </div>
       </div>
 
+      <!-- Правая колонка: Список ближайших бронирований (Upcoming) -->
       <div class="bg-base-100 rounded-lg shadow-lg p-6">
         <div class="flex justify-between items-center mb-4">
           <h2 class="text-xl font-bold">Ближайшие бронирования</h2>
           <%= link_to "Все", manager_calendar_path, class: "btn btn-ghost btn-sm" %>
         </div>
         <div class="space-y-3">
+          <!-- Список карточек -->
           <% @upcoming_bookings.each do |booking| %>
             <div class="border border-base-300 rounded-lg p-3 hover:shadow-md transition-shadow">
               <div class="flex justify-between items-start">
                 <div>
                   <div class="font-semibold"><%= booking.booking_number %></div>
+                  <!-- Дата и время в человекопонятном формате -->
                   <div class="text-sm text-base-content/70">
                     <%= russian_date(booking.starts_at) %>, <%= booking.starts_at.strftime('%H:%M') %> - <%= booking.ends_at.strftime('%H:%M') %>
                   </div>
+                  <!-- Места/Столы -->
                   <div class="text-sm">
                     <% if booking.seats.any? %>
                       <% seats_by_table = booking.seats.includes(:table).group_by(&:table) %>
                       <% seats_by_table.each do |table, seats| %>
                         <% if table %>
                           <% total_seats_at_table = @table_seat_counts[table.id] || 0 %>
-
                           <% if seats.count == total_seats_at_table && total_seats_at_table > 0 %>
                             <span>Стол <%= table.name %></span>
                           <% else %>
-                            <span>Стол <%= table.name %> (<%= seats.map(&:number).join(', ') %>)</span>
+                            <span>Стол <%= table.name %> (места: <%= seats.map(&:number).join(', ') %>)</span>
                           <% end %>
                         <% else %>
                           <% seats.each do |seat| %>
@@ -175,12 +195,13 @@
                     <% end %>
                   </div>
                 </div>
+                <!-- Статус и Клиент справа -->
                 <div class="text-right">
-                  <div class="badge <%= 
-                    booking.status == 'pending' ? 'badge-warning' : 
-                    booking.status == 'confirmed' ? 'badge-info' : 
-                    'badge-success' 
-                  %> mb-2">
+                  <div class="badge <%=
+                    booking.status == 'pending' ? 'badge-warning' :
+                    booking.status == 'confirmed' ? 'badge-info' :
+                    'badge-success'
+                                    %> mb-2">
                     <%= booking_status_in_russian(booking.status) %>
                   </div>
                   <div class="text-sm font-semibold">
@@ -194,24 +215,30 @@
       </div>
     </div>
 
+    <!-- Визуализация состояния столов и мест (Карта занятости) -->
     <div class="bg-base-100 rounded-lg shadow-lg p-6 mt-6">
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-bold">Состояние столов и мест</h2>
         <%= link_to "Все столы", manager_tables_path, class: "btn btn-ghost btn-sm" %>
       </div>
+      <!-- Сетка карточек столов -->
       <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
         <% @tables.each do |table| %>
+          <!-- Проверяем, есть ли активная бронь за этим столом -->
           <% booking = @current_bookings.find { |b| b.seats.any? { |s| s.table_id == table.id } } %>
           <div class="card bg-base-200 shadow-md <%= 'border-2 border-warning' if booking %>">
             <div class="card-body p-4 text-center">
               <h3 class="card-title justify-center text-lg">Стол <%= table.name %></h3>
               <div class="text-sm text-base-content/70 mb-2"><%= table.seats_count %> мест</div>
+
+              <!-- Если есть бронь: предупреждение и данные клиента -->
               <% if booking %>
                 <div class="badge badge-warning badge-sm mb-2">Занят</div>
                 <div class="text-xs">
                   <%= booking.user&.full_name %><br>
                   до <%= booking.ends_at.strftime('%H:%M') %>
                 </div>
+              <!-- Если свободно -->
               <% else %>
                 <div class="badge badge-success badge-sm">Свободен</div>
               <% end %>
@@ -219,12 +246,15 @@
           </div>
         <% end %>
 
+        <!-- Сетка карточек отдельных мест -->
         <% @individual_seats.each do |seat| %>
+          <!-- Проверяем, забронировано ли место -->
           <% booking = @current_bookings.find { |b| b.seats.include?(seat) } %>
           <div class="card bg-base-200 shadow-md <%= 'border-2 border-warning' if booking %>">
             <div class="card-body p-4 text-center">
               <h3 class="card-title justify-center text-lg">Место <%= seat.number %></h3>
               <div class="text-sm text-base-content/70 mb-2">Отдельное место</div>
+
               <% if booking %>
                 <div class="badge badge-warning badge-sm mb-2">Занято</div>
                 <div class="text-xs">
@@ -242,6 +272,7 @@
   </div>
 </div>
 
+<!-- Скрипт для ручного обновления страницы -->
 <script>
   function refreshData() {
     location.reload();

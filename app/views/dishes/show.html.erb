@@ -1,5 +1,7 @@
+
 <div class="min-h-screen bg-base-200">
   <div class="container mx-auto px-4 py-4 md:py-8">
+    <!-- Хлебные крошки для навигации: Меню -> Категория -> Блюдо -->
     <div class="text-sm breadcrumbs mb-4 md:mb-6">
       <ul>
         <li><%= link_to "Меню", menu_path, class: "text-primary hover:text-primary-focus" %></li>
@@ -10,18 +12,23 @@
       </ul>
     </div>
 
+    <!-- Адаптивная сетка: 2 колонки на больших экранах, 1 колонка на мобильных -->
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 md:gap-8">
+      <!-- Левая колонка (2/3 ширины): Изображения, описание, ингредиенты -->
       <div class="xl:col-span-2">
+        <!-- Карточка с изображением блюда -->
         <div class="card bg-base-100 shadow-xl md:shadow-2xl mb-4 md:mb-6">
           <div class="card-body p-0">
             <% if @dish.photos.attached? %>
               <% if @dish.photos.length > 1 %>
+                <!-- Галерея с несколькими фото (карусель) -->
                 <div class="relative w-full rounded-2xl overflow-hidden group" id="dish-carousel-container">
                   <div class="carousel-container relative h-48 sm:h-64 md:h-80 lg:h-96 overflow-hidden">
                     <div class="carousel-track flex transition-transform duration-500 ease-in-out h-full" id="carousel-track">
                       <% @dish.photos.each_with_index do |photo, index| %>
                         <div class="carousel-slide min-w-full h-full relative" data-index="<%= index %>">
                           <div class="rounded-2xl overflow-hidden h-full relative">
+                            <!-- Заглушка (скелетон) пока грузится фото -->
                             <div class="absolute inset-0 bg-base-300 animate-pulse rounded-2xl z-0">
                               <div class="w-full h-full flex items-center justify-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-base-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -29,14 +36,16 @@
                                 </svg>
                               </div>
                             </div>
-                            
-                            <%= image_tag url_for(photo.variant(resize_to_limit: [1000, 800])), 
+
+                            <!-- Основное изображение, кликабельное для модального окна -->
+                            <%= image_tag url_for(photo.variant(resize_to_limit: [1000, 800])),
                                   class: "w-full h-full object-cover cursor-zoom-in transition-transform duration-300 hover:scale-105 relative z-10",
                                   onclick: "openImageModal('#{url_for(photo)}')",
                                   onload: "this.parentElement.querySelector('.animate-pulse').style.display='none'",
                                   loading: "lazy" %>
                           </div>
 
+                          <!-- Счетчик слайдов -->
                           <div class="absolute top-2 md:top-4 right-2 md:right-4 bg-base-100/90 rounded-full px-2 md:px-3 py-1 text-xs md:text-sm font-medium shadow-lg z-20">
                             <%= index + 1 %> / <%= @dish.photos.length %>
                           </div>
@@ -45,6 +54,7 @@
                     </div>
                   </div>
 
+                  <!-- Кнопки управления слайдером (пред./след) -->
                   <button id="prev-slide" class="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 btn btn-circle btn-sm md:btn-md btn-ghost bg-base-100/80 hover:bg-base-100 border-0 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 flex items-center justify-center">
                     <span class="flex items-center justify-center text-lg md:text-xl mb-1">❮</span>
                   </button>
@@ -52,6 +62,7 @@
                     <span class="flex items-center justify-center text-lg md:text-xl mb-1">❯</span>
                   </button>
 
+                  <!-- Индикаторы точек (пагинация слайдера) -->
                   <div class="absolute bottom-2 md:bottom-4 left-1/2 transform -translate-x-1/2 z-20">
                     <div class="flex gap-1 md:gap-2 bg-base-100/80 rounded-full px-2 md:px-3 py-1 md:py-2 shadow-lg">
                       <% @dish.photos.each_with_index do |_, i| %>
@@ -61,19 +72,24 @@
                   </div>
                 </div>
               <% else %>
+                <!-- Одно фото блюда -->
                 <figure class="w-full h-48 sm:h-64 md:h-80 lg:h-96 rounded-2xl overflow-hidden group">
-                  <%= image_tag url_for(@dish.photos.first.variant(resize_to_limit: [1000, 800])), 
+                  <div class="absolute inset-0 bg-base-300 animate-pulse rounded-2xl z-0"></div>
+
+                  <%= image_tag url_for(@dish.photos.first.variant(resize_to_limit: [1000, 800])),
                         class: "w-full h-full object-cover cursor-zoom-in transition-transform duration-300 group-hover:scale-105",
                         alt: @dish.title,
-                        onclick: "openImageModal('#{url_for(@dish.photos.first)}')" %>
+                        onclick: "openImageModal('#{url_for(@dish.photos.first)}')",
+                        onload: "this.parentElement.querySelector('.animate-pulse').style.display='none'" %>
                 </figure>
               <% end %>
             <% else %>
-              <figure class="w-full h-48 sm:h-64 md:h-80 lg:h-96 flex items-center justify-center bg-base-200 rounded-2xl border border-base">
+              <!-- Заглушка, если у блюда нет фото -->
+              <figure class="w-full h-48 sm:h-64 md:h-80 lg:h-96 flex items-center justify-center bg-base-200 rounded-2xl border border-base relative">
                 <svg xmlns="http://www.w3.org/2000/svg"
                      class="w-12 h-12 text-base"
                      fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" 
+                  <path stroke-linecap="round" stroke-linejoin="round"
                         d="M3 7.5A2.5 2.5 0 015.5 5h2.086a1 1 0 00.707-.293l1.414-1.414A1 1 0 0110.414 3h3.172a1 1 0 01.707.293l1.414 1.414a1 1 0 00.707.293H18.5A2.5 2.5 0 0121 7.5v9a2.5 2.5 0 01-2.5 2.5h-13A2.5 2.5 0 013 16.5v-9z" />
                   <circle cx="12" cy="12" r="3.5" />
                 </svg>
@@ -82,14 +98,17 @@
           </div>
         </div>
 
+        <!-- Детальная информация о блюде -->
         <div class="card bg-base-100 shadow-xl mb-4 md:mb-6">
           <div class="card-body p-4 md:p-6">
             <div class="flex flex-col gap-4">
               <div class="flex flex-col gap-2">
+                <!-- Название и цена -->
                 <h1 class="card-title text-2xl md:text-3xl lg:text-4xl font-bold text-primary">
                   <%= @dish.title %>
                 </h1>
-                
+
+                <!-- Цена, вес, время готовки -->
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                   <div class="text-xl md:text-2xl lg:text-3xl font-bold text-primary">
                     <%= number_to_currency(@dish.price || 0, unit: "BYN", format: "%n %u") %>
@@ -110,62 +129,66 @@
                   </div>
                 </div>
               </div>
-              
+              <!-- Описание блюда -->
               <p class="text-base-content/70 text-base md:text-lg leading-relaxed">
                 <%= @dish.description %>
               </p>
+            </div>
 
-              <div class="bg-base-200 rounded-2xl p-4 md:p-6">
-                <h3 class="text-lg md:text-xl font-bold mb-3 md:mb-4 flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M9.75838 1.09929C9.85156 1.13153 9.9852 1.17902 10.1535 1.24207C10.49 1.36812 10.9661 1.55678 11.5355 1.81078C12.6715 2.31752 14.193 3.09073 15.7215 4.15505C18.745 6.26052 22 9.65692 22 14.5393C22 16.6738 21.4305 18.7869 20.1046 20.3856C18.7552 22.0126 16.7095 23 14 23C13.9352 23 13.6752 22.9978 13.4169 22.8125C13.0566 22.5541 12.9699 22.1541 13.0085 21.8667C13.0376 21.6502 13.1305 21.5025 13.1576 21.4602C13.1966 21.3993 13.234 21.3556 13.2534 21.3338C13.293 21.2893 13.3281 21.2581 13.3407 21.247C13.3575 21.2322 13.3716 21.2207 13.3801 21.214C13.4065 21.1929 13.4323 21.1745 13.4402 21.1689L13.4413 21.1681L13.5185 21.1136C13.5762 21.0727 13.6587 21.0131 13.7588 20.9348C13.9606 20.7768 14.2297 20.546 14.4969 20.2526C15.0448 19.6509 15.5 18.8819 15.5 18C15.5 16.3681 14.571 14.8515 13.5067 13.669C12.9869 13.0914 12.4644 12.6267 12.0715 12.3065C12.0471 12.2866 12.0233 12.2674 12 12.2487C11.9767 12.2674 11.9529 12.2866 11.9285 12.3065C11.5356 12.6267 11.0131 13.0914 10.4933 13.669C9.42904 14.8515 8.5 16.3681 8.5 18C8.5 18.8887 8.95405 19.6581 9.49825 20.2564C9.76406 20.5486 10.0319 20.7779 10.2327 20.934C10.3323 21.0114 10.4142 21.0699 10.47 21.1087C10.4933 21.125 10.5115 21.1374 10.5281 21.1487L10.5401 21.1569C10.5471 21.1616 10.5635 21.1728 10.5787 21.1837C10.5832 21.187 10.6139 21.2089 10.6476 21.2376C10.6583 21.2467 10.6772 21.2632 10.6995 21.285C10.7154 21.3005 10.7647 21.3492 10.8157 21.4212C10.8424 21.4607 10.901 21.5658 10.9302 21.6326C10.9668 21.7437 10.9991 22.045 10.9733 22.2301C10.89 22.4562 10.6027 22.798 10.4241 22.9056C10.2979 22.9546 10.0834 22.9965 10 23C7.29045 23 5.24478 22.0126 3.89543 20.3856C2.56953 18.7869 2 16.6738 2 14.5393C2 11.9892 2.88357 10.3815 4.05286 9.15507C4.5965 8.58486 5.19715 8.10224 5.73579 7.66945L5.77852 7.63511C6.34602 7.17903 6.84273 6.7759 7.26778 6.31893C8.30821 5.20037 8.54446 4.18717 8.56055 3.49802C8.56885 3.14245 8.51857 2.85417 8.46943 2.66213C8.44495 2.56644 8.42112 2.49608 8.40592 2.45502C8.39834 2.43455 8.39298 2.42158 8.39089 2.41662C8.22725 2.05872 8.28834 1.6367 8.54841 1.34037C8.86981 0.974175 9.32884 0.950674 9.75838 1.09929Z"></path>
-                  </svg>
-                  Пищевая ценность на 100г
-                </h3>
-                <div class="stats stats-vertical lg:stats-horizontal shadow w-full">
-                  <div class="stat">
-                    <div class="stat-title">Белки</div>
-                    <div class="stat-value text-primary">
-                      <%= number_with_precision(@dish.nutrition&.proteins || 0, precision: 1) %>г
-                    </div>
+            <!-- Карточка КБЖУ (Пищевая ценность на 100г) -->
+            <div class="bg-base-200 rounded-2xl p-4 md:p-6">
+              <h3 class="text-lg md:text-xl font-bold mb-3 md:mb-4 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M9.75838 1.09929C9.85156 1.13153 9.9852 1.17902 10.1535 1.24207C10.49 1.36812 10.9661 1.55678 11.5355 1.81078C12.6715 2.31752 14.193 3.09073 15.7215 4.15505C18.745 6.26052 22 9.65692 22 14.5393C22 16.6738 21.4305 18.7869 20.1046 20.3856C18.7552 22.0126 16.7095 23 14 23C13.9352 23 13.6752 22.9978 13.4169 22.8125C13.0566 22.5541 12.9699 22.1541 13.0085 21.8667C13.0376 21.6502 13.1305 21.5025 13.1576 21.4602C13.1966 21.3993 13.234 21.3556 13.2534 21.3338C13.293 21.2893 13.3281 21.2581 13.3407 21.247C13.3575 21.2322 13.3716 21.2207 13.3801 21.214C13.4065 21.1929 13.4323 21.1745 13.4402 21.1689L13.4413 21.1681L13.5185 21.1136C13.5762 21.0727 13.6587 21.0131 13.7588 20.9348C13.9606 20.7768 14.2297 20.546 14.4969 20.2526C15.0448 19.6509 15.5 18.8819 15.5 18C15.5 16.3681 14.571 14.8515 13.5067 13.669C12.9869 13.0914 12.4644 12.6267 12.0715 12.3065C12.0471 12.2866 12.0233 12.2674 12 12.2487C11.9767 12.2674 11.9529 12.2866 11.9285 12.3065C11.5356 12.6267 11.0131 13.0914 10.4933 13.669C9.42904 14.8515 8.5 16.3681 8.5 18C8.5 18.8887 8.95405 19.6581 9.49825 20.2564C9.76406 20.5486 10.0319 20.7779 10.2327 20.934C10.3323 21.0114 10.4142 21.0699 10.47 21.1087C10.4933 21.125 10.5115 21.1374 10.5281 21.1487L10.5401 21.1569C10.5471 21.1616 10.5635 21.1728 10.5787 21.1837C10.5832 21.187 10.6139 21.2089 10.6476 21.2376C10.6583 21.2467 10.6772 21.2632 10.6995 21.285C10.7154 21.3005 10.7647 21.3492 10.8157 21.4212C10.8424 21.4607 10.901 21.5658 10.9302 21.6326C10.9668 21.7437 10.9991 22.045 10.9733 22.2301C10.89 22.4562 10.6027 22.798 10.4241 22.9056C10.2979 22.9546 10.0834 22.9965 10 23C7.29045 23 5.24478 22.0126 3.89543 20.3856C2.56953 18.7869 2 16.6738 2 14.5393C2 11.9892 2.88357 10.3815 4.05286 9.15507C4.5965 8.58486 5.19715 8.10224 5.73579 7.66945L5.77852 7.63511C6.34602 7.17903 6.84273 6.7759 7.26778 6.31893C8.30821 5.20037 8.54446 4.18717 8.56055 3.49802C8.56885 3.14245 8.51857 2.85417 8.46943 2.66213C8.44495 2.56644 8.42112 2.49608 8.40592 2.45502C8.39834 2.43455 8.39298 2.42158 8.39089 2.41662C8.22725 2.05872 8.28834 1.6367 8.54841 1.34037C8.86981 0.974175 9.32884 0.950674 9.75838 1.09929Z"></path>
+                </svg>
+                Пищевая ценность на 100г
+              </h3>
+              <div class="stats stats-vertical lg:stats-horizontal shadow w-full">
+                <div class="stat">
+                  <div class="stat-title">Белки</div>
+                  <div class="stat-value text-primary">
+                    <%= number_with_precision(@dish.nutrition&.proteins || 0, precision: 1) %>г
                   </div>
+                </div>
 
-                  <div class="stat">
-                    <div class="stat-title">Жиры</div>
-                    <div class="stat-value text-primary">
-                      <%= number_with_precision(@dish.nutrition&.fats || 0, precision: 1) %>г
-                    </div>
+                <div class="stat">
+                  <div class="stat-title">Жиры</div>
+                  <div class="stat-value text-primary">
+                    <%= number_with_precision(@dish.nutrition&.fats || 0, precision: 1) %>г
                   </div>
+                </div>
 
-                  <div class="stat">
-                    <div class="stat-title">Углеводы</div>
-                    <div class="stat-value text-primary">
-                      <%= number_with_precision(@dish.nutrition&.carbohydrates || 0, precision: 1) %>г
-                    </div>
+                <div class="stat">
+                  <div class="stat-title">Углеводы</div>
+                  <div class="stat-value text-primary">
+                    <%= number_with_precision(@dish.nutrition&.carbohydrates || 0, precision: 1) %>г
                   </div>
+                </div>
 
-                  <div class="stat">
-                    <div class="stat-title">Калории</div>
-                    <div class="stat-value text-warning">
-                      <%= number_with_precision(calculate_calories(@dish.nutrition), precision: 0) %>ккал
-                    </div>
+                <div class="stat">
+                  <div class="stat-title">Калории</div>
+                  <div class="stat-value text-warning">
+                    <%= number_with_precision(calculate_calories(@dish.nutrition), precision: 0) %>ккал
                   </div>
                 </div>
               </div>
-
-              <% if @dish.category %>
-                <div class="flex items-center gap-3 p-3 md:p-4 bg-base-200 rounded-2xl">
-                  <span class="text-base-content/60 font-medium">Категория:</span>
-                  <span class="badge badge-primary badge-lg px-3 md:px-4 py-2 md:py-3 text-sm md:text-base">
-                    <%= @dish.category.name %>
-                  </span>
-                </div>
-              <% end %>
             </div>
+
+            <!-- Бейдж категории -->
+            <% if @dish.category %>
+              <div class="flex items-center gap-3 p-3 md:p-4 bg-base-200 rounded-2xl">
+                <span class="text-base-content/60 font-medium">Категория:</span>
+                <span class="badge badge-primary badge-lg px-3 md:px-4 py-2 md:py-3 text-sm md:text-base">
+                  <%= @dish.category.name %>
+                </span>
+              </div>
+            <% end %>
           </div>
         </div>
 
+        <!-- Секция выбора ингредиентов -->
         <div class="space-y-4 md:space-y-6">
+          <!-- Список ингредиентов, входящих в состав по умолчанию -->
           <% if @default_ingredients.any? %>
             <div class="card bg-base-100 shadow-xl">
               <div class="card-body p-4 md:p-6">
@@ -179,16 +202,19 @@
                   <% @default_ingredients.each do |di| %>
                     <label class="card bg-base-200 shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer group">
                       <div class="flex items-center gap-3 md:gap-4 p-3 md:p-4">
-                        <input type="checkbox" 
-                               class="checkbox checkbox-primary checkbox-md md:checkbox-lg ingredient-checkbox" 
-                               checked 
+                        <!-- Чекбокс отмечен по умолчанию, пользователь может снять галочку (убрать) -->
+                        <input type="checkbox"
+                               class="checkbox checkbox-primary checkbox-md md:checkbox-lg ingredient-checkbox"
+                               checked
                                data-ingredient-id="<%= di.ingredient.id %>"
                                data-price="<%= di.ingredient.price || 0 %>"
                                data-weight="<%= di.ingredient.weight || 0 %>"
                                data-proteins="<%= di.ingredient.nutrition&.proteins || 0 %>"
                                data-fats="<%= di.ingredient.nutrition&.fats || 0 %>"
                                data-carbohydrates="<%= di.ingredient.nutrition&.carbohydrates || 0 %>"
-                               data-default="true" />
+                               data-default="true">
+
+                        <!-- Фото ингредиента -->
                         <figure class="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl overflow-hidden flex-shrink-0 relative">
                           <div class="absolute inset-0 bg-base-300 animate-pulse skeleton-loader">
                             <div class="w-full h-full flex items-center justify-center">
@@ -197,13 +223,14 @@
                               </svg>
                             </div>
                           </div>
-                          
+
                           <% if di.ingredient.photo.attached? %>
-                            <%= image_tag url_for(di.ingredient.photo.variant(resize_to_fill: [80, 80])), 
+                            <%= image_tag url_for(di.ingredient.photo.variant(resize_to_fill: [80, 80])),
                                           class: "w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 ingredient-photo",
                                           alt: di.ingredient.name,
                                           onload: "this.previousElementSibling.style.display='none'" %>
                           <% else %>
+                            <!-- Заглушка фото ингредиента -->
                             <div class="w-full h-full flex items-center justify-center bg-base-200">
                               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-base-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -218,6 +245,7 @@
                         <div class="flex-1 min-w-0">
                           <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 md:gap-2">
                             <h3 class="font-semibold text-base md:text-lg truncate"><%= di.ingredient.name %></h3>
+                            <!-- Цена указана без знака, подразумевается, что она уже включена в базу. Если убрать - цена не меняется, но если добавить доп. - меняется -->
                             <span class="text-primary font-semibold text-base md:text-lg whitespace-nowrap">
                               +<%= number_to_currency(di.ingredient.price || 0, unit: "BYN", format: "%n %u") %>
                             </span>
@@ -231,6 +259,7 @@
                             <% end %>
                           </div>
 
+                          <!-- КБЖУ ингредиента (блок) -->
                           <% if di.ingredient.nutrition && (di.ingredient.nutrition.proteins.present? || di.ingredient.nutrition.fats.present? || di.ingredient.nutrition.carbohydrates.present?) %>
                             <div class="mt-2 flex items-center gap-3 text-xs text-base-content/60">
                               <% if di.ingredient.nutrition.proteins.present? %>
@@ -262,6 +291,7 @@
             </div>
           <% end %>
 
+          <!-- Список дополнительных ингредиентов -->
           <% if @new_ingredients.any? %>
             <div class="card bg-base-100 shadow-xl">
               <div class="card-body p-4 md:p-6">
@@ -275,15 +305,16 @@
                   <% @new_ingredients.each do |di| %>
                     <label class="card bg-base-200 shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer group">
                       <div class="flex items-center gap-3 md:gap-4 p-3 md:p-4">
-                        <input type="checkbox" 
-                               class="checkbox checkbox-accent checkbox-md md:checkbox-lg ingredient-checkbox" 
+                        <!-- Чекбокс пустой по умолчанию. Если поставить галочку - добавляем ингредиент -->
+                        <input type="checkbox"
+                               class="checkbox checkbox-accent checkbox-md md:checkbox-lg ingredient-checkbox"
                                data-ingredient-id="<%= di.ingredient.id %>"
                                data-price="<%= di.ingredient.price || 0 %>"
                                data-weight="<%= di.ingredient.weight || 0 %>"
                                data-proteins="<%= di.ingredient.nutrition&.proteins || 0 %>"
                                data-fats="<%= di.ingredient.nutrition&.fats || 0 %>"
                                data-carbohydrates="<%= di.ingredient.nutrition&.carbohydrates || 0 %>"
-                               data-default="false" />
+                               data-default="false">
 
                         <figure class="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl overflow-hidden flex-shrink-0 relative">
                           <div class="absolute inset-0 bg-base-300 animate-pulse skeleton-loader">
@@ -293,9 +324,9 @@
                               </svg>
                             </div>
                           </div>
-                          
+
                           <% if di.ingredient.photo.attached? %>
-                            <%= image_tag url_for(di.ingredient.photo.variant(resize_to_fill: [80, 80])), 
+                            <%= image_tag url_for(di.ingredient.photo.variant(resize_to_fill: [80, 80])),
                                           class: "w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 ingredient-photo",
                                           onload: "this.previousElementSibling.style.display='none'" %>
                           <% else %>
@@ -359,69 +390,73 @@
         </div>
       </div>
 
-    <div class="xl:col-span-1">
-      <div class="sticky top-4 md:top-6 space-y-4 md:space-y-6">
-        <div class="card from-primary/10 via-primary/5 to-secondary/10 shadow-xl md:shadow-2xl border border-primary/20">
-          <div class="card-body p-4 md:p-6">
-            <h2 class="card-title text-xl md:text-2xl text-primary mb-2 flex items-center gap-2">
-              <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
-              </svg>
-              Ваш заказ
-            </h2>
-            
-            <div class="space-y-3 md:space-y-4 bg-base-100/90 rounded-xl md:rounded-2xl p-4 md:p-6 backdrop-blur-sm border border-base-200">
-              <div class="flex justify-between items-center text-base md:text-lg">
-                <span class="text-base-content/70">Базовая цена:</span>
-                <span id="base-price" class="font-semibold" data-base-price="<%= @dish.price || 0 %>">
-                  <%= number_to_currency(@dish.price || 0, unit: "BYN", format: "%n %u") %>
-                </span>
-              </div>
-              <div class="flex justify-between items-center text-base md:text-lg">
-                <span class="text-base-content/70">Дополнительно:</span>
-                <span id="extras-price" class="font-semibold text-secondary-content">
-                  <%= number_to_currency(0, unit: "BYN", format: "%n %u") %>
-                </span>
-              </div>
-              <div class="divider my-1 md:my-2"></div>
-              <div class="flex justify-between items-center text-lg md:text-xl font-bold text-primary">
-                <span>Итого к оплате:</span>
-                <span id="total-price" class="text-xl md:text-2xl">
-                  <%= number_to_currency(@dish.price || 0, unit: "BYN", format: "%n %u") %>
-                </span>
-              </div>
-              <div class="flex justify-between items-center text-sm md:text-base text-base-content/70">
-                <span>Общий вес:</span>
-                <span id="total-weight" class="font-medium" data-base-weight="<%= @dish.weight || 0 %>">
-                  <%= @dish.weight || 0 %> г
-                </span>
-              </div>
-            </div>
+      <!-- Правая колонка (1/3 ширины): Прилипающая панель заказа -->
+      <div class="xl:col-span-1">
+        <div class="sticky top-4 md:top-6 space-y-4 md:space-y-6">
+          <!-- Карточка заказа -->
+          <div class="card from-primary/10 via-primary/5 to-secondary/10 shadow-xl md:shadow-2xl border border-primary/20">
+            <div class="card-body p-4 md:p-6">
+              <h2 class="card-title text-xl md:text-2xl text-primary mb-2 flex items-center gap-2">
+                <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+                Ваш заказ
+              </h2>
 
-            <div class="mt-4 md:mt-6 bg-base-100/90 rounded-xl md:rounded-2xl p-4 md:p-6 backdrop-blur-sm border border-base-200">
-              <h3 class="text-lg font-bold mb-3 flex items-center gap-2">
-                Пищевая ценность
-              </h3>
-              <div class="grid grid-cols-2 gap-3 text-sm" 
-                   id="nutrition-block"
-                   data-base-proteins="<%= @dish.nutrition&.proteins || 0 %>"
-                   data-base-fats="<%= @dish.nutrition&.fats || 0 %>"
-                   data-base-carbohydrates="<%= @dish.nutrition&.carbohydrates || 0 %>">
+              <!-- Блок расчета стоимости -->
+              <div class="space-y-3 md:space-y-4 bg-base-100/90 rounded-xl md:rounded-2xl p-4 md:p-6 backdrop-blur-sm border border-base-200">
+                <div class="flex justify-between items-center text-base md:text-lg">
+                  <span class="text-base-content/70">Базовая цена:</span>
+                  <span id="base-price" class="font-semibold" data-base-price="<%= @dish.price || 0 %>">
+                    <%= number_to_currency(@dish.price || 0, unit: "BYN", format: "%n %u") %>
+                  </span>
+                </div>
+                <div class="flex justify-between items-center text-base md:text-lg">
+                  <span class="text-base-content/70">Дополнительно:</span>
+                  <span id="extras-price" class="font-semibold text-secondary-content">
+                    <%= number_to_currency(0, unit: "BYN", format: "%n %u") %>
+                  </span>
+                </div>
+                <div class="divider my-1 md:my-2"></div>
+                <div class="flex justify-between items-center text-lg md:text-xl font-bold text-primary">
+                  <span>Итого к оплате:</span>
+                  <span id="total-price" class="text-xl md:text-2xl">
+                    <%= number_to_currency(@dish.price || 0, unit: "BYN", format: "%n %u") %>
+                  </span>
+                </div>
+                <div class="flex justify-between items-center text-sm md:text-base text-base-content/70">
+                  <span>Общий вес:</span>
+                  <span id="total-weight" class="font-medium" data-base-weight="<%= @dish.weight || 0 %>">
+                    <%= @dish.weight || 0 %> г
+                  </span>
+                </div>
+              </div>
+
+              <!-- Блок расчета КБЖУ -->
+              <div class="mt-4 md:mt-6 bg-base-100/90 rounded-xl md:rounded-2xl p-4 md:p-6 backdrop-blur-sm border border-base-200">
+                <h3 class="text-lg font-bold mb-3 flex items-center gap-2">
+                  Пищевая ценность
+                </h3>
+                <div class="grid grid-cols-2 gap-3 text-sm"
+                     id="nutrition-block"
+                     data-base-proteins="<%= @dish.nutrition&.proteins || 0 %>"
+                     data-base-fats="<%= @dish.nutrition&.fats || 0 %>"
+                     data-base-carbohydrates="<%= @dish.nutrition&.carbohydrates || 0 %>">
                 <div class="text-base-content/70">Белки</div>
                 <div class="font-medium text-right" id="nutrition-proteins">
                   <%= number_with_precision(@dish.nutrition&.proteins || 0, precision: 1) %> г
                 </div>
-                
+
                 <div class="text-base-content/70">Жиры</div>
                 <div class="font-medium text-right" id="nutrition-fats">
                   <%= number_with_precision(@dish.nutrition&.fats || 0, precision: 1) %> г
                 </div>
-                
+
                 <div class="text-base-content/70">Углеводы</div>
                 <div class="font-medium text-right" id="nutrition-carbs">
                   <%= number_with_precision(@dish.nutrition&.carbohydrates || 0, precision: 1) %> г
                 </div>
-                
+
                 <div class="text-base-content/70">Калории</div>
                 <div class="font-medium text-right" id="nutrition-calories">
                   <%= number_with_precision(calculate_calories(@dish.nutrition), precision: 0) %> ккал
@@ -429,16 +464,19 @@
               </div>
             </div>
 
+            <!-- Блок кнопок действий (Добавить в корзину / Управление количеством) -->
             <div class="card-actions mt-4 md:mt-6 flex justify-center">
               <% if current_user %>
                 <div id="add-to-cart-container" class="w-full">
+                  <!-- Форма добавления в корзину (AJAX) -->
                   <%= form_with url: add_to_cart_path(@dish.id), method: :post, local: false, id: "add-to-cart-form", html: { "data-type": :json } do |form| %>
-                    <%= form.submit "Добавить в корзину", 
+                    <%= form.submit "Добавить в корзину",
                         class: "btn btn-primary btn-md md:btn-lg w-full shadow-lg transform transition-all hover:scale-105 active:scale-95 duration-200",
                         id: "order-button" %>
                   <% end %>
                 </div>
 
+                <!-- Контроллеры количества (показываются, если товар уже в корзине) -->
                 <div id="quantity-controls" class="hidden w-full">
                   <div class="flex items-center justify-center gap-4">
                     <button id="decrease-quantity" class="btn btn-circle btn-outline">
@@ -446,12 +484,12 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
                       </svg>
                     </button>
-                    
+
                     <div class="flex flex-col items-center">
                       <span id="cart-quantity" class="text-2xl font-bold text-primary">0</span>
                       <span class="text-xs text-base-content/60">в корзине</span>
                     </div>
-                    
+
                     <button id="increase-quantity" class="btn btn-circle btn-outline">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -460,8 +498,9 @@
                   </div>
                 </div>
               <% else %>
+                <!-- Предложение войти для гостей -->
                 <div class="w-full">
-                  <%= link_to "Войдите, чтобы заказать", login_path, 
+                  <%= link_to "Войдите, чтобы заказать", login_path,
                       class: "btn btn-primary btn-md md:btn-lg w-full shadow-lg transform transition-all hover:scale-105 active:scale-95 duration-200" %>
                   <p class="text-center text-sm mt-2 text-base-content/70">
                     <%= link_to "Зарегистрироваться", signup_path, class: "text-primary hover:text-primary-focus" %> для заказа
@@ -476,6 +515,7 @@
   </div>
 </div>
 
+<!-- Модальное окно для просмотра полноразмерного фото -->
 <dialog id="image_modal" class="modal">
   <div class="modal-box max-w-7xl w-11/12 h-5/6 max-h-full p-0 bg-transparent shadow-none">
     <form method="dialog" class="absolute right-2 md:right-4 top-2 md:top-4 z-10">
@@ -484,7 +524,7 @@
       </button>
     </form>
     <div class="w-full h-full flex items-center justify-center">
-      <img id="modal_image" class="max-w-full max-h-full object-contain rounded-xl md:rounded-2xl shadow-2xl" src="" />
+      <img id="modal_image" class="max-w-full max-h-full object-contain rounded-xl md:rounded-2xl shadow-2xl" src="">
     </div>
   </div>
   <form method="dialog" class="modal-backdrop bg-black/70">
@@ -494,11 +534,16 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    // --- УБРАНО: Строгая проверка формы ---
+    // Калькулятор должен работать и для гостей, поэтому скрипт запускается всегда.
+
+    // Получение CSRF токена
     function getCsrfToken() {
       const metaTag = document.querySelector('meta[name="csrf-token"]');
       return metaTag ? metaTag.getAttribute('content') : null;
     }
 
+    // Текущее количество товаров в корзине (актуально только для залогиненных)
     let currentTotalItems = parseInt(document.getElementById('cart-count')?.textContent || 0);
 
     const updateHeaderCartBadge = () => {
@@ -511,7 +556,7 @@
     const safeElement = (id, fallback = null) => {
       const element = document.getElementById(id);
       if (!element) {
-        console.warn(`Element #${id} not found`);
+        // console.warn(`Element #${id} not found`); 
         return fallback;
       }
       return element;
@@ -521,22 +566,25 @@
     const csrfToken = getCsrfToken();
     const isLoggedIn = <%= current_user ? 'true' : 'false' %>;
 
+    // Форма может отсутствовать у гостей, поэтому проверяем наличие
     const orderForm = document.getElementById('add-to-cart-form');
+
+    // --- ЛОГИКА ФОРМЫ (Только для залогиненных) ---
     if (orderForm) {
       orderForm.dataset.ingredientIds = '';
       orderForm.dataset.removedIngredientIds = '';
 
       orderForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        
+        // Дополнительная защита, хотя для гостей форма не рендерится
         if (!isLoggedIn) {
           window.location.href = '/login';
           return;
         }
-        
+
         const selectedIds = (orderForm.dataset.ingredientIds || '').split(',').filter(id => id);
         const removedIds = (orderForm.dataset.removedIngredientIds || '').split(',').filter(id => id);
-        
+
         const formData = new FormData();
         if (selectedIds.length > 0) selectedIds.forEach(id => formData.append('selected_ingredient_ids[]', id));
         if (removedIds.length > 0) removedIds.forEach(id => formData.append('removed_ingredient_ids[]', id));
@@ -548,9 +596,7 @@
         })
         .then(response => response.json())
         .then(data => {
-
           currentTotalItems++;
-
           updateHeaderCartBadge();
           updateCartInfoDisplay(data);
         })
@@ -567,23 +613,23 @@
     const basePriceElement = safeElement('base-price');
     const totalPriceElement = safeElement('total-price');
     const totalWeightElement = safeElement('total-weight');
-    const orderButton = safeElement('order-button');
+    const orderButton = safeElement('order-button'); // Может быть null
 
-    if (!basePriceElement || !totalPriceElement || !orderButton) {
-      console.error('Critical elements missing - disabling order functionality');
-      return;
+    // Проверяем только элементы, которые нужны для расчета цены/веса (они есть всегда)
+    if (!basePriceElement || !totalPriceElement) {
+      console.error('Critical pricing elements missing');
+      return; 
     }
 
     const basePrice = safeParseFloat(basePriceElement?.dataset?.basePrice, 0);
     const baseWeight = safeParseInt(totalWeightElement?.dataset?.baseWeight, 0);
-    
+
     const nutritionBlock = safeElement('nutrition-block');
     const baseProteins = safeParseFloat(nutritionBlock?.dataset?.baseProteins, 0);
     const baseFats = safeParseFloat(nutritionBlock?.dataset?.baseFats, 0);
     const baseCarbohydrates = safeParseFloat(nutritionBlock?.dataset?.baseCarbohydrates, 0);
 
     const ingredientCheckboxes = document.querySelectorAll('.ingredient-checkbox');
-
     const calculateCalories = (p, f, c) => (Math.max(0, p) * 4) + (Math.max(0, f) * 9) + (Math.max(0, c) * 4);
 
     const updateNutrition = () => {
@@ -618,6 +664,7 @@
         const ingredientId = checkbox.dataset.ingredientId;
         const isDefault = checkbox.dataset.default === 'true';
         if (!ingredientId) return;
+
         if (isDefault && !checkbox.checked) {
           currentTotalPrice -= price; currentTotalWeight -= weight; removedIngredientIds.push(ingredientId);
         } else if (!isDefault && checkbox.checked) {
@@ -625,23 +672,32 @@
         }
       });
 
+      // Обновляем текст (Это работает для Гостей)
       totalPriceElement.textContent = Math.max(0, currentTotalPrice).toFixed(2) + ' BYN';
       totalWeightElement.textContent = Math.max(0, currentTotalWeight) + ' г';
+
       const extrasPriceElement = safeElement('extras-price');
       if (extrasPriceElement) extrasPriceElement.textContent = Math.max(0, extrasPrice).toFixed(2) + ' BYN';
 
+      // Сохраняем состояние в форму ТОЛЬКО если форма существует (Т.е. пользователь залогинен)
       if (orderForm) {
         orderForm.dataset.ingredientIds = selectedIngredientIds.join(',');
         orderForm.dataset.removedIngredientIds = removedIngredientIds.join(',');
       }
+      
       updateNutrition();
-      updateCartInfo();
+      
+      // Запрашиваем инфо о корзине ТОЛЬКО если залогинен
+      if (isLoggedIn) {
+        updateCartInfo();
+      }
     };
 
     const updateCartInfo = () => {
-      const selectedIds = (orderForm?.dataset?.ingredientIds || '').split(',').filter(id => id);
-      const removedIds = (orderForm?.dataset?.removedIngredientIds || '').split(',').filter(id => id);
-      
+      if (!orderForm) return;
+      const selectedIds = (orderForm.dataset.ingredientIds || '').split(',').filter(id => id);
+      const removedIds = (orderForm.dataset.removedIngredientIds || '').split(',').filter(id => id);
+
       fetch(`/cart/info/${dishId}?selected_ingredient_ids=${selectedIds.join(',')}&removed_ingredient_ids=${removedIds.join(',')}`)
         .then(response => response.json())
         .then(data => {
@@ -654,7 +710,7 @@
       const addToCartContainer = safeElement('add-to-cart-container');
       const quantityControls = safeElement('quantity-controls');
       const cartQuantity = safeElement('cart-quantity');
-      
+
       if (data.in_cart) {
         if (addToCartContainer) addToCartContainer.classList.add('hidden');
         if (quantityControls) quantityControls.classList.remove('hidden');
@@ -666,51 +722,56 @@
     };
 
     const makeQuantityRequest = (action) => {
-      const selectedIds = (orderForm?.dataset?.ingredientIds || '').split(',').filter(id => id);
-      const removedIds = (orderForm?.dataset?.removedIngredientIds || '').split(',').filter(id => id);
-      
+      if (!orderForm) return;
+      const selectedIds = (orderForm.dataset.ingredientIds || '').split(',').filter(id => id);
+      const removedIds = (orderForm.dataset.removedIngredientIds || '').split(',').filter(id => id);
+
       fetch(`/cart/${action}/${dishId}?selected_ingredient_ids=${selectedIds.join(',')}&removed_ingredient_ids=${removedIds.join(',')}`, {
         method: 'POST',
         headers: { 'X-CSRF-Token': csrfToken, 'Accept': 'application/json' }
       })
       .then(response => response.json())
       .then(data => {
-        if (action === 'increase') {
-          currentTotalItems++;
-        } else if (action === 'decrease') {
-          currentTotalItems--;
-        }
+        if (action === 'increase') currentTotalItems++;
+        else if (action === 'decrease') currentTotalItems--;
         updateHeaderCartBadge();
-
         updateCartInfoDisplay(data);
       })
       .catch(error => console.error(`Error ${action} quantity:`, error));
     };
-    
+
     const increaseQuantity = () => makeQuantityRequest('increase');
     const decreaseQuantity = () => makeQuantityRequest('decrease');
 
+    // Слушатели на инпутах (вешаются всегда, чтобы калькулятор работал)
     ingredientCheckboxes.forEach(checkbox => checkbox.addEventListener('change', updateTotals));
-    safeElement('increase-quantity')?.addEventListener('click', (e) => { e.preventDefault(); increaseQuantity(); });
-    safeElement('decrease-quantity')?.addEventListener('click', (e) => { e.preventDefault(); decreaseQuantity(); });
+    
+    // Слушатели на кнопках +/- (вешаются безопасно)
+    const incBtn = safeElement('increase-quantity');
+    const decBtn = safeElement('decrease-quantity');
+    
+    if (incBtn) incBtn.addEventListener('click', (e) => { e.preventDefault(); increaseQuantity(); });
+    if (decBtn) decBtn.addEventListener('click', (e) => { e.preventDefault(); decreaseQuantity(); });
 
+    // Инициализация (Запускаем всегда для гостей)
     updateTotals();
-    updateCartInfo();
+    // Проверка корзины (только для залогиненных)
+    if (isLoggedIn) updateCartInfo(); 
 
+    // --- ГАЛЕРЕЯ (Без изменений) ---
     const carouselContainer = document.getElementById('dish-carousel-container');
     const carouselTrack = document.getElementById('carousel-track');
     const prevButton = document.getElementById('prev-slide');
     const nextButton = document.getElementById('next-slide');
     const indicators = document.querySelectorAll('.carousel-indicator');
     const slides = document.querySelectorAll('.carousel-slide');
-    
+
     if (carouselContainer && carouselTrack && slides.length > 0) {
       let currentIndex = 0;
       const totalSlides = slides.length;
 
       const updateCarousel = () => {
         carouselTrack.style.transform = `translateX(-${currentIndex * 100}%)`;
-
         indicators.forEach((indicator, index) => {
           if (index === currentIndex) {
             indicator.classList.add('bg-primary', 'md:w-6');
@@ -737,19 +798,8 @@
         updateCarousel();
       };
 
-      if (prevButton) {
-        prevButton.addEventListener('click', (e) => {
-          e.preventDefault();
-          prevSlide();
-        });
-      }
-      
-      if (nextButton) {
-        nextButton.addEventListener('click', (e) => {
-          e.preventDefault();
-          nextSlide();
-        });
-      }
+      if (prevButton) prevButton.addEventListener('click', (e) => { e.preventDefault(); prevSlide(); });
+      if (nextButton) nextButton.addEventListener('click', (e) => { e.preventDefault(); nextSlide(); });
 
       indicators.forEach((indicator, index) => {
         indicator.addEventListener('click', (e) => {
@@ -760,24 +810,16 @@
 
       let touchStartX = 0;
       let touchEndX = 0;
-      
-      carouselContainer.addEventListener('touchstart', (e) => {
-        touchStartX = e.changedTouches[0].screenX;
-      });
-      
+
+      carouselContainer.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; });
       carouselContainer.addEventListener('touchend', (e) => {
         touchEndX = e.changedTouches[0].screenX;
         handleSwipe();
       });
-      
+
       const handleSwipe = () => {
-        if (touchEndX < touchStartX - 50) {
-          nextSlide();
-        }
-        
-        if (touchEndX > touchStartX + 50) {
-          prevSlide();
-        }
+        if (touchEndX < touchStartX - 50) nextSlide();
+        else if (touchEndX > touchStartX + 50) prevSlide();
       };
 
       updateCarousel();
@@ -788,16 +830,13 @@
     try {
       const modal = document.getElementById('image_modal');
       const modalImage = document.getElementById('modal_image');
-      
       if (modal && modalImage && typeof modal.showModal === 'function') {
         modalImage.src = imageUrl;
         modal.showModal();
       } else {
-        console.warn('Modal elements not found or showModal not supported');
         window.open(imageUrl, '_blank');
       }
     } catch (error) {
-      console.error('Error opening image modal:', error);
       window.open(imageUrl, '_blank');
     }
   }

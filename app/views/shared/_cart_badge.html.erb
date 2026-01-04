@@ -1,3 +1,7 @@
+
+<!-- Бейдж (Badge) с индикатором количества товаров в корзине (Navbar/Icon) -->
+<!-- badge-sm: маленький размер. indicator-item: стиль бейджа как счетчика (цветной кружочек). -->
+<!-- Если local_assigns[:count] передан (через Turbo Stream), используем его. Иначе берем значение из переменной view cart_items_count. -->
 <span id="cart-count" class="badge badge-sm indicator-item bg-primary text-secondary">
   <%= local_assigns[:count] || cart_items_count %>
 </span>
